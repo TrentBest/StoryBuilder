@@ -14,6 +14,12 @@ These are related but distinct models. Implementation facts must not silently be
 
 A participant should be able to enter a campaign with a coherent world and meaningful context, take actions, and help shape what happens next. StoryBuilder should preserve continuity and provenance as the story evolves.
 
+## The first world
+
+The initial setting begins close enough to our own time for its fractures to be recognizable, then follows their consequences across recovery, a new global order, Solar System settlement, interstellar expansion, and a far-future civilization of more worlds than any one book could list. Earth remains humanity's remembered origin, but its location is unknown in the era of the main story.
+
+This is speculative alternate history, not a prediction. The premise and its current boundaries are recorded in [Story Foundation](docs/STORY_FOUNDATION.md); the nested chronology is outlined in [Historical Scale](docs/HISTORICAL_SCALE.md).
+
 ## Fit within The Singularity Workshop
 
 StoryBuilder should reuse the Workshop's existing technology rather than create a parallel platform:
@@ -35,6 +41,8 @@ Dependencies should remain intentional. FSM_COS is the composition boundary; Sto
 5. **Run and record participation** — preserve events and decisions as campaign history.
 6. **Reconcile continuity** — distinguish established canon, proposals, contradictions, and open questions.
 7. **Visualize the result** — connect the written model to useful, living diagrams and interactive views.
+
+The diegetic-tool concept is described in [StoryBuilder as a Diegetic Workshop Tool](docs/DIEGETIC_STORYBUILDER.md).
 
 ## Core principles
 
