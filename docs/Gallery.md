@@ -1,20 +1,28 @@
 # StoryBuilder Gallery
 
-StoryBuilder documents the creation of an Experience or Tool, then composes the world history and campaign context that make that Experience meaningful. Its first living example is its own origin story: a far-future human civilization built from recognizable history, hard-won recovery, interstellar expansion, and an Earth whose location has been lost.
+StoryBuilder is the tooling that captures the creation of an Experience and composes its characters, world history, scenes, and campaigns. The first proof is a real domain workflow; living GUI views will follow when the same records drive an actual host.
 
-## First recipe: from present fracture to a universe of worlds
+## Recipe 1: create a character, index a word, compose a scene
 
-Read [Story Foundation](STORY_FOUNDATION.md) for the premise and tonal rules, [Historical Scale](HISTORICAL_SCALE.md) for the millennia-to-event hierarchy, and [Diegetic StoryBuilder](DIEGETIC_STORYBUILDER.md) for the tool's role inside The Singularity Workshop.
+Run the [StoryBuilder Quickstart](../samples/StoryBuilder.Quickstart/Program.cs) with:
 
-**Current evidence:** these documents establish the initial concept and constraints. They do not claim that the application, timeline engine, campaign runtime, or living visualizations have been implemented yet.
+```sh
+dotnet run --project samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj
+```
 
-## Intended living proof
+The sample uses the actual C# core to:
+1. Create an editable Investigator character draft.
+2. Add a trait without requiring a full biography.
+3. Map “brave” to a “courageous” vocabulary concept and record its usage.
+4. Capture a pose, dialogue line, and action as ordered scene beats.
+5. Compose an editable narration draft from those beats.
 
-The first end-to-end demo should let a developer:
-1. Create an Experience record for StoryBuilder.
-2. Add an era and a provenance-aware historical claim.
-3. Start a small campaign in one frontier settlement.
-4. record a participant action and the resulting event.
-5. See the same underlying records reflected in a chronology and continuity view.
+This is a runnable console proof, not a claim that the final clickable Casting UI or claymation view already exists.
 
-A later Gallery entry should link to a runnable demo and its detailed recipe once that behavior exists.
+## Recipe 2: from a historical claim to a campaign
+
+Read [Story Foundation](STORY_FOUNDATION.md) for the setting, [Historical Scale](HISTORICAL_SCALE.md) for the millennia-to-event hierarchy, and [Diegetic StoryBuilder](DIEGETIC_STORYBUILDER.md) for the in-world tool concept. The workspace model now includes source records, historical claims, events, campaigns, participant actions, and continuity issues; a complete persisted campaign workflow remains future work.
+
+## Next living proof
+
+The next end-to-end Experience should let a user create a character through Casting, revise a trait, and immediately see the changed vocabulary counts and character view. The visible result must be generated from the same underlying records—not a static mockup. Later, the Stage should let the user play or pose a scene and preserve each beat's provenance.
