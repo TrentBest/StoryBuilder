@@ -11,7 +11,8 @@
 | Run the clickable authoring workbench | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md) |
 | Inspect the living GUI.SVG workspace view | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md), [WebDemo UML](docs/UML/StoryBuilderWebDemoUML.md) |
 | Understand the architecture and stack fit | [Architecture](docs/ARCHITECTURE.md) |
-| Create a character without writing a dissertation | [Character Creation](docs/CHARACTER_CREATION.md) |
+| Start a story with one idea | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
+| Create and revise characters by story function | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md), [Character Creation](docs/CHARACTER_CREATION.md) |
 | Capture an action scene or pose sequence | [Scene Capture](docs/SCENE_CAPTURE.md) |
 | Search words, synonyms, and attribution | [Vocabulary and Provenance](docs/VOCABULARY_AND_PROVENANCE.md) |
 | Understand the initial world and historical scale | [Story Foundation](docs/STORY_FOUNDATION.md), [Historical Scale](docs/HISTORICAL_SCALE.md) |
