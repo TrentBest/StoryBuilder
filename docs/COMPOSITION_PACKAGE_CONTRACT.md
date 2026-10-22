@@ -31,8 +31,8 @@ Workshop arbitration is the honing step. It resolves choices and records the res
 - `CompositionPackageValidator` checks schema versions, identity and revision alignment, payload hashes, selected bundle configuration, required host bundles/capabilities, versions, and duplicate IDs/settings.
 - `CompositionPackageCompiler` serializes workspace content through the existing FSM_Serialization-backed workspace document and emits three separate binary payloads: manifest, configuration, and content. The manifest hashes the exact configuration and content bytes.
 - `CompositionPackageReader` validates the manifest, configuration, payload hashes, and host capability availability before restoring content. Failed validation returns diagnostics and no session.
-- The manifest and configuration have explicit binary format versions and magic identifiers; settings are typed textual values under an explicit value-type identifier. No JSON or general-purpose object-graph serializer is introduced.
-- CI passed for contract validation, binary compilation/reading, round-trip book restoration, tamper rejection, and missing-required-bundle rejection. The manifest contract now also records explicit MicroBundle dependencies. AnyApp host integration and deterministic repeated-consumption proof remain future work.
+- Manifest schema version 2 records explicit MicroBundle dependencies and has a matching binary format version. Configuration has its own explicit schema and binary format version. Both artifacts use magic identifiers; settings are typed textual values under an explicit value-type identifier. No JSON or general-purpose object-graph serializer is introduced.
+- CI passed for contract validation, binary compilation/reading, round-trip book restoration, tamper rejection, missing-required-bundle rejection, and dependency-closure validation. The manifest contract now also records explicit MicroBundle dependencies. AnyApp host integration and deterministic repeated-consumption proof remain future work.
 
 These contracts are host-neutral and do not introduce a StoryBuilder.Core dependency on FSM_COS, AnyApp, GUI.SVG, or Renderer.
 

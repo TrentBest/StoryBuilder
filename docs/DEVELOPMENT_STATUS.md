@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 64% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, and a four-FSM Narrator agent. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. A new GUI.SVG portrayal rail linking timeline events to their actual manuscript sections is now implemented in source and awaiting its own CI verification. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 65% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, and a four-FSM Narrator agent. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -23,7 +23,7 @@
 - NarratorAgent: four isolated FSM_API definitions and processing groups for intent, planning, observer constraints, and draft/review. The Home page displays their live states; premise capture uses the intent FSM, timeline planning uses the planning FSM, and draft submission is held for review when declared event claims exceed accepted observer knowledge. The agent records transitions and disposes its instances and definitions.
 - Binary workspace format version 7 persists timeline definitions (v3), manuscripts (v4), provisional timeline planning points (v5), timeline assignment/placement for world events (v6), and observer-knowledge records (v7). Readers retain compatibility with versions 1 through 6.
 - Host-neutral composition manifest/configuration contracts and CompositionPackageValidator: checks package/workspace identity, content revision, SHA-256 inputs, bundle configuration, required host capabilities, versions, and duplicate identifiers without rerunning arbitration.
-- CompositionPackageCompiler and CompositionPackageReader: emits binary manifest, per-MicroBundle configuration, and content payloads; hashes exact content/configuration bytes and rejects invalid packages before restoring a workspace. Round-trip, tamper, and missing-required-bundle tests passed CI.
+- CompositionPackageCompiler and CompositionPackageReader: emits binary manifest, per-MicroBundle configuration, and content payloads; hashes exact content/configuration bytes and rejects invalid packages before restoring a workspace. Manifest schema version 2 captures explicit MicroBundle dependencies; dependency-closure, round-trip, tamper, and missing-required-bundle tests passed CI.
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
@@ -50,6 +50,8 @@
 - [Multi-FSM Narrator workflow run 39709886977](https://github.com/TrentBest/StoryBuilder/actions/runs/39709886977) succeeded on commit 5ae7c1c461d0fe445e989d1bc6382cb39b9fdaf1.
 - [Package contract/validator workflow run 39710671114](https://github.com/TrentBest/StoryBuilder/actions/runs/39710671114) succeeded on commit b8b6da7970bb4cad47e6379f302b5cbbdd939a00.
 - [Binary package compiler/reader workflow run 39710865443](https://github.com/TrentBest/StoryBuilder/actions/runs/39710865443) succeeded on commit e0cc03494cc6418370f61f9f16d2c81842219e5f.
+- [Manifest dependency-closure workflow run 39711546281](https://github.com/TrentBest/StoryBuilder/actions/runs/39711546281) succeeded on commit f3c2b0a20946cf5b8cb2d273f2941b72c9574f80.
+- [Numbered timeline portrayal rail workflow run 39711644001](https://github.com/TrentBest/StoryBuilder/actions/runs/39711644001) succeeded on commit 266dd4a35d2e0088b0430834f327bc99b9a5592b.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
@@ -69,15 +71,14 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The portrayal rail is awaiting CI. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered portrayal rail and manifest dependency closure are verified in CI. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Verify the event-to-book portrayal rail in CI and fix any rendering or test failures.
-2. Add scene/beat-level event links so timeline events can navigate deeper than a manuscript section.
-3. Add a host adapter proving AnyApp validates and consumes the package without rerunning arbitration.
-4. Connect the Narrator FSM workflow to the user's Renderer package through a host-neutral portrayal request and explicit result contract.
-5. Add richer Plot Twist alternatives, consequence/impact links, and explicit promotion to world events.
-6. Add immutable publication editions and corrected-edition lineage.
-7. Integrate StoryBuilder into the Workshop WebPage host.
-8. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
+1. Add scene/beat-level event links so timeline events can navigate deeper than a manuscript section.
+2. Add a host adapter proving AnyApp validates and consumes the package without rerunning arbitration.
+3. Connect StoryBuilder's accepted-knowledge constraints with Renderer-backed representations through a host-neutral portrayal contract; keep narrative knowledge separate from visual/computational detail selection.
+4. Add richer Plot Twist alternatives, consequence/impact links, and explicit promotion to world events.
+5. Add immutable publication editions and corrected-edition lineage.
+6. Integrate StoryBuilder into the Workshop WebPage host.
+7. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.

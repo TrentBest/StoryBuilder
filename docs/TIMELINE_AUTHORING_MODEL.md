@@ -31,6 +31,12 @@ Renderer can portray this constrained model in text or another supported medium.
 
 When a passage exceeds an observer's knowledge, flag it and offer grounded alternatives: omit it, frame it as inference, attribute it to a source, change observer, or explicitly change narration policy. Do not silently invent knowledge.
 
+## Renderer and narrative observer are complementary
+
+Renderer's observer model governs observer-relative representation: semantic detail, visibility, interaction, spatial context, and computational detail across Event Horizons. StoryBuilder's observer-knowledge model governs what a character or narrator may claim to know, and how that claim must be framed. These are connected layers, not interchangeable policies.
+
+For example, StoryBuilder may permit an observer to report a rumor only as an attributed report. Renderer can then choose the appropriate visual or semantic representation for that observer and presentation context. A visual representation decision must never grant the character new narrative knowledge, and an observer-knowledge decision must not force a particular graphics backend. The integration belongs behind host-neutral portrayal requests and optional MicroBundle selection; StoryBuilder.Core must not acquire a direct dependency on Renderer or FSM_COS.
+
 ## Multi-FSM Narrator
 
 The Narrator is a coordinated agent of focused FSMs, not a monolithic state machine. Use FSM_API for lifecycle and transitions. Candidate responsibilities include:
