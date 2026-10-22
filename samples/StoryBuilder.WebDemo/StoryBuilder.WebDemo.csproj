@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/StoryBuilder.Core/StoryBuilder.Core.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj" />
+    <ProjectReference Include="../../src/StoryBuilder.FSM/StoryBuilder.FSM.csproj" />
   </ItemGroup>
 </Project>
