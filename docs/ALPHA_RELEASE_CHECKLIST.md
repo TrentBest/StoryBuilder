@@ -12,7 +12,7 @@
 - [x] The AnyApp dispatcher was updated to accept event creation, passage creation, and event-to-passage linking commands while preserving its save-after-success behavior.
 - [x] AnyApp Windows Release build and test suite passed after the dispatcher change: [workflow run 39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164). This historical run does not verify the newer host-local binary persistence implementation.
 - [x] Obtain green CI for the current AnyApp `development` source, including `StoryBuilderDesktopPersistenceStore` restore/save behavior and the expanded command dispatcher: [workflow run 39850248777](https://github.com/TrentBest/AnyApp/actions/runs/39850248777) completed successfully on commit `f780889a4c47a561d59b4f22e4d740edf4e6bacb` on 22 October 2026. The regression verifies manuscript-section event links survive store restore. The separate native process restart/reopen smoke test remains open; this CI result does not close that end-to-end gate.
-- [ ] Perform or automate a real AnyApp `--storybuilder` create → link → save → restart → reopen smoke test, confirming the same event ID and passage link survive.
+- [x] Verify native process restart/reopen persistence: AnyApp workflow [39863022603](https://github.com/TrentBest/AnyApp/actions/runs/39863022603) runs the native app in a write process, exits, starts a separate verify process, reloads the workspace, and asserts the event-to-manuscript-section link survives. This closes the process-level persistence gate for the current probe path; interactive workflow coverage and real-host composition-package consumption remain separate.
 - [x] Trent selected MIT to align with the Workshop's existing open-source direction; added the repository `LICENSE` and linked it from the README.
 - [ ] Reconcile the open development → master PR. The live GitHub comparison confirms that `development` is ahead of and 13 commits behind `master` (reviewed 22 October 2026). The ahead count changes with new commits; recheck immediately before any reconciliation. Do not blindly merge.
 - [ ] Decide the Alpha's exact version/tag, included projects, known limitations, and install/run instructions.
@@ -20,7 +20,7 @@
 
 ## Scope of the first Alpha
 
-The defensible first milestone is a local, book-first authoring prototype: create characters and scenes, record timeline events, place events in manuscript passages, inspect the deterministic Markdown book output, and preserve a versioned binary workspace. The browser demo has browser-local persistence. The native AnyApp host is the intended desktop path, but its end-to-end restart/reopen behavior must be verified before it is claimed as proven.
+The defensible first milestone is a local, book-first authoring prototype: create characters and scenes, record timeline events, place events in manuscript passages, inspect the deterministic Markdown book output, and preserve a versioned binary workspace. The browser demo has browser-local persistence. The native AnyApp host is the intended desktop path; the automated two-process persistence probe now proves the saved workspace and event-to-section link survive a process restart. Real-host composition-package consumption remains to be validated.
 
 Not promised for this Alpha: cloud sync, collaboration, LLM-backed drafting, immutable publication editions, complete Renderer integration, or Workshop WebPage hosting.
 
