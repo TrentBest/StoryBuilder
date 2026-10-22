@@ -8,7 +8,7 @@ StoryWorkspace groups the implementation record for an Experience with related f
 
 ## UML class card
 
-See the focused [StoryWorkspace UML](../../../../docs/UML/StoryWorkspaceUML.md) for the class diagram and use case.
+See the focused [StoryWorkspace UML](../../../docs/UML/StoryWorkspaceUML.md) for the class diagram and use case.
 
 ## Boundary
 
