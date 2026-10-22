@@ -11,7 +11,7 @@
 - Placement: ApproximatePlacement and TimelinePlacementKind
 - Progress: TimelinePlanningStatus
 - Exploration: Alternatives
-- Future traceability: RelatedSceneIds and RelatedEventIds
+- Impact and promotion traceability: RelatedSceneIds, RelatedEventIds, and PromotedEventId
 - History: CreatedAtUtc and UpdatedAtUtc
 
 ## Use cases
@@ -19,4 +19,5 @@
 - Add Plot Twist near the midpoint while its meaning is unknown.
 - Preserve several candidate explanations without rewriting canon.
 - Progress from placeholder to brainstorming, specification, review, and an explicit decision.
-- Link a resolved point to event and scene records while retaining its identity.
+- Link a provisional point to the scenes and events it may affect.
+- Explicitly promote the point to one proposed `StoryEvent`; the planning point becomes Superseded and retains the promoted event ID. Repeating promotion returns the same event rather than duplicating it.
