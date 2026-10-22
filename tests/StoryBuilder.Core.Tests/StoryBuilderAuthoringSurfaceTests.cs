@@ -41,7 +41,7 @@ public sealed class StoryBuilderAuthoringSurfaceTests
         Assert.True(result.Succeeded);
         Assert.Contains(
             "Timelines: 1",
-            surface.Root.Children.Single(node => node.Id == "storybuilder-counts").Text);
+            surface.Root.Children.Single(node => node.Id == "storybuilder-counts").Text ?? string.Empty);
     }
 
     [Fact]
