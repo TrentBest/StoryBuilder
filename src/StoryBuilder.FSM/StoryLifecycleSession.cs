@@ -44,6 +44,9 @@ public sealed class StoryLifecycleSession
     {
         _context.RequestedStatus = requestedStatus;
         _handle.Update(ProcessingGroup);
+        // FSM_API schedules the destination state's OnEnter for the next step after a transition.
+        if (!string.Equals(_handle.CurrentState, _context.CurrentStatus.ToString(), StringComparison.Ordinal))
+            _handle.Update(ProcessingGroup);
         return _context.CurrentStatus;
     }
 
