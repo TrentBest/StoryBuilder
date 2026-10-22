@@ -93,6 +93,38 @@ public sealed class StoryBuilderSession
         return updated;
     }
 
+    /// <summary>Explicitly promotes a provisional planning point into a proposed canonical event.</summary>
+    /// <remarks>The new event remains Proposed; promotion does not silently accept story canon.</remarks>
+    public StoryEvent PromotePlanningPointToEvent(Guid planningPointId, string? title = null, string? summary = null)
+    {
+        var point = Workspace.PlanningPoints.FirstOrDefault(item => item.Id == planningPointId)
+            ?? throw new KeyNotFoundException($"Planning point '{planningPointId}' does not exist in this workspace.");
+        if (point.PromotedEventId is Guid existingId)
+            return Workspace.Events.FirstOrDefault(item => item.Id == existingId)
+                ?? throw new InvalidOperationException($"Planning point '{planningPointId}' references missing promoted event '{existingId}'.");
+        if (!Workspace.Timelines.Any(item => item.Id == point.TimelineId))
+            throw new KeyNotFoundException($"Timeline '{point.TimelineId}' does not exist in this workspace.");
+
+        var storyEvent = new StoryEvent
+        {
+            TimelineId = point.TimelineId,
+            Title = string.IsNullOrWhiteSpace(title) ? point.Label : title.Trim(),
+            Summary = string.IsNullOrWhiteSpace(summary) ? point.Intent : summary.Trim(),
+            InWorldDateOrPeriod = NormalizeOptional(point.ApproximatePlacement),
+            PlacementKind = point.PlacementKind,
+            Status = CanonStatus.Proposed
+        };
+        AddEvent(storyEvent);
+        Workspace.ReplacePlanningPoint(point with
+        {
+            Status = TimelinePlanningStatus.Superseded,
+            PromotedEventId = storyEvent.Id,
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        });
+        NotifyChanged();
+        return storyEvent;
+    }
+
     /// <summary>Replaces a planning point's alternative outcomes while preserving their author-entered order.</summary>
     public TimelinePlanningPoint SetPlanningPointAlternatives(Guid planningPointId, IEnumerable<string> alternatives)
     {
