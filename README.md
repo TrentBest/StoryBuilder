@@ -27,7 +27,8 @@ StoryBuilder also needs to understand how words are used across the story domain
 
 The .NET 8 domain core includes:
 
-- **Casting:** create, select, revise, and add/remove character traits from editable drafts.
+- **Casting:** create, select, revise, and add/remove character traits from editable drafts; record stable-ID relationships between characters.
+- **Places:** create canonical place records, optionally nest places under parent places, and assign scenes to place IDs without losing free-form location notes.
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder them and copy an editable narration draft.
 - **Vocabulary:** index character and scene words, record explicit synonyms, and refresh counts when an author edits a record.
 - **World Archive:** record historical claims with optional source provenance and explicit canon status.
@@ -67,7 +68,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [Phone Review Guide](docs/PHONE_REVIEW.md) — concise readiness, evidence, and next steps for reviewing this work on a phone.
 - [Documentation Index](DOCUMENTATION_INDEX.md) — choose a path through the repository.
 - [Legacy Project Migration](docs/LEGACY_PROJECT_MIGRATION.md) — import the first-generation JSON schema while preserving the original source payload across binary saves.\n- [Story Domain Contract](docs/STORY_DOMAIN_CONTRACT.md) — implemented record meanings, canon and observer-knowledge rules, event-to-prose links, persistence boundaries, and Alpha limitations.
-- [Architecture](docs/ARCHITECTURE.md) — package ownership and the Workshop integration plan.
+- [Runtime and Package Boundaries](docs/ARCHITECTURE.md) — what each package owns, how workspace operations and persistence behave, and current host limitations.
 - [WebDemo Guide](samples/StoryBuilder.WebDemo/README.md) — how to run and explore the interactive prototype.
 - [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) — low-friction, visual-first story creation; target output discovery; and the digital publication boundary.
 - [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) — cast roles, the three-sided mirror concept, word occurrences, and careful pronoun-reference tracking.
@@ -76,16 +77,15 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [Scene Capture](docs/SCENE_CAPTURE.md) — playing scenes, beat capture, pose sequences, and narration drafts.
 - [Vocabulary and Provenance](docs/VOCABULARY_AND_PROVENANCE.md) — synonym usage, attribution, source records, and canon status.
 - [Gallery](docs/Gallery.md) — runnable recipes and honest evidence of current behavior.
-- [Development Status](docs/DEVELOPMENT_STATUS.md) — implemented scope, open work, and readiness estimate.
+- [Development Status](docs/DEVELOPMENT_STATUS.md) — implemented scope and remaining operational gaps.
 - [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) — evidence-based gates for the first public source Alpha.
-- [Branch Reconciliation](docs/BRANCH_RECONCILIATION.md) — the safe route to the canonical branch model.
 - [Storycraft Workshop](docs/STORYCRAFT_WORKSHOP.md) — a practical writing course from premise and character through plot, scenes, prose, point of view, theme, revision, genre, and continuity.
 - [Story Foundation](docs/STORY_FOUNDATION.md) and [Historical Scale](docs/HISTORICAL_SCALE.md) — the initial science-fiction setting and its nested chronology.
 - [Diegetic StoryBuilder](docs/DIEGETIC_STORYBUILDER.md) — the in-world tool concept.
 
 ## Current boundary
 
-The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, authorable plural timelines and divergence views, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. Alpha release preparation is underway; no release has been created and no package has been published. NuGet publishing remains gated on final package validation and explicit approval.
+The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, complete temporal/causal graph editing and divergence visualization, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. Alpha release preparation is underway; no release has been created and no package has been published. NuGet publishing remains gated on final package validation and explicit approval.
 
 ## License
 
