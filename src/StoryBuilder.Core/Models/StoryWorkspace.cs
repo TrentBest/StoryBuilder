@@ -123,6 +123,7 @@ public sealed class StoryWorkspace
     private readonly List<ManuscriptEdition> _manuscripts = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
+    private readonly List<PlaceRecord> _places = [];
     private readonly List<SceneRecord> _scenes = [];
     private readonly List<HistoricalClaim> _historicalClaims = [];
     private readonly List<StoryEvent> _events = [];
@@ -142,6 +143,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<ManuscriptEdition> Manuscripts => _manuscripts.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
+    public IReadOnlyList<PlaceRecord> Places => _places.AsReadOnly();
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
     public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
@@ -226,6 +228,25 @@ public sealed class StoryWorkspace
         _characters.Add(character);
     }
 
+    public void AddPlace(PlaceRecord place)
+    {
+        ArgumentNullException.ThrowIfNull(place);
+        EnsureUnique(_places.Select(x => x.Id), place.Id, nameof(place));
+        if (place.ParentPlaceId is Guid parentId && !_places.Any(existing => existing.Id == parentId))
+            throw new KeyNotFoundException($"Parent place '{parentId}' must exist before its child place is added.");
+        _places.Add(place);
+    }
+
+    public void ReplacePlace(PlaceRecord place)
+    {
+        ArgumentNullException.ThrowIfNull(place);
+        if (place.ParentPlaceId is Guid parentId && !_places.Any(existing => existing.Id == parentId))
+            throw new KeyNotFoundException($"Parent place '{parentId}' does not exist in this workspace.");
+        if (place.ParentPlaceId == place.Id)
+            throw new InvalidOperationException("A place cannot contain itself.");
+        ReplaceById(_places, place.Id, place, nameof(place));
+    }
+
     public void AddScene(SceneRecord scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
@@ -307,6 +328,7 @@ public sealed class StoryWorkspace
     private static Guid GetId<T>(T record) where T : notnull => record switch
     {
         StoryPremise premise => premise.Id,
+        PlaceRecord place => place.Id,
         ManuscriptEdition manuscript => manuscript.Id,
         TimelinePlanningPoint point => point.Id,
         ObserverKnowledgeRecord observerRecord => observerRecord.Id,
