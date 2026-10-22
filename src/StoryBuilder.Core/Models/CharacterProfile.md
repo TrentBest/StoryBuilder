@@ -4,7 +4,7 @@
 
 ## Purpose
 
-CharacterProfile is the editable record behind **Casting**. It can begin as an unnamed draft with no biography and gain traits, relationships, notes, and description as the author discovers the character.
+CharacterProfile is the editable record behind **Casting**. It can begin as an unnamed draft with no biography and gain traits, relationships, notes, and description as the author discovers the character. Its NarrativeRole (Hero, Neutral, Antagonist, Undecided, or Other) records story function separately from the character's profession or archetype.
 
 Suggested traits are not automatically assigned. The surface wording and attribution of a trait remain intact.
 
