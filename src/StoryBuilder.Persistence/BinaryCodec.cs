@@ -44,8 +44,12 @@ internal static class BinaryCodec
     internal static double ReadDouble(IBinaryStream stream) =>
         BitConverter.Int64BitsToDouble(ReadInt64(stream));
 
-    internal static void WriteBoolean(IBinaryStream stream, bool value) =>
-        stream.Write([value ? (byte)1 : (byte)0]);
+    internal static void WriteBoolean(IBinaryStream stream, bool value)
+    {
+        Span<byte> bytes = stackalloc byte[1];
+        bytes[0] = value ? (byte)1 : (byte)0;
+        stream.Write(bytes);
+    }
 
     internal static bool ReadBoolean(IBinaryStream stream)
     {
