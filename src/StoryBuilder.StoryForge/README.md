@@ -19,3 +19,9 @@ StoryBuilder owns story semantics and authoring. Experiences owns reusable Exper
 ## Verification
 
 The `StoryBuilder.StoryForge.Tests` project carries the temporal-model and query-engine tests migrated from the former Experiences placement. The source migration is additive at this stage: the original project remains in Experiences until the StoryBuilder-owned build/test path is green and downstream references have been reconciled.
+
+## Canonical workspace integration
+
+StoryBuilder.Core remains the canonical owner of event, timeline, manuscript, character, scene, and source records. `StoryWorkspaceTemporalProjection` builds a read-only query index from canonical workspace events using an explicit coordinate resolver; it does not persist a second event graph. Unresolved and approximate textual dates are not guessed. Workspace persistence remains in StoryBuilder.Persistence using FSM_Serialization.
+
+See [StoryWorkspaceTemporalProjection](StoryWorkspaceTemporalProjection.md) and its tests.
