@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Verifies that the working manuscript becomes a deterministic digital Markdown artifact with ordered sections and stable event-reference metadata.
+Verifies that the working manuscript becomes a deterministic digital Markdown artifact with ordered sections and stable event-reference metadata, that UTF-8 stream export writes the exact artifact without closing the caller's stream, and that read-only destinations are rejected.
 
 ## UML class card
 
