@@ -219,6 +219,7 @@ public sealed class StoryBuilderSession
             PreviousEditionId = previous?.Id,
             CorrectionNotes = string.IsNullOrWhiteSpace(correctionNotes) ? null : correctionNotes.Trim(),
             SectionIds = manuscript.Sections.OrderBy(section => section.Sequence).Select(section => section.Id).ToList(),
+            SceneIds = manuscript.Sections.SelectMany(section => section.SceneIds).Distinct().ToList(),
             EventIds = artifact.ReferencedEventIds.ToList()
         };
         Workspace.AddPublishedEdition(edition);
