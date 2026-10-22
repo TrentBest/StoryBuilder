@@ -52,6 +52,59 @@ public sealed class StoryWorkspaceValidatorTests
     }
 
     [Fact]
+    public void ValidateReportsCharacterRelationshipsToMissingCharacters()
+    {
+        var workspace = new StoryWorkspace();
+        var missingCharacterId = Guid.NewGuid();
+        var character = new CharacterProfile
+        {
+            Name = "Mara",
+            Relationships =
+            [
+                new CharacterRelationship
+                {
+                    TargetCharacterId = missingCharacterId,
+                    Label = "sibling",
+                    Status = CanonStatus.Accepted
+                }
+            ]
+        };
+        workspace.AddCharacter(character);
+
+        var issues = StoryWorkspaceValidator.Validate(workspace);
+
+        var issue = Assert.Single(issues);
+        Assert.Equal(nameof(CharacterProfile), issue.OwnerType);
+        Assert.Equal(character.Id, issue.OwnerId);
+        Assert.Equal("related character", issue.Relationship);
+        Assert.Equal(missingCharacterId, issue.MissingTargetId);
+    }
+
+    [Fact]
+    public void ValidateAcceptsCharacterRelationshipsBetweenExistingCharacters()
+    {
+        var workspace = new StoryWorkspace();
+        var sibling = new CharacterProfile { Name = "Mara" };
+        var character = new CharacterProfile
+        {
+            Name = "Ivo",
+            Relationships =
+            [
+                new CharacterRelationship
+                {
+                    TargetCharacterId = sibling.Id,
+                    Label = "sibling",
+                    Status = CanonStatus.Accepted
+                }
+            ]
+        };
+        workspace.AddCharacter(sibling);
+        workspace.AddCharacter(character);
+
+        Assert.Empty(StoryWorkspaceValidator.Validate(workspace));
+    }
+
+    [Fact]
     public void ValidateAcceptsLinkedAuthoringWorkflow()
     {
         var session = new StoryBuilderSession();
