@@ -12,7 +12,7 @@
 - SceneRecord and ordered SceneBeat capture modes, including Played, BeatByBeat, PoseSequence, and Claymation labels.
 - Interactive **The Stage** page: capture action, reaction, dialogue, pose, tone, and notes; reorder/remove beats; generate and copy an editable narration draft.
 - Interactive **World Archive** page: record historical claims with optional source provenance and explicit canon status.
-- Interactive **Campaign Room**: create campaigns, record participant choices, and accept/reject/reopen/deprecate them through the FSM_API lifecycle.
+- **Campaign Room:** create campaigns, record participant choices, and accept/reject/reopen/deprecate them through the FSM_API lifecycle.
 - **Living Map:** the pinned GUI.SVG source project renders a live SVG manifestation of current character cards, review status, traits, workspace counts, and most-used vocabulary. Automated tests verify that the rendered output changes with real domain data.
 - VocabularyIndex with explicit synonym mapping, surface-word preservation, counts, attribution, text tokenization, and re-indexing of existing occurrences when synonym mappings change.
 - StoryBuilderSession coordinates workspace edits and refreshes indexed names, roles, descriptions, traits, relationships, notes, scene metadata, beat text, claims, events, sources, campaigns, participant actions, and continuity notes.
@@ -23,7 +23,7 @@
 - The WebDemo autosaves and restores that binary document through browser localStorage; a coordinator test verifies persistence across sessions.
 - Automated test composes StoryBuilderAuthoringBundle through FSM_COS.
 - Runnable console quickstart and interactive Blazor WebDemo.
-- The GUI.SVG source is pinned as a Git submodule at a specific commit. CI initializes submodules and builds the actual source rather than depending on an unpublished NuGet package.
+- The GUI.SVG source is pinned as a submodule at a specific commit. CI initializes submodules and builds the actual source rather than depending on an unpublished NuGet package.
 - Source companion Markdown pages and focused UML/use-case diagrams for maintained types.
 - GitHub Actions builds the core, both adapters, persistence, both samples, and runs the tests. Checkout action is pinned to an immutable commit SHA.
 
@@ -44,6 +44,9 @@
 - Browser-level automated tests for user interactions and accessibility.
 - Physics-backed fight simulation or a visual pose/claymation timeline.
 - Canonical event timelines with world time distinct from reader order, branch/divergence modeling, synchronized timeline comparison, and explicit unrevealed events.
+- Timeline as a Process Group that can be inserted into a host driver and advanced through its update contract.
+- Keyboard-invoked timeline developer console, event-number/book color links, bidirectional scene-to-event navigation, and observer-aware recounting.
+- Immutable published edition artifacts, explicit corrected-edition lineage, and publication-aware prequel/sequel continuity checks.
 - Gestures-backed character animation and authorable gesture timing/preview.
 - Visualize/Renderer provider discovery for interactive scene editing and multi-format portrayal; current GUI.SVG Living Map is not a full world-scene editor.
 - Full campaign continuity resolution and source-to-event reconciliation.
@@ -52,16 +55,15 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation now work together; the MicroBundle contract is tested through FSM_COS. Timeline/multiverse/gesture capabilities are now specified as design requirements but are not yet implemented, so this specification does not increase the readiness estimate. The Narrator-first workflow, Casting Studio's revision/reference observability, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation now work together; the MicroBundle contract is tested through FSM_COS. Timeline/multiverse/gesture requirements are specified but not yet implemented, so this specification does not increase the readiness estimate. The Narrator-first workflow, Casting Studio's revision/reference observability, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Implement the Narrator's low-friction first-session flow: capture a free-form idea, produce a visible premise proposal, and let the user revise or accept it before asking another question.
-2. Evolve Casting into Hero / Neutral / Antagonist / Undecided lanes with a three-sided mirror built from the profile, actual source context, and proposed revision.
-3. Add exact source spans and explicit author-confirmed character references; keep ambiguous pronouns unresolved unless supported.
-4. Add export/import, backup, and migration tests for future binary schema versions.
-5. Mount StoryBuilderAuthoringBundle in the Workshop WebPage host through the existing FSM_COS composition path.
-6. Expand campaign actions into a continuity workflow linking participant choices to events and historical consequences.
-7. Add canonical world-event records and an author-facing chronology before implementing alternate-timeline branches.
-8. Define branch identity, parent/divergence references, branch-local changes, and comparison acceptance tests; preserve the original history.
-9. Integrate Gestures/Visualize/Renderer only through host-discovered MicroBundle capabilities, with truthful fallbacks when unavailable.
+1. **Timeline-first:** define the timeline/event/branch domain identities and Process Group adapter boundary, then prove a timeline can be inserted into a compatible driver and updated.
+2. Build the keyboard-invoked timeline console over real domain records, with a visible accessible control as a fallback.
+3. Add bidirectional links between timeline events and book/chapter/scene/passage recountings, with colored relationship indicators and stable event IDs.
+4. Add exact-repeat references and observer-constrained new recountings; flag knowledge violations and contradictions rather than silently rewriting canon.
+5. Add immutable publication editions and explicit correction/alternate-continuity lineage.
+6. Integrate optional Gestures, Visualize, and Renderer through host-discovered MicroBundle capabilities.
+7. Continue the Narrator-first workflow and Casting Studio's source-aware revision loop.
+8. Mount StoryBuilderAuthoringBundle in the Workshop WebPage host through the existing FSM_COS composition path.
