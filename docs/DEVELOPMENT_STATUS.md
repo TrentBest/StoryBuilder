@@ -25,6 +25,7 @@
 - Host-neutral composition manifest/configuration contracts and CompositionPackageValidator: checks package/workspace identity, content revision, SHA-256 inputs, bundle configuration, required host capabilities, versions, and duplicate identifiers without rerunning arbitration.
 - CompositionPackageCompiler and CompositionPackageReader: emits binary manifest, per-MicroBundle configuration, and content payloads; hashes exact content/configuration bytes and rejects invalid packages before restoring a workspace. Manifest schema version 2 captures explicit MicroBundle dependencies; dependency-closure, round-trip, tamper, and missing-required-bundle tests passed CI.
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
+- StoryBuilderAuthoringController provides explicit, host-neutral command IDs for creating timelines, characters, scenes, and manuscripts. Unsupported commands are rejected without mutation; AnyApp control binding and end-to-end desktop verification remain incomplete.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
 - BookProductRenderer emits a deterministic Markdown digital-book artifact with ordered sections, normalized line endings, and stable referenced-event metadata. The Book Preview exposes this output directly.
