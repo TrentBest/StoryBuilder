@@ -18,5 +18,6 @@ public sealed record PublishedBookEdition
     public Guid? PreviousEditionId { get; init; }
     public string? CorrectionNotes { get; init; }
     public List<Guid> SectionIds { get; init; } = [];
+    public List<Guid> SceneIds { get; init; } = [];
     public List<Guid> EventIds { get; init; } = [];
 }
