@@ -31,7 +31,7 @@ The .NET 8 domain core includes:
 - **Places:** create canonical place records, optionally nest places under parent places, and assign scenes to place IDs without losing free-form location notes.
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder them and copy an editable narration draft.
 - **Vocabulary:** index character and scene words, record explicit synonyms, and refresh counts when an author edits a record.
-- **World Archive:** record historical claims with optional source provenance and explicit canon status.
+- **World Archive:** record historical claims with optional source provenance and explicit canon status; run a continuity review to find causal cycles, inconsistent cause/consequence links, and cyclic timeline branches.
 - **Campaign Room:** create campaigns and record participant choices as proposals until deliberately accepted.
 - **Review lifecycle:** the optional StoryBuilder.FSM adapter uses FSM_API to govern draft, proposed, accepted, rejected, and deprecated transitions.
 - **Composition contract:** StoryBuilder.MicroBundle exposes authoring capabilities through MicroBundleDomain. An automated test composes it through FSM_COS; the bundle itself does not depend on the composition kernel.
@@ -85,7 +85,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 ## Current boundary
 
-The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, complete temporal/causal graph editing and divergence visualization, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. Alpha release preparation is underway; no release has been created and no package has been published. NuGet publishing remains gated on final package validation and explicit approval.
+The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, interactive editing and visualization of the full temporal/causal graph and timeline divergence, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations are not yet available. Alpha release preparation is underway; no release has been created and no package has been published. NuGet publishing remains gated on final package validation and explicit approval.
 
 ## License
 
