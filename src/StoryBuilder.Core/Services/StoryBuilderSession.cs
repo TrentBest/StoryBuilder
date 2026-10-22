@@ -54,6 +54,65 @@ public sealed class StoryBuilderSession
         return concept;
     }
 
+    /// <summary>Creates an editable manuscript product whose sections can be composed incrementally.</summary>
+    public ManuscriptEdition CreateManuscript(string? title = null, string? subtitle = null, string? author = null)
+    {
+        var manuscript = new ManuscriptEdition
+        {
+            Title = string.IsNullOrWhiteSpace(title) ? "Untitled book" : title.Trim(),
+            Subtitle = NormalizeOptional(subtitle) ?? string.Empty,
+            Author = NormalizeOptional(author) ?? string.Empty
+        };
+        Workspace.AddManuscript(manuscript);
+        NotifyChanged();
+        return manuscript;
+    }
+
+    public ManuscriptEdition UpdateManuscript(ManuscriptEdition manuscript)
+    {
+        ArgumentNullException.ThrowIfNull(manuscript);
+        var updated = manuscript with { UpdatedAtUtc = DateTimeOffset.UtcNow };
+        Workspace.ReplaceManuscript(updated);
+        NotifyChanged();
+        return updated;
+    }
+
+    public ManuscriptEdition AddManuscriptSection(Guid manuscriptId, ManuscriptSectionKind kind, string? title = null)
+    {
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
+        var section = new ManuscriptSection
+        {
+            Kind = kind,
+            Title = string.IsNullOrWhiteSpace(title) ? DefaultSectionTitle(kind, manuscript.Sections.Count + 1) : title.Trim(),
+            Sequence = manuscript.Sections.Count == 0 ? 1 : manuscript.Sections.Max(item => item.Sequence) + 1
+        };
+        return UpdateManuscript(manuscript.AddSection(section));
+    }
+
+    public ManuscriptEdition UpdateManuscriptSection(Guid manuscriptId, Guid sectionId, string title, string body)
+    {
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
+        var section = manuscript.Sections.FirstOrDefault(item => item.Id == sectionId)
+            ?? throw new KeyNotFoundException($"No section with ID '{sectionId}' exists in this manuscript.");
+        return UpdateManuscript(manuscript.ReplaceSection(section with
+        {
+            Title = string.IsNullOrWhiteSpace(title) ? "Untitled section" : title.Trim(),
+            Body = body ?? string.Empty
+        }));
+    }
+
+    private static string DefaultSectionTitle(ManuscriptSectionKind kind, int sequence) => kind switch
+    {
+        ManuscriptSectionKind.FrontMatter => "Front Matter",
+        ManuscriptSectionKind.Chapter => $"Chapter {sequence}",
+        ManuscriptSectionKind.Scene => $"Scene {sequence}",
+        ManuscriptSectionKind.Passage => $"Passage {sequence}",
+        ManuscriptSectionKind.BackMatter => "Back Matter",
+        _ => $"Section {sequence}"
+    };
+
     /// <summary>Creates an editable premise proposal from the creator's initial idea.</summary>
     public StoryPremise CreatePremise(
         string vision,

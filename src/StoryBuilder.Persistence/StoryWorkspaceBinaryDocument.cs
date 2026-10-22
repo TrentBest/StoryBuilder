@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 3;
+    private const int FormatVersion = 4;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -63,7 +63,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -79,6 +79,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, workspace.Name);
         WriteExperience(stream, workspace.Experience);
         BinaryCodec.WriteList(stream, workspace.Timelines, WriteTimeline);
+        BinaryCodec.WriteList(stream, workspace.Manuscripts, WriteManuscript);
         BinaryCodec.WriteList(stream, workspace.Premises, WritePremise);
         BinaryCodec.WriteList(stream, workspace.Characters, WriteCharacter);
         BinaryCodec.WriteList(stream, workspace.Scenes, WriteScene);
@@ -96,6 +97,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var name = BinaryCodec.ReadRequiredString(stream, nameof(StoryWorkspace.Name));
         var experience = ReadExperience(stream);
         var timelines = version >= 3 ? BinaryCodec.ReadList(stream, ReadTimeline) : [];
+        var manuscripts = version >= 4 ? BinaryCodec.ReadList(stream, ReadManuscript) : [];
         var premises = version >= 2 ? BinaryCodec.ReadList(stream, ReadPremise) : [];
         var characters = BinaryCodec.ReadList(stream, item => ReadCharacter(item, version));
         var scenes = BinaryCodec.ReadList(stream, ReadScene);
@@ -108,6 +110,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience };
         foreach (var item in timelines) workspace.AddTimeline(item);
+        foreach (var item in manuscripts) workspace.AddManuscript(item);
         foreach (var item in premises) workspace.AddPremise(item);
         foreach (var item in characters) workspace.AddCharacter(item);
         foreach (var item in scenes) workspace.AddScene(item);
@@ -176,6 +179,52 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Description = BinaryCodec.ReadRequiredString(stream, nameof(TimelineDefinition.Description)),
         ParentTimelineId = BinaryCodec.ReadNullableGuid(stream),
         CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+    };
+
+    private static void WriteManuscript(IBinaryStream stream, ManuscriptEdition value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Subtitle);
+        BinaryCodec.WriteString(stream, value.Author);
+        BinaryCodec.WriteEnum(stream, value.Status);
+        BinaryCodec.WriteList(stream, value.Sections, WriteManuscriptSection);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+        BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
+    }
+
+    private static ManuscriptEdition ReadManuscript(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptEdition.Title)),
+        Subtitle = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptEdition.Subtitle)),
+        Author = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptEdition.Author)),
+        Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
+        Sections = BinaryCodec.ReadList(stream, ReadManuscriptSection),
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+    };
+
+    private static void WriteManuscriptSection(IBinaryStream stream, ManuscriptSection value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteInt32(stream, value.Sequence);
+        BinaryCodec.WriteEnum(stream, value.Kind);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Body);
+        BinaryCodec.WriteGuidList(stream, value.SceneIds);
+        BinaryCodec.WriteGuidList(stream, value.EventIds);
+    }
+
+    private static ManuscriptSection ReadManuscriptSection(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        Sequence = BinaryCodec.ReadInt32(stream),
+        Kind = BinaryCodec.ReadEnum<ManuscriptSectionKind>(stream),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Title)),
+        Body = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Body)),
+        SceneIds = BinaryCodec.ReadGuidList(stream),
+        EventIds = BinaryCodec.ReadGuidList(stream)
     };
 
     private static void WritePremise(IBinaryStream stream, StoryPremise value)

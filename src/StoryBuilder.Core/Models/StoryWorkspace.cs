@@ -116,6 +116,7 @@ public sealed record StoryPremise
 public sealed class StoryWorkspace
 {
     private readonly List<TimelineDefinition> _timelines = [];
+    private readonly List<ManuscriptEdition> _manuscripts = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
     private readonly List<SceneRecord> _scenes = [];
@@ -130,6 +131,7 @@ public sealed class StoryWorkspace
     public string Name { get; set; } = "StoryBuilder";
     public ExperienceDefinition Experience { get; set; } = new();
     public IReadOnlyList<TimelineDefinition> Timelines => _timelines.AsReadOnly();
+    public IReadOnlyList<ManuscriptEdition> Manuscripts => _manuscripts.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
@@ -147,6 +149,19 @@ public sealed class StoryWorkspace
         if (timeline.ParentTimelineId is Guid parentId && !_timelines.Any(x => x.Id == parentId))
             throw new KeyNotFoundException($"Parent timeline '{parentId}' must exist in this workspace before its branch is added.");
         _timelines.Add(timeline);
+    }
+
+    public void AddManuscript(ManuscriptEdition manuscript)
+    {
+        ArgumentNullException.ThrowIfNull(manuscript);
+        EnsureUnique(_manuscripts.Select(x => x.Id), manuscript.Id, nameof(manuscript));
+        _manuscripts.Add(manuscript);
+    }
+
+    public void ReplaceManuscript(ManuscriptEdition manuscript)
+    {
+        ArgumentNullException.ThrowIfNull(manuscript);
+        ReplaceById(_manuscripts, manuscript.Id, manuscript, nameof(manuscript));
     }
 
     public void AddPremise(StoryPremise premise)
@@ -248,6 +263,7 @@ public sealed class StoryWorkspace
     private static Guid GetId<T>(T record) where T : notnull => record switch
     {
         StoryPremise premise => premise.Id,
+        ManuscriptEdition manuscript => manuscript.Id,
         CharacterProfile character => character.Id,
         SceneRecord scene => scene.Id,
         ParticipantAction action => action.Id,

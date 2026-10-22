@@ -1,24 +1,18 @@
-# StoryBuilderTimelineRenderer
+# Living timeline map
 
-**User moniker:** Living timeline map  
-**Purpose:** Project the workspace's canonical timeline definitions and declared parent/branch relationships into an inspectable SVG view using GUI.SVG.
+**User moniker:** Living timeline map
 
-The renderer is a presentation adapter. It reads the current StoryBuilderSession and does not own or persist timeline records. Branch connectors mean “declared parent timeline”; they do not imply a divergence event, world-time scale, causal edge, or observer knowledge that the current domain has not recorded.
+**Purpose:** Renders declared timeline parent/branch relationships from the real StoryBuilderSession through GUI.SVG. It is a projection, not a second story database.
 
 ## UML class card
 
-```text
-StoryBuilderTimelineRenderer
-  - SvgGuiRenderer renderer
-  + Render(StoryBuilderSession) : string
-  - Depth(TimelineDefinition, HashSet<Guid>) : int
-  - Shorten(string, int) : string
-```
+- Input: StoryBuilderSession and StoryWorkspace.Timelines
+- Renderer: StoryBuilderTimelineRenderer
+- Output: SVG manifestation of timeline identity, labels, and declared parent relationships
 
 ## Use cases
 
-- The Timelines page refreshes a living SVG when a timeline is created.
-- An author visually inspects root timelines and their named branches.
-- A host can reuse the renderer without moving canonical data into SVG.
-
-See [Timeline map use cases](../../docs/UML/StoryBuilderTimelineRendererUML.md).
+- Inspect root timelines and their branches.
+- Create a timeline or branch and see the live projection update.
+- Navigate from the visual map back to domain records.
+- Extend the view later with distinct rails for chronology, causality, manuscript portrayal, and disclosure.

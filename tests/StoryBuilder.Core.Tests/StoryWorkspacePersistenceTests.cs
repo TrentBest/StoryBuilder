@@ -70,6 +70,10 @@ public sealed class StoryWorkspacePersistenceTests
         session.Workspace.AddTimeline(originalTimeline);
         session.Workspace.AddTimeline(branchTimeline);
 
+        var manuscript = session.CreateManuscript("The Lost Cartographer", "A book in progress", "T. Best");
+        var chapter = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
+        session.UpdateManuscriptSection(manuscript.Id, chapter.Sections[0].Id, "The North Gate", "Mara placed her hand on the latch.");
+
         var document = StoryWorkspaceBinaryDocument.FromSession(session);
         using var output = new MemoryBinaryStream();
         document.Pack(output);
@@ -83,6 +87,11 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Equal(session.Workspace.Id, restoredSession.Workspace.Id);
         Assert.Equal("Persistence campaign", restoredSession.Workspace.Name);
+        var restoredManuscript = Assert.Single(restoredSession.Workspace.Manuscripts);
+        Assert.Equal(manuscript.Id, restoredManuscript.Id);
+        Assert.Equal("The Lost Cartographer", restoredManuscript.Title);
+        Assert.Equal("T. Best", restoredManuscript.Author);
+        Assert.Equal("Mara placed her hand on the latch.", Assert.Single(restoredManuscript.Sections).Body);
         Assert.Equal(2, restoredSession.Workspace.Timelines.Count);
         Assert.Equal(originalTimeline.Id, restoredSession.Workspace.Timelines[0].Id);
         Assert.Equal(branchTimeline.Id, restoredSession.Workspace.Timelines[1].Id);
