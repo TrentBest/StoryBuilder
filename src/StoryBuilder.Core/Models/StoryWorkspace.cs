@@ -115,7 +115,8 @@ public sealed record StoryPremise
 
 public sealed class StoryWorkspace
 {
-    private readonly List<StoryPremise> _premises = [];\n    private readonly List<CharacterProfile> _characters = [];
+    private readonly List<StoryPremise> _premises = [];
+    private readonly List<CharacterProfile> _characters = [];
     private readonly List<SceneRecord> _scenes = [];
     private readonly List<HistoricalClaim> _historicalClaims = [];
     private readonly List<StoryEvent> _events = [];
@@ -127,7 +128,8 @@ public sealed class StoryWorkspace
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
     public ExperienceDefinition Experience { get; set; } = new();
-    public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();\n    public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
+    public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
+    public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
     public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
