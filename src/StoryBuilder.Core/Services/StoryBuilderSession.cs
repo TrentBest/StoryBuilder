@@ -63,9 +63,10 @@ public sealed class StoryBuilderSession
     {
         ArgumentNullException.ThrowIfNull(claim);
         Workspace.AddClaim(claim);
+        var sourceId = claim.SourceIds.FirstOrDefault();
         Vocabulary.RecordText(claim.Statement, VocabularyCategory.Other, claim.Id, "Historical claim",
             nameof(HistoricalClaim.Statement), context: claim.Statement, attribution: claim.Attribution,
-            sourceId: claim.SourceIds.FirstOrDefault() is var sourceId && sourceId != Guid.Empty ? sourceId.ToString("D") : null,
+            sourceId: sourceId == Guid.Empty ? null : sourceId.ToString("D"),
             status: claim.Status);
         return claim;
     }
