@@ -11,6 +11,7 @@
 | Understand the diegetic-tool concept | [Diegetic StoryBuilder](docs/DIEGETIC_STORYBUILDER.md) |
 | Inspect domain UML and use cases | [UML directory](docs/UML/) |
 | Understand the FSM_API-backed review lifecycle | [StoryLifecycleSession UML](docs/UML/StoryLifecycleSessionUML.md) |
+| Understand the FSM_COS-composable bundle | [StoryBuilderAuthoringBundle UML](docs/UML/StoryBuilderAuthoringBundleUML.md) |
 | Review what is implemented and what remains | [Development Status](docs/DEVELOPMENT_STATUS.md) |
 | Review branch preservation and integration | [Branch Reconciliation](docs/BRANCH_RECONCILIATION.md) |
 | Build and test | [Development workflow](docs/DEVELOPMENT.md) |
