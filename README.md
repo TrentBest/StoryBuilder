@@ -68,7 +68,8 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 - [Phone Review Guide](docs/PHONE_REVIEW.md) — concise readiness, evidence, and next steps for reviewing this work on a phone.
 - [Documentation Index](DOCUMENTATION_INDEX.md) — choose a path through the repository.
-- [Legacy Project Migration](docs/LEGACY_PROJECT_MIGRATION.md) — import the first-generation JSON schema while preserving the original source payload across binary saves.\n- [Story Domain Contract](docs/STORY_DOMAIN_CONTRACT.md) — implemented record meanings, canon and observer-knowledge rules, event-to-prose links, persistence boundaries, and Alpha limitations.
+- [Legacy Project Migration](docs/LEGACY_PROJECT_MIGRATION.md) — import the first-generation JSON schema while preserving the original source payload across binary saves.
+- [Story Domain Contract](docs/STORY_DOMAIN_CONTRACT.md) — implemented record meanings, canon and observer-knowledge rules, event-to-prose links, persistence boundaries, and Alpha limitations.
 - [Runtime and Package Boundaries](docs/ARCHITECTURE.md) — what each package owns, how workspace operations and persistence behave, and current host limitations.
 - [WebDemo Guide](samples/StoryBuilder.WebDemo/README.md) — how to run and explore the interactive prototype, including Continuity Review.
 - [Continuity Review](samples/StoryBuilder.WebDemo/Components/Pages/Continuity.md) — what the live workspace checks report and what they do not establish.
