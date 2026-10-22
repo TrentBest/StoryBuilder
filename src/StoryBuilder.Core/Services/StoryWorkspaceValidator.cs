@@ -61,6 +61,34 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.Manuscripts.SelectMany(item => item.Sections), item => item.Id, nameof(ManuscriptSection));
         DuplicateIds(workspace.Scenes.SelectMany(item => item.Beats), item => item.Id, nameof(SceneBeat));
 
+        // IDs are workspace-wide identities. Per-collection checks above catch duplicates
+        // within a type; this catches a GUID reused by different record types, which would
+        // make generic related-record links ambiguous.
+        var typedIds = new List<(Guid Id, string Type)>();
+        typedIds.AddRange(workspace.Timelines.Select(item => (item.Id, nameof(TimelineDefinition))));
+        typedIds.AddRange(workspace.PlanningPoints.Select(item => (item.Id, nameof(TimelinePlanningPoint))));
+        typedIds.AddRange(workspace.Events.Select(item => (item.Id, nameof(StoryEvent))));
+        typedIds.AddRange(workspace.Characters.Select(item => (item.Id, nameof(CharacterProfile))));
+        typedIds.AddRange(workspace.Scenes.Select(item => (item.Id, nameof(SceneRecord))));
+        typedIds.AddRange(workspace.Scenes.SelectMany(item => item.Beats).Select(item => (item.Id, nameof(SceneBeat))));
+        typedIds.AddRange(workspace.Manuscripts.Select(item => (item.Id, nameof(ManuscriptEdition))));
+        typedIds.AddRange(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => (item.Id, nameof(ManuscriptSection))));
+        typedIds.AddRange(workspace.Sources.Select(item => (item.Id, nameof(SourceRecord))));
+        typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));
+        typedIds.AddRange(workspace.Premises.Select(item => (item.Id, nameof(StoryPremise))));
+        typedIds.AddRange(workspace.HistoricalClaims.Select(item => (item.Id, nameof(HistoricalClaim))));
+        typedIds.AddRange(workspace.ObserverKnowledge.Select(item => (item.Id, nameof(ObserverKnowledgeRecord))));
+        typedIds.AddRange(workspace.ParticipantActions.Select(item => (item.Id, nameof(ParticipantAction))));
+        typedIds.AddRange(workspace.ContinuityIssues.Select(item => (item.Id, nameof(ContinuityIssue))));
+
+        foreach (var collision in typedIds.GroupBy(item => item.Id)
+            .Where(group => group.Select(item => item.Type).Distinct().Count() > 1))
+        {
+            var types = string.Join(", ", collision.Select(item => item.Type).Distinct().OrderBy(type => type));
+            issues.Add(new WorkspaceIntegrityIssue("Workspace", collision.Key, "cross-type duplicate identity",
+                collision.Key, $"Workspace ID '{collision.Key}' is reused across record types: {types}."));
+        }
+
         foreach (var timeline in workspace.Timelines)
             if (timeline.ParentTimelineId is Guid parentId)
                 Missing(nameof(TimelineDefinition), timeline.Id, "parent timeline", parentId, timelines);
