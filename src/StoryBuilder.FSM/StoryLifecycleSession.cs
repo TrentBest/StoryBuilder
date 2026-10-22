@@ -73,7 +73,7 @@ public sealed class StoryLifecycleSession : IDisposable
             if (_definitionCreated)
                 return;
 
-            var builder = FSM_API.Create.CreateFiniteStateMachine(DefinitionName, 0, ProcessingGroup)
+            var builder = FSM_API.Create.CreateFiniteStateMachine(DefinitionName, -1, ProcessingGroup)
                 .State(nameof(CanonStatus.Draft), ctx => Enter(ctx, CanonStatus.Draft), _ => { }, _ => { })
                 .State(nameof(CanonStatus.Proposed), ctx => Enter(ctx, CanonStatus.Proposed), _ => { }, _ => { })
                 .State(nameof(CanonStatus.Accepted), ctx => Enter(ctx, CanonStatus.Accepted), _ => { }, _ => { })
