@@ -216,8 +216,13 @@ public sealed class StoryWorkspace
         EnsureUnique(_publishedEditions.Select(x => x.Id), edition.Id, nameof(edition));
         if (!_manuscripts.Any(item => item.Id == edition.ManuscriptId))
             throw new KeyNotFoundException($"Manuscript '{edition.ManuscriptId}' must exist before a publication edition can be added.");
-        if (edition.PreviousEditionId is Guid previousId && !_publishedEditions.Any(item => item.Id == previousId))
-            throw new KeyNotFoundException($"Previous publication edition '{previousId}' must exist before a corrected edition can be added.");
+        if (edition.PreviousEditionId is Guid previousId)
+        {
+            var previous = _publishedEditions.FirstOrDefault(item => item.Id == previousId)
+                ?? throw new KeyNotFoundException($"Previous publication edition '{previousId}' must exist before a corrected edition can be added.");
+            if (previous.ManuscriptId != edition.ManuscriptId)
+                throw new InvalidOperationException("A corrected publication must refer to a previous edition of the same manuscript.");
+        }
         _publishedEditions.Add(edition);
     }
 
