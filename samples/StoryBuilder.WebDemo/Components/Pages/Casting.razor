@@ -126,6 +126,37 @@
             <label for="edit-description">Description (one phrase is enough)</label>
             <textarea id="edit-description" @bind="editDescription" placeholder="What should we know right now?"></textarea>
         </div>
+        <hr />
+        <div>
+            <div class="eyebrow">Story engine · optional working notes</div>
+            <h3>Give the character something to struggle with</h3>
+            <p class="muted">A character becomes dramatically useful through pressure and choice, not a long biography. These are private-to-the-workspace author notes: they are editable, never treated as objective truth, and can change as you discover the story.</p>
+            <div class="field">
+                <label for="character-want">What do they want right now?</label>
+                <textarea id="character-want" @bind="characterWant" rows="2" placeholder="A concrete goal they can pursue."></textarea>
+            </div>
+            <div class="field">
+                <label for="character-need">What might they need to learn or accept?</label>
+                <textarea id="character-need" @bind="characterNeed" rows="2" placeholder="Not a mandatory moral lesson—something that could change how they act."></textarea>
+            </div>
+            <div class="field">
+                <label for="character-fear">What are they afraid of losing or facing?</label>
+                <textarea id="character-fear" @bind="characterFear" rows="2" placeholder="The cost that makes the goal difficult."></textarea>
+            </div>
+            <div class="field">
+                <label for="character-contradiction">What contradiction makes them human?</label>
+                <textarea id="character-contradiction" @bind="characterContradiction" rows="2" placeholder="They demand honesty but hide the truth; they crave safety but choose danger."></textarea>
+            </div>
+            <div class="field">
+                <label for="character-line">What line will they not cross—and what could test it?</label>
+                <textarea id="character-line" @bind="characterLine" rows="2" placeholder="A boundary that pressure can make meaningful."></textarea>
+            </div>
+            <div class="field">
+                <label for="character-change">What choice could change them?</label>
+                <textarea id="character-change" @bind="characterChange" rows="2" placeholder="A choice with a cost, not just an event that happens to them."></textarea>
+            </div>
+            <p class="muted">Craft check: place the character under pressure, make their options matter, and let their choice reveal who they are. You do not need to answer every prompt before writing a scene.</p>
+        </div>
         <div class="row">
             <button @onclick="SaveCharacter">Save edits</button>
             @if (selectedCharacter.Status == CanonStatus.Draft)
@@ -335,6 +366,12 @@
     private string editRole = string.Empty;
     private CharacterNarrativeRole editNarrativeRole = CharacterNarrativeRole.Undecided;
     private string editDescription = string.Empty;
+    private string characterWant = string.Empty;
+    private string characterNeed = string.Empty;
+    private string characterFear = string.Empty;
+    private string characterContradiction = string.Empty;
+    private string characterLine = string.Empty;
+    private string characterChange = string.Empty;
     private string traitText = string.Empty;
     private string traitAttribution = "Author";
     private string searchTerm = string.Empty;
@@ -376,7 +413,16 @@
         editRole = selectedCharacter?.Role ?? string.Empty;
         editNarrativeRole = selectedCharacter?.NarrativeRole ?? CharacterNarrativeRole.Undecided;
         editDescription = selectedCharacter?.Description ?? string.Empty;
+        characterWant = ReadCharacterNote("Want");
+        characterNeed = ReadCharacterNote("Need");
+        characterFear = ReadCharacterNote("Fear");
+        characterContradiction = ReadCharacterNote("Contradiction");
+        characterLine = ReadCharacterNote("Boundary");
+        characterChange = ReadCharacterNote("ChangeChoice");
     }
+
+    private string ReadCharacterNote(string key) =>
+        selectedCharacter?.Notes.TryGetValue($"Storycraft.{key}", out var value) == true ? value : string.Empty;
 
     private void SaveCharacter()
     {
@@ -389,9 +435,31 @@
             Role = string.IsNullOrWhiteSpace(editRole) ? "Unspecified" : editRole.Trim(),
             NarrativeRole = editNarrativeRole,
             Description = editDescription.Trim(),
+            Notes = SaveStorycraftNotes(selectedCharacter.Notes),
             UpdatedAtUtc = DateTimeOffset.UtcNow
         });
         RefreshSearchIfNeeded();
+    }
+
+    private Dictionary<string, string> SaveStorycraftNotes(Dictionary<string, string> existing)
+    {
+        var notes = new Dictionary<string, string>(existing, StringComparer.OrdinalIgnoreCase);
+        SetStorycraftNote(notes, "Want", characterWant);
+        SetStorycraftNote(notes, "Need", characterNeed);
+        SetStorycraftNote(notes, "Fear", characterFear);
+        SetStorycraftNote(notes, "Contradiction", characterContradiction);
+        SetStorycraftNote(notes, "Boundary", characterLine);
+        SetStorycraftNote(notes, "ChangeChoice", characterChange);
+        return notes;
+    }
+
+    private static void SetStorycraftNote(Dictionary<string, string> notes, string key, string? value)
+    {
+        var storageKey = $"Storycraft.{key}";
+        if (string.IsNullOrWhiteSpace(value))
+            notes.Remove(storageKey);
+        else
+            notes[storageKey] = value.Trim();
     }
 
     private void RequestCharacterStatus(CanonStatus requestedStatus)
