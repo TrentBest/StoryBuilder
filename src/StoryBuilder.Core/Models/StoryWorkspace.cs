@@ -121,6 +121,7 @@ public sealed class StoryWorkspace
     private readonly List<TimelinePlanningPoint> _planningPoints = [];
     private readonly List<ObserverKnowledgeRecord> _observerKnowledge = [];
     private readonly List<ManuscriptEdition> _manuscripts = [];
+    private readonly List<PublishedBookEdition> _publishedEditions = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
     private readonly List<PlaceRecord> _places = [];
@@ -141,6 +142,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<TimelinePlanningPoint> PlanningPoints => _planningPoints.AsReadOnly();
     public IReadOnlyList<ObserverKnowledgeRecord> ObserverKnowledge => _observerKnowledge.AsReadOnly();
     public IReadOnlyList<ManuscriptEdition> Manuscripts => _manuscripts.AsReadOnly();
+    public IReadOnlyList<PublishedBookEdition> PublishedEditions => _publishedEditions.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
     public IReadOnlyList<PlaceRecord> Places => _places.AsReadOnly();
@@ -206,6 +208,17 @@ public sealed class StoryWorkspace
     {
         ArgumentNullException.ThrowIfNull(manuscript);
         ReplaceById(_manuscripts, manuscript.Id, manuscript, nameof(manuscript));
+    }
+
+    public void AddPublishedEdition(PublishedBookEdition edition)
+    {
+        ArgumentNullException.ThrowIfNull(edition);
+        EnsureUnique(_publishedEditions.Select(x => x.Id), edition.Id, nameof(edition));
+        if (!_manuscripts.Any(item => item.Id == edition.ManuscriptId))
+            throw new KeyNotFoundException($"Manuscript '{edition.ManuscriptId}' must exist before a publication edition can be added.");
+        if (edition.PreviousEditionId is Guid previousId && !_publishedEditions.Any(item => item.Id == previousId))
+            throw new KeyNotFoundException($"Previous publication edition '{previousId}' must exist before a corrected edition can be added.");
+        _publishedEditions.Add(edition);
     }
 
     public void AddPremise(StoryPremise premise)
