@@ -13,6 +13,7 @@
 | Understand the Narrator's cooperating FSMs | [NarratorAgent](src/StoryBuilder.FSM/NarratorAgent.md), [Narrator UML](docs/UML/NarratorAgentUML.md) |
 | Link key events to the actual book | The GUI.SVG portrayal rail on `/timelines` and event links on `/book`; manuscript sections reference events by stable ID |
 | View and author a real manuscript product | WebDemo Book Preview at /book; manuscript model [UML](docs/UML/ManuscriptEditionUML.md) |
+| Render deterministic digital book output from a manuscript or restored package | [BookProductRenderer UML](docs/UML/BookProductRendererUML.md), [RenderedBookArtifact UML](docs/UML/RenderedBookArtifactUML.md), [renderer tests](tests/StoryBuilder.Core.Tests/BookProductRendererTests.md) |
 | Understand book-first composition, provisional Plot Twist planning, observer constraints, and multi-FSM Narrator | [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md), [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Understand publication output versus physical printing | [Narrator Experience — Publication Boundary](docs/NARRATOR_EXPERIENCE.md#publication-boundary) |
 | Explore the casting-room concept | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) |

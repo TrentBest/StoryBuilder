@@ -126,6 +126,19 @@
             </article>
         }
 
+        @if (CurrentManuscript is not null)
+        {
+            <hr />
+            <div class="eyebrow">Digital book artifact</div>
+            <p class="muted">Render the current manuscript as deterministic Markdown from canonical records. This is a digital composition output, not a physical-print layout or a published immutable edition.</p>
+            <button class="secondary" @onclick="RenderBookArtifact">Render digital book artifact</button>
+            @if (renderedBook is not null)
+            {
+                <p class="muted">@renderedBook.SectionCount section(s) · @renderedBook.ReferencedEventIds.Count referenced world event(s)</p>
+                <pre class="book-product-artifact">@renderedBook.Markdown</pre>
+            }
+        }
+
         @if (CurrentManuscript is not null && selectedSectionId is Guid)
         {
             var selectedSection = CurrentManuscript.Sections.FirstOrDefault(item => item.Id == selectedSectionId);
@@ -183,6 +196,7 @@
     private string selectedEventId = string.Empty;
     private Guid? selectedManuscriptId;
     private Guid? selectedSectionId;
+    private RenderedBookArtifact? renderedBook;
 
     private ManuscriptEdition? CurrentManuscript =>
         Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == selectedManuscriptId)
@@ -199,6 +213,7 @@
         var book = Session.CreateManuscript(newBookTitle);
         selectedManuscriptId = book.Id;
         selectedSectionId = null;
+        renderedBook = null;
         newBookTitle = string.Empty;
     }
 
@@ -206,6 +221,7 @@
     {
         selectedManuscriptId = id;
         selectedSectionId = null;
+        renderedBook = null;
     }
 
     private void AddSection()
@@ -233,6 +249,7 @@
         if (CurrentManuscript is null || selectedSectionId is not Guid sectionId)
             return;
         Session.UpdateManuscriptSection(CurrentManuscript.Id, sectionId, editSectionTitle, editSectionBody);
+        renderedBook = null;
     }
 
     private void LinkSelectedEvent()
@@ -249,7 +266,18 @@
         Session.LinkEventToManuscriptSection(CurrentManuscript.Id, sectionId, eventId, linked: false);
     }
 
-    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+    private void RenderBookArtifact()
+    {
+        if (CurrentManuscript is null)
+            return;
+        renderedBook = new BookProductRenderer().Render(Session.Workspace, CurrentManuscript.Id);
+    }
+
+    private void OnSessionChanged()
+    {
+        renderedBook = null;
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     public void Dispose() => Session.Changed -= OnSessionChanged;
 }

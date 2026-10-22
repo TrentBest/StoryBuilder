@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Exercises binary package compilation, integrity checking, host capability validation, and workspace restoration using the established FSM_Serialization-backed workspace document.
+Verifies that a captured binary package validates and restores the exact workspace, including its manuscript; rejects tampered content and missing required bundles before restore; and can be consumed repeatedly to produce identical digital book output while preserving the same Workshop arbitration record ID.
 
 ## UML class card
 
@@ -12,4 +12,4 @@ See [CompositionPackageBinaryArtifactsTests UML](../../docs/UML/CompositionPacka
 
 ## Acceptance evidence
 
-A compiled package restores the same workspace and authored book text; a modified content payload and a missing required MicroBundle are rejected before a session is returned.
+The repeated-consumption test runs the same immutable artifact through the reader twice and passes both restored workspaces to BookProductRenderer. It compares rendered Markdown and referenced event IDs, and asserts that both loads retain the original arbitration record identity. The reader has no arbitration service dependency.

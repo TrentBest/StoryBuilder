@@ -76,4 +76,34 @@ public sealed class CompositionPackageBinaryArtifactsTests
         Assert.Null(result.Session);
         Assert.Contains(result.Errors, error => error.Contains("not available", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void RepeatedPackageConsumptionProducesTheSameBookWithoutReArbitration()
+    {
+        var session = new StoryBuilderSession("Package product");
+        var timeline = session.CreateTimeline("Main history");
+        var storyEvent = session.CreateTimelineEvent(timeline.Id, "The ink awakens");
+        var manuscript = session.CreateManuscript("The Lost Cartographer", author: "T. Best");
+        var chapter = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "Chapter One");
+        session.UpdateManuscriptSection(manuscript.Id, chapter.Sections[0].Id, "Chapter One", "The ink remembers.");
+        session.LinkEventToManuscriptSection(manuscript.Id, chapter.Sections[0].Id, storyEvent.Id);
+        var arbitrationRecordId = Guid.NewGuid();
+        var artifact = new CompositionPackageCompiler().Compile(
+            session, "revision-1", "book", arbitrationRecordId, [], []);
+
+        var reader = new CompositionPackageReader();
+        var firstLoad = reader.ValidateAndRestore(artifact, [], []);
+        var secondLoad = reader.ValidateAndRestore(artifact, [], []);
+
+        Assert.True(firstLoad.IsValid, string.Join(Environment.NewLine, firstLoad.Errors));
+        Assert.True(secondLoad.IsValid, string.Join(Environment.NewLine, secondLoad.Errors));
+        var renderer = new BookProductRenderer();
+        var firstBook = renderer.Render(firstLoad.Session!.Workspace, manuscript.Id);
+        var secondBook = renderer.Render(secondLoad.Session!.Workspace, manuscript.Id);
+        Assert.Equal(firstBook.Markdown, secondBook.Markdown);
+        Assert.Equal(firstBook.ReferencedEventIds, secondBook.ReferencedEventIds);
+        Assert.Equal(arbitrationRecordId, firstLoad.Manifest!.ArbitrationRecordId);
+        Assert.Equal(arbitrationRecordId, secondLoad.Manifest!.ArbitrationRecordId);
+    }
+
 }

@@ -19,7 +19,7 @@ Open http://localhost:5080.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
 - **Living Map:** see GUI.SVG render current characters, statuses, traits, and most-used vocabulary from StoryBuilderSession. The view updates when workspace records change.
 - **Timelines:** create root histories and named child branches, add provisional Plot Twist points, and record world events with approximate or unresolved placement. GUI.SVG distinguishes planning points from actual events and draws separate event-to-book-section and event-to-scene-beat portrayal rails from canonical event IDs.
-- **Book Preview:** create a working manuscript, add ordered chapters/scenes/passages, write actual text, and link sections to world-event identities.
+- **Book Preview:** create a working manuscript, add ordered chapters/scenes/passages, write actual text, link sections to world-event identities, and render a deterministic Markdown digital-book artifact.
 - **Observer Lens:** record how a character witnessed, heard about, inferred, believed, disputed, or forgot an event. Accept knowledge explicitly, evaluate claims at a chosen event anchor, then use GUI.SVG to inspect only accepted, causally available knowledge.
 
 The local Blazor host creates a session through StoryBuilderAuthoringBundle and uses the source-pinned GUI.SVG project to render living views. It autosaves a versioned binary workspace (currently format version 8) in browser localStorage and restores it after refresh. Storage is local to this browser; there is no cloud sync, account sharing, or WebPage deployment yet.
