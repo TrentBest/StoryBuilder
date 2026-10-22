@@ -4,6 +4,7 @@
 |---|---|
 | Understand the purpose and boundary | [README](README.md) |
 | Run the clickable authoring workbench | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md) |
+| Inspect the living GUI.SVG workspace view | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md), [WebDemo UML](docs/UML/StoryBuilderWebDemoUML.md) |
 | Understand the architecture and stack fit | [Architecture](docs/ARCHITECTURE.md) |
 | Create a character without writing a dissertation | [Character Creation](docs/CHARACTER_CREATION.md) |
 | Capture an action scene or pose sequence | [Scene Capture](docs/SCENE_CAPTURE.md) |
