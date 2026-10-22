@@ -57,6 +57,12 @@ The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather
 - **WebApp / WebPage:** the local Blazor host proves authoring interactions; the next integration is to mount the StoryBuilder Experience in the Workshop host without duplicating domain logic.
 - **Physics / Visualize / Renderer:** potential optional scene interaction and inspectable output layers, not required dependencies of the domain model.
 
+## Timeline, gesture, and multiverse direction
+
+StoryBuilder's canonical model must distinguish world events from scenes and manuscript presentation. An event can be canon while unrevealed; reader order, world time, character knowledge time, and authorial disclosure are separate. Timeline branches preserve the source history and identify an explicit divergence point instead of overwriting the original. The engineering ceiling is multiverse; navigation should use focused views, indexed history, and lazy branch expansion rather than promising exhaustive simulation.
+
+Gestures may drive character animation and be attached to scene beats or timeline events. Visualize and Renderer are optional capability providers for scene inspection and portrayal; the StoryBuilder domain remains authoritative and must work if those providers are unavailable. Discover Gestures, Visualize, Renderer, GUI.SVG, and future Physics capabilities through the host-provided MicroBundle catalog. StoryBuilder depends on neutral MicroBundleDomain, never directly on FSM_COS or presentation/simulation packages. See [Timelines, Gestures, and Multiverse History](TIMELINES_GESTURES_MULTIVERSE.md) for the product contract and delivery sequence.
+
 ## Current implementation boundary
 
 The .NET 8 core provides character drafts and templates, structured scene beats, a narration draft, automatic indexing of character and scene words through StoryBuilderSession, explicit synonym mapping, usage search, and a workspace record model. Optional adapters demonstrate FSM_API lifecycle behavior and the FSM_COS MicroBundle contract. The local Blazor workbench has clickable Casting, Stage, Archive, and Campaign pages. Browser-local binary persistence is implemented and round-trip tested. Cloud/server persistence, Workshop-host integration, export/backup and future schema migrations, and living GUI.SVG views remain open.
