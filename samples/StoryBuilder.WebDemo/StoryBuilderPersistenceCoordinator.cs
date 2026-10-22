@@ -126,6 +126,5 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
             or InvalidDataException
             or ArgumentException
             or FormatException
-            or DecoderFallbackException
             or InvalidOperationException;
 }
