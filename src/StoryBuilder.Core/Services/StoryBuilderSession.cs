@@ -40,6 +40,45 @@ public sealed class StoryBuilderSession
         return concept;
     }
 
+    /// <summary>Creates an editable premise proposal from the creator's initial idea.</summary>
+    public StoryPremise CreatePremise(
+        string vision,
+        string? title = null,
+        string? scale = null,
+        string? genre = null,
+        string? creationApproach = null,
+        string? primaryTarget = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(vision);
+        var normalizedVision = vision.Trim();
+        var premise = new StoryPremise
+        {
+            Title = string.IsNullOrWhiteSpace(title) ? SuggestPremiseTitle(normalizedVision) : title.Trim(),
+            Vision = normalizedVision,
+            Scale = NormalizeOptional(scale),
+            Genre = NormalizeOptional(genre),
+            CreationApproach = NormalizeOptional(creationApproach),
+            PrimaryTarget = NormalizeOptional(primaryTarget),
+            Status = CanonStatus.Proposed
+        };
+        Workspace.AddPremise(premise);
+        IndexPremise(premise);
+        NotifyChanged();
+        return premise;
+    }
+
+    /// <summary>Revises a premise and replaces its vocabulary occurrences.</summary>
+    public StoryPremise UpdatePremise(StoryPremise premise)
+    {
+        ArgumentNullException.ThrowIfNull(premise);
+        Workspace.ReplacePremise(premise with { UpdatedAtUtc = DateTimeOffset.UtcNow });
+        Vocabulary.RemoveTarget(premise.Id);
+        var updated = Workspace.Premises.Single(item => item.Id == premise.Id);
+        IndexPremise(updated);
+        NotifyChanged();
+        return updated;
+    }
+
     /// <summary>Creates and indexes a new character draft immediately.</summary>
     public CharacterProfile CreateCharacter(string? name = null, string? templateName = null)
     {
