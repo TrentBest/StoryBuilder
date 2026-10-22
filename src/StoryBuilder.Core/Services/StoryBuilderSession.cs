@@ -211,6 +211,48 @@ public sealed class StoryBuilderSession
     }
 
     /// <summary>Creates and stores an empty scene so the user can add beats incrementally.</summary>
+    public PlaceRecord CreatePlace(string? name = null, string? description = null, string? kind = null, Guid? parentPlaceId = null)
+    {
+        var place = new PlaceRecord
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? "Unnamed place" : name.Trim(),
+            Description = NormalizeOptional(description) ?? string.Empty,
+            Kind = string.IsNullOrWhiteSpace(kind) ? "Place" : kind.Trim(),
+            ParentPlaceId = parentPlaceId,
+            Status = CanonStatus.Draft
+        };
+        Workspace.AddPlace(place);
+        IndexPlace(place);
+        NotifyChanged();
+        return place;
+    }
+
+    public PlaceRecord UpdatePlace(PlaceRecord place)
+    {
+        ArgumentNullException.ThrowIfNull(place);
+        var updated = place with
+        {
+            Name = string.IsNullOrWhiteSpace(place.Name) ? "Unnamed place" : place.Name.Trim(),
+            Description = place.Description?.Trim() ?? string.Empty,
+            Kind = string.IsNullOrWhiteSpace(place.Kind) ? "Place" : place.Kind.Trim(),
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        Workspace.ReplacePlace(updated);
+        Vocabulary.RemoveTarget(updated.Id);
+        IndexPlace(updated);
+        NotifyChanged();
+        return updated;
+    }
+
+    public SceneRecord AssignSceneToPlace(Guid sceneId, Guid? placeId)
+    {
+        if (placeId is Guid targetId && !Workspace.Places.Any(place => place.Id == targetId))
+            throw new KeyNotFoundException($"Place '{targetId}' does not exist in this workspace.");
+        var scene = Workspace.Scenes.FirstOrDefault(item => item.Id == sceneId)
+            ?? throw new KeyNotFoundException($"Scene '{sceneId}' does not exist in this workspace.");
+        return UpdateScene(scene with { PlaceId = placeId });
+    }
+
     public SceneRecord CreateScene(string? title = null, string? location = null, SceneCaptureMode mode = SceneCaptureMode.Freeform)
     {
         var scene = SceneComposer.Create(title, location, mode);
@@ -391,6 +433,7 @@ public sealed class StoryBuilderSession
     {
         foreach (var premise in Workspace.Premises) IndexPremise(premise);
         foreach (var character in Workspace.Characters) IndexCharacter(character);
+        foreach (var place in Workspace.Places) IndexPlace(place);
         foreach (var scene in Workspace.Scenes) IndexScene(scene);
         foreach (var claim in Workspace.HistoricalClaims)
         {
@@ -465,6 +508,16 @@ public sealed class StoryBuilderSession
             nameof(StoryPremise.CreationApproach), context: premise.Vision, status: premise.Status);
         Vocabulary.RecordText(premise.PrimaryTarget, VocabularyCategory.Other, premise.Id, premise.Title,
             nameof(StoryPremise.PrimaryTarget), context: premise.Vision, status: premise.Status);
+    }
+
+    private void IndexPlace(PlaceRecord place)
+    {
+        Vocabulary.RecordText(place.Name, VocabularyCategory.Other, place.Id, place.Name,
+            nameof(PlaceRecord.Name), context: place.Description, attribution: "Author", status: place.Status);
+        Vocabulary.RecordText(place.Description, VocabularyCategory.Other, place.Id, place.Name,
+            nameof(PlaceRecord.Description), context: place.Description, attribution: "Author", status: place.Status);
+        Vocabulary.RecordText(place.Kind, VocabularyCategory.Other, place.Id, place.Name,
+            nameof(PlaceRecord.Kind), context: place.Description, attribution: "Author", status: place.Status);
     }
 
     private void IndexCharacter(CharacterProfile character)
