@@ -295,6 +295,14 @@ public sealed class StoryWorkspace
         _events.Add(storyEvent);
     }
 
+    public void ReplaceEvent(StoryEvent storyEvent)
+    {
+        ArgumentNullException.ThrowIfNull(storyEvent);
+        if (storyEvent.TimelineId is Guid timelineId && !_timelines.Any(timeline => timeline.Id == timelineId))
+            throw new KeyNotFoundException($"Timeline '{timelineId}' must exist before an event can be assigned to it.");
+        ReplaceById(_events, storyEvent.Id, storyEvent, nameof(storyEvent));
+    }
+
     public void AddCampaign(CampaignRecord campaign)
     {
         ArgumentNullException.ThrowIfNull(campaign);
@@ -340,6 +348,7 @@ public sealed class StoryWorkspace
 
     private static Guid GetId<T>(T record) where T : notnull => record switch
     {
+        StoryEvent storyEvent => storyEvent.Id,
         StoryPremise premise => premise.Id,
         PlaceRecord place => place.Id,
         ManuscriptEdition manuscript => manuscript.Id,
