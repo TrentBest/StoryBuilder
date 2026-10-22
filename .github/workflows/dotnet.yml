@@ -23,7 +23,9 @@ jobs:
         run: dotnet build src/StoryBuilder.Core/StoryBuilder.Core.csproj --configuration Release
       - name: Build FSM_API adapter
         run: dotnet build src/StoryBuilder.FSM/StoryBuilder.FSM.csproj --configuration Release
+      - name: Build MicroBundle adapter
+        run: dotnet build src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj --configuration Release
       - name: Build quickstart
         run: dotnet build samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj --configuration Release
-      - name: Test authoring and lifecycle
+      - name: Test authoring, lifecycle, and composition
         run: dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
