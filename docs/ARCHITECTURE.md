@@ -45,6 +45,26 @@ GUI.SVG, Renderer, Visualize, Gestures, and Physics are optional providers and p
 - **Visualize / Gestures / Physics:** optional scene inspection, animation, and simulation providers.
 - **WebApp / WebPage / AnyApp:** host authoring, preview, and consumption. The package reader validates a previously arbitrated result and reports incompatibility rather than improvising.
 
+## Existing Workshop repositories and artifact flow
+
+This project must use the existing Workshop repository boundaries instead of creating a parallel Experience or MicroBundle system:
+
+- [TheSingularityWorkshop.Experiences](https://github.com/TrentBest/TheSingularityWorkshop.Experiences) owns independently buildable, host-independent Experience/MicroBundle projects. Its current publication guidance stages the compiled MicroBundle assembly as the artifact; it explicitly says the host is not the source of truth for Forge or Moniker.
+- [TheSingularityWorkshop.MicroBundleDomain](https://github.com/TrentBest/TheSingularityWorkshop.MicroBundleDomain) supplies the neutral `IMicroBundle`, descriptor, provider, dependency, and lifecycle contracts. StoryBuilder's `StoryBuilderAuthoringBundle` currently implements this contract directly and must remain independent of the composition kernel.
+- [TheSingularityWorkshop.MicroBundleRepository](https://github.com/TrentBest/TheSingularityWorkshop.MicroBundleRepository) owns durable artifact delivery and verification. MicroBundle artifact identity is `BundleId + Version + SHA-256`; Experience artifacts have their own `ExperienceId + Version + SHA-256` identity. The repository stores opaque bytes and does not compose or arbitrate them.
+- [TheSingularityWorkshop.FSM_COS](https://github.com/TrentBest/TheSingularityWorkshop.FSM_COS) owns dependency closure, composition, arbitration, and the resulting RuntimeAssembly.
+- [AnyApp](https://github.com/TrentBest/AnyApp) is the desktop manifestation/host. Its current development branch already references the Experiences repository projects and MicroBundle Repository REST project when `WorkshopUseRepositorySources=true`, and has a published-Experience catalog client/launch path. Its native MicroBundle catalog and presentation code still contain explicit registrations and must be reconciled with artifact materialization and the actual supported surface contract.
+
+Keep three artifacts distinct:
+
+1. **Experience manifest:** the host-facing launch/composition request, including the immutable identities and configuration needed for its MicroBundle closure.
+2. **MicroBundle artifact:** the independently built executable bundle bytes addressed by bundle ID, version, and content hash.
+3. **StoryBuilder workspace/composition package:** mutable authoring data versus a versioned, validated capture of content and resolved decisions. Neither is a replacement for the host's Experience manifest or the repository's immutable artifact identity.
+
+The intended path is: build/publish the StoryBuilder MicroBundle from its independent project; reference its immutable artifact identity from a StoryBuilder Experience manifest; resolve and verify bytes through the existing repository/cache path; materialize the neutral MicroBundle contract; compose through FSM_COS; then expose the resulting experience through AnyApp's existing GUI/WPF surface contract. Do not add StoryBuilder-specific host logic or a competing manifest directory before the current Experience and MicroBundle contracts have been checked end-to-end.
+
+**Current integration gap:** StoryBuilder's bundle project currently references `MicroBundleDomain` and StoryBuilder.Core, while AnyApp's catalog is still a finite compiled catalog of known bundles. The StoryBuilder bundle declares capabilities but does not yet implement AnyApp's `IAnyAppSurface` or another verified presentation adapter. Registering its bundle ID alone is therefore not a complete desktop integration. First validate the real artifact materializer, catalog extension point, configuration contract, and surface/renderer contract against the current AnyApp development branch. No NuGet publishing is required or authorized for this work.
+
 ## Product-first composition
 
 The first end-to-end product is a book. It needs explicit manuscript composition—not just a bag of scenes—with edition identity, reading order, chapter/scene/passage placement, actual text, and stable links back to world events. The same source model should power book preview, event timeline, composition structure, observer analysis, continuity review, and optional visual/animation views.
