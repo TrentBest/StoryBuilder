@@ -171,10 +171,12 @@ public sealed class NarratorAgent : IDisposable
             throw new KeyNotFoundException($"Observer character '{observerId}' does not exist in this workspace.");
         var observerChanged = _observer.ObserverId != observerId;
         _observer.ObserverId = observerId;
-        LastObserverEvaluation = null;
-        LastObserverProjection = null;
-        if (observerChanged || _observer.CurrentState != "Selected")
+        if (observerChanged || _observer.CurrentState is "Unselected" or "Projected")
+        {
+            LastObserverEvaluation = null;
+            LastObserverProjection = null;
             Move(_observer, _observerHandle, _observerGroup, "Selected");
+        }
         Emit("Observer", "ObserverSelected", $"Selected observer {observerId}.");
     }
 
