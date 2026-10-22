@@ -13,14 +13,19 @@ Story Forge is a StoryBuilder domain capability. The existing implementation was
 
 ## Migration approach
 
-The existing code and tests currently live under `TheSingularityWorkshop.Experiences/src/StoryForge` and `tests/StoryForge.Tests`. Move their implementation and test ownership into this repository before removing the old project from Experiences.
+The implementation and tests have been relocated into `src/StoryBuilder.StoryForge` and `tests/StoryBuilder.StoryForge.Tests` on `development`. StoryBuilder CI has passed for the relocated project, including temporal model, query-engine, and canonical-workspace projection tests. Experiences no longer builds or tests Story Forge, and its former implementation/test files have been removed; `src/StoryForge/README.md` remains only as a migration pointer. The Experiences solution/CI decoupling runs passed.
 
-1. Preserve and relocate the temporal model, query engine, publication coverage, tests, and relevant documentation/assets.
-2. Establish StoryBuilder-owned project names, namespaces, solution/test integration, and package metadata. Avoid a StoryBuilder dependency from Experiences.
-3. Integrate Story Forge with StoryBuilder's canonical workspace records through explicit stable IDs and references. Do not create duplicate canonical story facts.
-4. Add persistence round-trip coverage for story records, temporal links, manuscript order, and provenance.
-5. Connect the authoring views to AnyApp and demonstrate the first book workflow end to end.
-6. Only after the new home builds and tests pass, remove the old Story Forge project/test ownership from Experiences and update its solution, docs, and CI.
+1. [x] Preserve and relocate the temporal model, query engine, publication coverage, tests, and relevant documentation/assets.
+2. [x] Establish StoryBuilder-owned project names, namespaces, solution/test integration, and package metadata. Experiences remains independent of StoryBuilder.
+3. [x] Add an explicit projection from canonical StoryBuilder workspace events into the temporal query index, preserving stable IDs and source provenance without duplicating canonical records.
+4. [ ] Add persistence round-trip coverage for story records, temporal links, manuscript order, and provenance.
+5. [ ] Connect the authoring views to AnyApp and demonstrate the first book workflow end to end.
+6. [x] Remove the old Story Forge project/test ownership from Experiences and update its solution, docs, and CI.
+
+## Current readiness
+
+- **Story Forge relocation:** 100% — source, tests, project/solution/CI ownership are moved and both repositories' relevant CI has passed. This percentage covers the relocation, not the product workflow.
+- **Runnable book workflow:** still in progress — workspace temporal projection exists and is tested, but save/reopen round-trip, manuscript/event linkage in the native host, and end-to-end AnyApp execution are not yet proven.
 
 ## Migration safety
 
