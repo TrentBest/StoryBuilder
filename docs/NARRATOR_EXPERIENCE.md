@@ -111,3 +111,10 @@ Voice playback, speech input, multi-output transformation pipelines, cloud colla
 ## Status
 
 This document records intended product behavior and architecture. It is not evidence that voice, target discovery, export pipelines, or the integrated WebPage/AnyApp experience are already implemented.
+
+
+## Implementation checkpoint — 2026-10-22
+
+The WebDemo now opens with a Narrator-first interaction. The creator can submit one free-form idea, optionally add scale/genre/approach/target hints, receive an editable StoryPremise proposal with a stable ID, revise it, and accept or reopen it through the FSM_API lifecycle. Premise words enter the shared vocabulary index and the binary persistence schema preserves them.
+
+This is the first low-friction slice, not the full conversational Narrator described above. It does not yet generate an independent LLM interpretation, draft linked characters/events, read the story aloud, or produce publication-ready layouts. The app structures the creator's actual input rather than pretending a template is generative intelligence.
