@@ -9,7 +9,7 @@
 - [x] Domain core, MicroBundle, binary workspace persistence, WebDemo, quickstart, and test suites have green CI evidence on development.
 - [x] Event-to-manuscript passage linkage is represented by canonical IDs and covered by domain persistence round-trip tests.
 - [x] The AnyApp dispatcher was updated to accept event creation, passage creation, and event-to-passage linking commands while preserving its save-after-success behavior.
-- [ ] Verify the latest AnyApp Windows build and tests after the dispatcher change: [workflow run](https://github.com/TrentBest/AnyApp/actions/runs/39820766164).
+- [x] AnyApp Windows Release build and test suite passed after the dispatcher change: [workflow run 39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164).
 - [ ] Perform or automate a real AnyApp --storybuilder create → link → save → restart → reopen smoke test, confirming IDs and links survive.
 - [ ] Select and add the repository license. README currently says license selection is pending; do not present the source as permissively licensed until this is resolved.
 - [ ] Reconcile the open development → master PR. The current GitHub comparison reports substantial divergence (419 commits ahead, 13 behind); do not blindly merge.
