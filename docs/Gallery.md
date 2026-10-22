@@ -4,17 +4,21 @@ StoryBuilder documents the creation of an Experience or Tool, then composes the 
 
 ## First recipe: from present fracture to a universe of worlds
 
-Read [Story Foundation](STORY_FOUNDATION.md) for the premise and tonal rules, [Historical Scale](HISTORICAL_SCALE.md) for the millennia-to-event hierarchy, and [Diegetic StoryBuilder](DIEGETIC_STORYBUILDER.md) for the tool's role inside The Singularity Workshop.
+Read [Story Foundation](STORY_FOUNDATION.md) for the premise and tonal rules, [Historical Scale](HISTORICAL_SCALE.md) for the millennia-to-event hierarchy, [Diegetic StoryBuilder](DIEGETIC_STORYBUILDER.md) for the tool's role inside The Singularity Workshop, and [Deployment Decision](DEPLOYMENT_DECISION.md) for the local desktop direction.
 
-**Current evidence:** these documents establish the initial concept and constraints. They do not claim that the application, timeline engine, campaign runtime, or living visualizations have been implemented yet.
+## First runnable proof: AnyApp desktop
 
-## Intended living proof
+The first runnable proof targets [AnyApp](https://github.com/TrentBest/AnyApp), the Workshop's Windows desktop host. StoryBuilder should not require a hosted WebApp, Azure account, remote database, or network connection for ordinary local writing.
 
-The first end-to-end demo should let a developer:
-1. Create an Experience record for StoryBuilder.
-2. Add an era and a provenance-aware historical claim.
-3. Start a small campaign in one frontier settlement.
-4. record a participant action and the resulting event.
-5. See the same underlying records reflected in a chronology and continuity view.
+The proof should let a developer:
+1. Launch StoryBuilder through AnyApp.
+2. Create and reopen a local project.
+3. Edit the manuscript and project metadata.
+4. Add a stable-ID event linked to a passage.
+5. See the same event in a chronology view after reopening the project.
 
-A later Gallery entry should link to a runnable demo and its detailed recipe once that behavior exists.
+## Current evidence
+
+The repository currently contains the concept, story foundation, historical-scale outline, and deployment decision. These documents establish constraints; they do **not** claim that the application, timeline engine, campaign runtime, or living visualizations have been implemented.
+
+A Gallery entry should link to a runnable demo and its detailed recipe only after that behavior exists and is verified.
