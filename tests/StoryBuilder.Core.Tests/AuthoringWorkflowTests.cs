@@ -41,6 +41,21 @@ public sealed class AuthoringWorkflowTests
     }
 
     [Fact]
+    public void AddingSynonymsLaterReconcilesAlreadyRecordedWords()
+    {
+        var index = new VocabularyIndex();
+        var targetId = Guid.NewGuid();
+        index.Record("brave", VocabularyCategory.Adjective, targetId, "Mara", "Traits");
+        index.AddSynonym("courageous", "brave");
+
+        var usage = Assert.Single(index.Search("courageous"));
+
+        Assert.Equal(1, usage.OccurrenceCount);
+        Assert.Equal("courageous", usage.Occurrences[0].CanonicalTerm);
+        Assert.Equal("brave", usage.Occurrences[0].SurfaceForm);
+    }
+
+    [Fact]
     public void SceneComposerBuildsAnEditableDraftFromOrderedBeats()
     {
         var composer = new SceneComposer();
