@@ -109,4 +109,20 @@ public sealed class AuthoringWorkflowTests
         Assert.Equal("B", reordered.Beats.OrderBy(b => b.Sequence).First().ActorLabel);
         Assert.Equal(2, reordered.Beats.Count);
     }
+    [Fact]
+    public void ManuscriptSectionsCanLinkAndUnlinkCanonicalScenes()
+    {
+        var session = new StoryBuilderSession();
+        var scene = session.CreateScene("North Gate", "Old wall");
+        var manuscript = session.CreateManuscript("The Arrival");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Scene, "Gate Scene");
+
+        manuscript = session.LinkSceneToManuscriptSection(manuscript.Id, section.Sections[0].Id, scene.Id);
+        Assert.Contains(scene.Id, Assert.Single(manuscript.Sections).SceneIds);
+        Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
+
+        manuscript = session.LinkSceneToManuscriptSection(manuscript.Id, section.Sections[0].Id, scene.Id, linked: false);
+        Assert.Empty(Assert.Single(manuscript.Sections).SceneIds);
+    }
+
 }
