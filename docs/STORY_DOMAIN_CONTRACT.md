@@ -22,6 +22,7 @@ The same world event can be referenced from more than one scene beat or manuscri
 | `TimelineEventRecord` | An inspectable runtime observation emitted by a timeline Process Group. | An automatic declaration of story canon. |
 | `SceneBeat` | An ordered captured action, reaction, dialogue, pose, or related scene element. | The world event itself. |
 | `ManuscriptSection` | A reading-order unit containing editable prose and references to scenes/events it portrays. | A second source of truth for the linked event. |
+| `PublishedBookEdition` | An immutable, content-hashed Markdown snapshot of a manuscript, with section/event provenance and correction lineage. | The mutable working manuscript; later edits do not rewrite a published artifact. |
 | `HistoricalClaim` / `SourceRecord` | A claim about the world's past and provenance for an account or artifact. | The fact that a source made a statement is not, by itself, proof that the statement is canon. |
 | `ObserverKnowledgeRecord` | What a particular observer is established to know, how they know it, and when they acquired it. | Objective world state or unrestricted narrator access. |
 | `CharacterRelationship` | A character's attributed relationship to another character, with its own label, notes, and review status. | A free-text name; `TargetCharacterId` must resolve to a character in the same workspace. |
@@ -47,6 +48,8 @@ Knowledge acquired at a particular event is available later only when that acqui
 ## Identity and persistence
 
 Relationships are stored as stable record IDs, not as copied prose. A section's `EventIds` and a beat's event references let tools inspect where an event is portrayed without making the manuscript the authority on world history. Timeline IDs likewise identify timeline records; presentation order and approximate placement should not be mistaken for a precise global chronology.
+
+`StoryBuilderSession.PublishManuscript` freezes the current deterministic Markdown as a `PublishedBookEdition`. A later publication of the same manuscript becomes a new record whose `PreviousEditionId` points to the preceding edition; correction notes describe the change without rewriting the older snapshot. The stored SHA-256 is validated against the exact Markdown content. Format 11 persists publication snapshots and lineage; readers continue to accept workspace formats 1–10.
 
 The versioned binary workspace format preserves domain records and their links across supported schema versions. Hosts are responsible for using the persistence adapter and verifying their own save/restore lifecycle. A successful serializer round-trip or store-level restore test proves data preservation at that layer; it does **not** by itself prove that a desktop process can exit and later reopen the same workspace.
 
