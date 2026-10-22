@@ -21,7 +21,7 @@ public sealed class VocabularySpanTests
             attribution: "Narrator");
 
         var brave = occurrences.Where(item => item.SurfaceForm == "brave").ToArray();
-        var compound = Assert.Single(occurrences.Where(item => item.SurfaceForm == "brave-minded"));
+        var compound = Assert.Single(occurrences, item => item.SurfaceForm == "brave-minded");
 
         Assert.Equal(2, brave.Length);
         Assert.Equal(source.IndexOf("brave", StringComparison.Ordinal), brave[0].StartIndex);
