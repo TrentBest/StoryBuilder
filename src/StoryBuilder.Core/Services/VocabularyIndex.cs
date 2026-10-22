@@ -23,10 +23,12 @@ public sealed class VocabularyIndex
         ValidateTerm(synonym, nameof(synonym));
         lock (_gate)
         {
-            var canonical = Normalize(canonicalTerm);
+            var requestedCanonical = Normalize(canonicalTerm);
+            var concept = _concepts.TryGetValue(requestedCanonical, out var existing)
+                ? existing
+                : new VocabularyConcept { CanonicalTerm = canonicalTerm.Trim(), Category = category };
+            var canonical = Normalize(concept.CanonicalTerm);
             var alias = Normalize(synonym);
-            if (!_concepts.TryGetValue(canonical, out var concept))
-                concept = new VocabularyConcept { CanonicalTerm = canonicalTerm.Trim(), Category = category };
 
             var synonyms = concept.Synonyms
                 .Where(s => !string.Equals(Normalize(s), alias, StringComparison.OrdinalIgnoreCase))
@@ -36,7 +38,20 @@ public sealed class VocabularyIndex
 
             concept = concept with { Synonyms = synonyms, Category = category };
             _concepts[canonical] = concept;
-            _concepts[alias] = concept;
+            foreach (var knownSynonym in synonyms)
+                _concepts[Normalize(knownSynonym)] = concept;
+
+            // Reconcile older occurrences too: authors can add or revise synonyms at any time.
+            var knownTerms = synonyms.Select(Normalize).Append(canonical).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            for (var i = 0; i < _occurrences.Count; i++)
+            {
+                if (knownTerms.Contains(Normalize(_occurrences[i].SurfaceForm)) ||
+                    knownTerms.Contains(Normalize(_occurrences[i].CanonicalTerm)))
+                {
+                    _occurrences[i] = _occurrences[i] with { CanonicalTerm = concept.CanonicalTerm };
+                }
+            }
+
             return concept;
         }
     }
