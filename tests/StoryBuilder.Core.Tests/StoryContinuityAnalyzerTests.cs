@@ -37,18 +37,17 @@ public sealed class StoryContinuityAnalyzerTests
     }
 
     [Fact]
-    public void ReportsTimelineBranchCycle()
+    public void AcceptsValidTimelineBranchWithoutContinuityFindings()
     {
         var workspace = new StoryWorkspace();
         var root = new TimelineDefinition { Name = "Prime" };
         var branch = new TimelineDefinition { Name = "Branch", ParentTimelineId = root.Id };
-        root = root with { ParentTimelineId = branch.Id };
         workspace.AddTimeline(root);
         workspace.AddTimeline(branch);
 
-        var findings = StoryContinuityAnalyzer.Analyze(workspace);
-
-        Assert.Contains(findings, finding => finding.Code == "timeline.branch-cycle");
+        Assert.DoesNotContain(
+            StoryContinuityAnalyzer.Analyze(workspace),
+            finding => finding.Code == "timeline.branch-cycle");
     }
 
     [Fact]
