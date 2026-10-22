@@ -21,6 +21,9 @@ Open http://localhost:5080.
 - **World Archive:** record historical claims and optional source provenance, keeping author status distinct from the claim itself.
 - **Campaign Room:** create campaigns, record participant choices as proposals, and accept, reject, reopen, or deprecate choices through the FSM_API lifecycle.
 - **Living Map:** view a live GUI.SVG manifestation of character cards, statuses, trait words, and the most-used vocabulary. It is generated from StoryBuilderSession data and refreshes as the workspace changes.
+- **Timelines:** create root histories and branches, place provisional Plot Twist points, record timeline events, and see numbered event markers connected to the manuscript sections that portray them.
+- **Book Preview:** author actual manuscript text in ordered chapters, scenes, and passages, and link sections to world-event identities.
+- **Observer Lens:** accept knowledge records, evaluate a claim at an event anchor, and render a GUI.SVG view containing only accepted, causally available observer knowledge.
 
 ## Current boundary
 
