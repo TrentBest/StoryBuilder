@@ -4,7 +4,7 @@ namespace StoryBuilder.Core.Services;
 
 /// <summary>
 /// Projects only accepted, causally available observer knowledge for downstream narration or portrayal.
-/// World-event titles and summaries are intentionally not copied into the projection.
+/// Uses per-event indexes and one causal-history traversal per projection.
 /// </summary>
 public sealed class ObserverKnowledgeProjectionService
 {
@@ -23,20 +23,31 @@ public sealed class ObserverKnowledgeProjectionService
         ArgumentNullException.ThrowIfNull(workspace);
         if (observerId == Guid.Empty || !workspace.Characters.Any(character => character.Id == observerId))
             throw new KeyNotFoundException($"Observer character '{observerId}' does not exist in this workspace.");
-        if (asOfEventId is Guid anchor && !workspace.Events.Any(storyEvent => storyEvent.Id == anchor))
+
+        var eventsById = workspace.Events.ToDictionary(storyEvent => storyEvent.Id);
+        if (asOfEventId is Guid anchor && !eventsById.ContainsKey(anchor))
             throw new KeyNotFoundException($"Narration event anchor '{anchor}' does not exist in this workspace.");
 
+        var recordsByEvent = workspace.ObserverKnowledge
+            .Where(record => record.ObserverId == observerId)
+            .GroupBy(record => record.EventId)
+            .ToDictionary(group => group.Key, group => (IReadOnlyList<ObserverKnowledgeRecord>)group.ToArray());
+        var causalHistory = BuildCausalHistory(eventsById, asOfEventId);
         var projectedEvents = new List<ObserverKnownEvent>();
+
         foreach (var storyEvent in workspace.Events)
         {
+            if (!recordsByEvent.TryGetValue(storyEvent.Id, out var records))
+                continue;
+
             var permittedClaims = new List<ObserverPermittedClaim>();
             foreach (var mode in ClaimModes)
             {
-                var evaluation = _evaluator.Evaluate(workspace, observerId, storyEvent.Id, asOfEventId, mode);
+                var evaluation = _evaluator.EvaluateForProjection(records, asOfEventId, mode, causalHistory);
                 if (!evaluation.IsAllowed || evaluation.KnowledgeRecordId is not Guid knowledgeId)
                     continue;
 
-                var record = workspace.ObserverKnowledge.FirstOrDefault(item => item.Id == knowledgeId);
+                var record = records.FirstOrDefault(item => item.Id == knowledgeId);
                 if (record is null || record.Status != CanonStatus.Accepted)
                     continue;
 
@@ -55,5 +66,27 @@ public sealed class ObserverKnowledgeProjectionService
         }
 
         return new ObserverKnowledgeProjection(observerId, asOfEventId, projectedEvents);
+    }
+
+    private static HashSet<Guid> BuildCausalHistory(
+        IReadOnlyDictionary<Guid, StoryEvent> eventsById,
+        Guid? asOfEventId)
+    {
+        var history = new HashSet<Guid>();
+        if (asOfEventId is not Guid anchor)
+            return history;
+
+        var pending = new Stack<Guid>();
+        pending.Push(anchor);
+        while (pending.Count > 0)
+        {
+            var currentId = pending.Pop();
+            if (!history.Add(currentId) || !eventsById.TryGetValue(currentId, out var current))
+                continue;
+            foreach (var causeId in current.CauseEventIds)
+                pending.Push(causeId);
+        }
+
+        return history;
     }
 }

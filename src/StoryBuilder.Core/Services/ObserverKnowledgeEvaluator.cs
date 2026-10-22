@@ -22,7 +22,32 @@ public sealed class ObserverKnowledgeEvaluator
 
         var records = workspace.ObserverKnowledge
             .Where(item => item.ObserverId == observerId && item.EventId == eventId)
-            .ToList();
+            .ToArray();
+        return EvaluateRecords(records, requestedMode,
+            record => IsAvailableAt(workspace, record.AcquiredAtEventId, asOfEventId));
+    }
+
+    /// <summary>
+    /// Evaluates records already indexed for one observer/event against a precomputed causal history.
+    /// Used by batch projections to avoid rescanning the full workspace for each event.
+    /// </summary>
+    internal ObserverKnowledgeEvaluation EvaluateForProjection(
+        IReadOnlyList<ObserverKnowledgeRecord> records,
+        Guid? asOfEventId,
+        NarrationClaimMode requestedMode,
+        IReadOnlySet<Guid> causalHistory)
+    {
+        ArgumentNullException.ThrowIfNull(records);
+        ArgumentNullException.ThrowIfNull(causalHistory);
+        return EvaluateRecords(records, requestedMode,
+            record => IsAvailableAt(record.AcquiredAtEventId, asOfEventId, causalHistory));
+    }
+
+    private static ObserverKnowledgeEvaluation EvaluateRecords(
+        IReadOnlyList<ObserverKnowledgeRecord> records,
+        NarrationClaimMode requestedMode,
+        Func<ObserverKnowledgeRecord, bool> isAvailable)
+    {
         if (records.Count == 0)
             return Deny("No observer-knowledge record establishes that this observer knows the event.");
 
@@ -34,7 +59,7 @@ public sealed class ObserverKnowledgeEvaluator
                 Explanation = "Observer knowledge is only proposed; an author must accept it before narration relies on it."
             };
 
-        var available = accepted.Where(item => IsAvailableAt(workspace, item.AcquiredAtEventId, asOfEventId)).ToList();
+        var available = accepted.Where(isAvailable).ToList();
         if (available.Count == 0)
             return Deny("The event is not established as known at this narration point.");
 
@@ -116,8 +141,16 @@ public sealed class ObserverKnowledgeEvaluator
             }
         }
 
-        // If the graph does not prove availability, fail closed rather than guessing chronology.
         return false;
+    }
+
+    private static bool IsAvailableAt(Guid? acquiredAtEventId, Guid? asOfEventId, IReadOnlySet<Guid> causalHistory)
+    {
+        if (acquiredAtEventId is null)
+            return true;
+        if (asOfEventId is null)
+            return false;
+        return causalHistory.Contains(acquiredAtEventId.Value);
     }
 
     private static string ExplanationFor(ObserverKnowledgeKind kind, NarrationClaimMode required) => kind switch
