@@ -88,6 +88,7 @@
                 {
                     <button class="list-item @(selectedCharacter?.Id == character.Id ? "selected" : "")" @onclick="() => SelectCharacter(character)">
                         <strong>@character.Name</strong>
+                        <span class="chip">@character.NarrativeRole</span>
                         <span class="chip">@character.Role</span>
                         @if (!string.IsNullOrWhiteSpace(character.Description))
                         {
@@ -243,7 +244,7 @@
                 <p><strong>@selectedCharacter.Name</strong> · @nameUsage.OccurrenceCount use(s) across @nameUsage.DistinctTargetCount target(s)</p>
                 @foreach (var occurrence in nameUsage.Occurrences.Take(3))
                 {
-                    <p class="muted">@occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution</p>
+                    <p class="muted">@occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution · span @occurrence.StartIndex–@(occurrence.StartIndex + occurrence.Length)</p>
                     @if (!string.IsNullOrWhiteSpace(occurrence.Context))
                     {
                         <p>@occurrence.Context</p>
@@ -309,7 +310,7 @@
                 </div>
                 @foreach (var occurrence in result.Occurrences)
                 {
-                    <p><strong>@occurrence.SurfaceForm</strong> · @occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution</p>
+                    <p><strong>@occurrence.SurfaceForm</strong> · @occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution · span @occurrence.StartIndex–@(occurrence.StartIndex + occurrence.Length)</p>
                     @if (!string.IsNullOrWhiteSpace(occurrence.Context))
                     {
                         <p class="muted">@occurrence.Context</p>
