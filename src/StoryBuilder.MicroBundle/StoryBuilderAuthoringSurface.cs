@@ -39,13 +39,13 @@ public sealed class StoryBuilderAuthoringSurface
                     "storybuilder-counts",
                     $"Timelines: {workspace.Timelines.Count}  |  Characters: {workspace.Characters.Count}  |  Scenes: {workspace.Scenes.Count}  |  Manuscripts: {workspace.Manuscripts.Count}"))
                 .Child(GuiBuilders.Button("storybuilder-create-timeline", "＋ Create timeline")
-                    .WithOnClick(StoryBuilderAuthoringCommands.CreateTimeline))
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateTimeline))
                 .Child(GuiBuilders.Button("storybuilder-create-character", "＋ Create character")
-                    .WithOnClick(StoryBuilderAuthoringCommands.CreateCharacter))
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateCharacter))
                 .Child(GuiBuilders.Button("storybuilder-create-scene", "＋ Create scene")
-                    .WithOnClick(StoryBuilderAuthoringCommands.CreateScene))
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateScene))
                 .Child(GuiBuilders.Button("storybuilder-create-manuscript", "＋ Create manuscript")
-                    .WithOnClick(StoryBuilderAuthoringCommands.CreateManuscript));
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateManuscript));
 
             return root.Build();
         }
