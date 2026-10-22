@@ -4,7 +4,7 @@
 
 The timeline organizes world history and acts as an executable authoring Process Group. Authors need to place ideas before they know what those ideas mean, then develop them into events, scenes, passages, and a finished product without losing the original intent.
 
-This is a domain contract, not a claim that all described workflows are implemented. The current verified vertical slice includes timeline-assigned world events and stable event-to-manuscript-section references. Observer-knowledge records and a conservative evaluator are being added; Renderer integration and reader-disclosure policy are not yet implemented.
+This is a domain contract, not a claim that all described workflows are implemented. The current verified vertical slice includes timeline-assigned world events and stable event-to-manuscript-section references. ObserverKnowledgeRecord and ObserverKnowledgeEvaluator are implemented and tested. The evaluator accepts only author-accepted knowledge, requires appropriate claim framing, and fails closed when causal availability cannot be established. Renderer integration and reader-disclosure policy are not yet implemented.
 
 ## A provisional point is a real object
 

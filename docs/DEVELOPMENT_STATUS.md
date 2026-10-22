@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 59% — verified local authoring prototype with versioned binary browser persistence, living GUI.SVG views, a persisted book preview, provisional timeline planning points, timeline-assigned world events, and stable event-to-manuscript links. Observer-knowledge records and a conservative narration evaluator are now being implemented. Package production/consumption and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 60% — verified local authoring prototype with versioned binary browser persistence, living GUI.SVG views, a persisted book preview, provisional timeline planning points, timeline-assigned world events, event-to-manuscript links, and an observer-knowledge evaluator that fails closed when knowledge is unsupported. Renderer integration, full reader disclosure, package production/consumption, and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -20,7 +20,7 @@
 - StoryWorkspace records for Experience, timelines, planning points, timeline-linked world events, manuscripts, event-to-section portrayal references, and observer-knowledge records, sources, claims, campaigns, participant actions, and continuity issues.
 - Host-neutral IStoryProcessGroup and StoryProcessGroupDriver; each inserted group is updated once per driver Update.
 - Optional FSM_API-backed TimelineProcessGroup with inspectable entry, driver-update, runtime-tick, and exit observations.
-- Binary workspace format version 6 persists timeline definitions (v3), manuscripts (v4), provisional planning points (v5), and timeline assignment/placement for world events (v6). Observer-knowledge records are being added in version 7; readers retain compatibility with versions 1 through 6.
+- Binary workspace format version 7 persists timeline definitions (v3), manuscripts (v4), provisional planning points (v5), timeline assignment/placement for world events (v6), and observer-knowledge records (v7). Readers retain compatibility with versions 1 through 6.
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
@@ -43,13 +43,14 @@
 - [Book preview and manuscript persistence workflow run 39707924820](https://github.com/TrentBest/StoryBuilder/actions/runs/39707924820) succeeded on commit c60224d09123e1db218ad8d7b43e31852b734c88.
 - [Planning points workflow run 39708209120](https://github.com/TrentBest/StoryBuilder/actions/runs/39708209120) succeeded on commit fa23cff2b89fd1b3017974df1a707b4bf41c1534.
 - [Timeline events and manuscript portrayal links workflow run 39708477845](https://github.com/TrentBest/StoryBuilder/actions/runs/39708477845) succeeded on commit fdde93994809ecffb6ebbb633a9eb72fcd20f4e0.
+- [Observer knowledge constraint workflow run 39708952020](https://github.com/TrentBest/StoryBuilder/actions/runs/39708952020) succeeded on commit 93cc9a4ebc43a2727aa76a6eb935ae9cea106bfa.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
 
 - Book Preview supports manuscript metadata, ordered sections, and actual authored text. Export, immutable publication editions, and links from manuscript sections to scene/beat records remain incomplete.
 - Richer Plot Twist brainstorming, alternatives editing, impact links, and promotion to events only by explicit author decision; the current increment creates a stable provisional point with approximate placement.
-- Observer-knowledge evaluator and record model are in progress; reader disclosure policy, full causal graph editing, synchronized timeline comparison, and unrevealed-event handling remain incomplete.
+- Full reader disclosure policy, observer-facing UI, renderer integration, full causal graph editing, synchronized timeline comparison, and unrevealed-event handling remain incomplete.
 - Keyboard timeline console, visual relationship rails from event markers to book sections, scene/beat navigation, and observer-aware recounting.
 - Narrator first-session workflow orchestrated by multiple focused FSM_API state machines.
 - Immutable published edition artifacts and corrected-edition lineage.
@@ -62,7 +63,7 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work now includes an actual persisted manuscript product, provisional planning points, timeline-assigned world events, and event-to-section references. Observer constraints, multi-FSM Narrator orchestration, package compiler/consumer, and Workshop-host integration remain absent. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work now includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, and a tested observer-knowledge evaluator. Multi-FSM Narrator orchestration, renderer integration, package compiler/consumer, and Workshop-host integration remain absent. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 

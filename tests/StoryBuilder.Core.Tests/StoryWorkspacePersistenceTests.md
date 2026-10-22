@@ -16,3 +16,5 @@ Run the test project from the repository root using the Development guide.
 
 
 The round-trip case also verifies that manuscript metadata, authored section text, and a provisional timeline planning point preserve their stable identities and approximate placement.
+
+The round-trip test also verifies that accepted observer-knowledge records survive with their observer, event, and knowledge-kind identities.

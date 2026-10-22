@@ -2,9 +2,9 @@
 
 ## Status and intent
 
-The executable foundation is verified by CI: StoryWorkspace owns TimelineDefinition records, the host-neutral StoryProcessGroupDriver advances inserted IStoryProcessGroup instances, and the optional FSM_API-backed TimelineProcessGroup emits inspectable runtime observations. The binary workspace schema is version 6 and preserves timeline definitions, manuscripts, provisional planning points, and timeline assignment for world events. The WebDemo can create planning points and world events, and manuscript sections can reference events by stable ID.
+The executable foundation is verified by CI: StoryWorkspace owns TimelineDefinition records, the host-neutral StoryProcessGroupDriver advances inserted IStoryProcessGroup instances, and the optional FSM_API-backed TimelineProcessGroup emits inspectable runtime observations. The binary workspace schema is version 7 and preserves timeline definitions, manuscripts, provisional planning points, timeline-assigned world events, and observer-knowledge records. The WebDemo can create planning points and world events, and manuscript sections can reference events by stable ID.
 
-The keyboard-invoked developer console, drawn event-to-book relationship rails, observer-aware recounting, full temporal/causal model, and immutable publication editions remain future work. Event-to-section references are persisted, but the SVG does not yet draw the cross-view links.
+The keyboard-invoked developer console, drawn event-to-book relationship rails, Renderer integration, full reader-disclosure policy, full temporal/causal model, and immutable publication editions remain future work. The core observer evaluator is implemented and tested but is not yet wired into a Narrator FSM workflow. Event-to-section references are persisted, but the SVG does not yet draw the cross-view links.
 
 ## A timeline is an executable Process Group
 
