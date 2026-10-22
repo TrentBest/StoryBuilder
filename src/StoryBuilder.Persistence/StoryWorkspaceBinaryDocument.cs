@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 5;
+    private const int FormatVersion = 6;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -63,7 +63,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -104,7 +104,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var characters = BinaryCodec.ReadList(stream, item => ReadCharacter(item, version));
         var scenes = BinaryCodec.ReadList(stream, ReadScene);
         var claims = BinaryCodec.ReadList(stream, ReadHistoricalClaim);
-        var events = BinaryCodec.ReadList(stream, ReadStoryEvent);
+        var events = BinaryCodec.ReadList(stream, item => ReadStoryEvent(item, version));
         var campaigns = BinaryCodec.ReadList(stream, ReadCampaign);
         var actions = BinaryCodec.ReadList(stream, ReadParticipantAction);
         var sources = BinaryCodec.ReadList(stream, ReadSource);
@@ -486,6 +486,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, value.Title);
         BinaryCodec.WriteString(stream, value.Summary);
         BinaryCodec.WriteString(stream, value.InWorldDateOrPeriod);
+        BinaryCodec.WriteNullableGuid(stream, value.TimelineId);
+        BinaryCodec.WriteEnum(stream, value.PlacementKind);
         BinaryCodec.WriteGuidList(stream, value.ParticipantIds);
         BinaryCodec.WriteGuidList(stream, value.CauseEventIds);
         BinaryCodec.WriteGuidList(stream, value.ConsequenceEventIds);
@@ -493,18 +495,29 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteEnum(stream, value.Status);
     }
 
-    private static StoryEvent ReadStoryEvent(IBinaryStream stream) => new()
+    private static StoryEvent ReadStoryEvent(IBinaryStream stream, int version)
     {
-        Id = BinaryCodec.ReadGuid(stream),
-        Title = BinaryCodec.ReadRequiredString(stream, nameof(StoryEvent.Title)),
-        Summary = BinaryCodec.ReadRequiredString(stream, nameof(StoryEvent.Summary)),
-        InWorldDateOrPeriod = BinaryCodec.ReadString(stream),
-        ParticipantIds = BinaryCodec.ReadGuidList(stream),
-        CauseEventIds = BinaryCodec.ReadGuidList(stream),
-        ConsequenceEventIds = BinaryCodec.ReadGuidList(stream),
-        SourceIds = BinaryCodec.ReadGuidList(stream),
-        Status = BinaryCodec.ReadEnum<CanonStatus>(stream)
-    };
+        var id = BinaryCodec.ReadGuid(stream);
+        var title = BinaryCodec.ReadRequiredString(stream, nameof(StoryEvent.Title));
+        var summary = BinaryCodec.ReadRequiredString(stream, nameof(StoryEvent.Summary));
+        var period = BinaryCodec.ReadString(stream);
+        var timelineId = version >= 6 ? BinaryCodec.ReadNullableGuid(stream) : null;
+        var placementKind = version >= 6 ? BinaryCodec.ReadEnum<TimelinePlacementKind>(stream) : TimelinePlacementKind.Unresolved;
+        return new StoryEvent
+        {
+            Id = id,
+            Title = title,
+            Summary = summary,
+            InWorldDateOrPeriod = period,
+            TimelineId = timelineId,
+            PlacementKind = placementKind,
+            ParticipantIds = BinaryCodec.ReadGuidList(stream),
+            CauseEventIds = BinaryCodec.ReadGuidList(stream),
+            ConsequenceEventIds = BinaryCodec.ReadGuidList(stream),
+            SourceIds = BinaryCodec.ReadGuidList(stream),
+            Status = BinaryCodec.ReadEnum<CanonStatus>(stream)
+        };
+    }
 
     private static void WriteCampaign(IBinaryStream stream, CampaignRecord value)
     {

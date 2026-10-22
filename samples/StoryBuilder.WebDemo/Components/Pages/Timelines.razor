@@ -117,7 +117,36 @@
                     }
                 </div>
             }
-            <p class="muted">A planning point can remain a placeholder. It is not a world event or accepted canon until the author explicitly resolves it.</p>
+            <hr />
+            <div class="eyebrow">World events on this timeline</div>
+            <div class="field">
+                <label for="event-title">Key event</label>
+                <input id="event-title" @bind="timelineEventTitle" placeholder="The reveal" />
+            </div>
+            <div class="field">
+                <label for="event-summary">What happens? (optional)</label>
+                <textarea id="event-summary" @bind="timelineEventSummary" placeholder="What changes in the world?"></textarea>
+            </div>
+            <div class="field">
+                <label for="event-placement">Approximate world-time placement</label>
+                <input id="event-placement" @bind="timelineEventPlacement" placeholder="Near the midpoint; date not known" />
+            </div>
+            <button @onclick="AddTimelineEvent">Add key event</button>
+            @if (Session.Workspace.Events.Any(item => item.TimelineId == selectedTimeline.Id))
+            {
+                <div class="list">
+                    @foreach (var storyEvent in Session.Workspace.Events.Where(item => item.TimelineId == selectedTimeline.Id))
+                    {
+                        <div class="list-item">
+                            <strong>@storyEvent.Title</strong>
+                            <span>@(string.IsNullOrWhiteSpace(storyEvent.InWorldDateOrPeriod) ? "World time unresolved" : storyEvent.InWorldDateOrPeriod)</span>
+                            <span>@storyEvent.Summary</span>
+                            <small class="muted">Event ID: @storyEvent.Id</small>
+                        </div>
+                    }
+                </div>
+            }
+            <p class="muted">A planning point is not a world event. Add an event only when you want to record something that happens in this timeline.</p>
         </div>
     }
 </section>
@@ -131,6 +160,9 @@
     private string message = string.Empty;
     private string planningPointLabel = "Plot Twist";
     private string planningPointPlacement = string.Empty;
+    private string timelineEventTitle = "Key event";
+    private string timelineEventSummary = string.Empty;
+    private string timelineEventPlacement = string.Empty;
     private TimelineDefinition? selectedTimeline;
 
     protected override void OnInitialized()
@@ -171,6 +203,20 @@
         message = $"Added provisional point '{planningPointLabel}' without requiring its meaning to be known.";
         planningPointLabel = "Plot Twist";
         planningPointPlacement = string.Empty;
+    }
+
+    private void AddTimelineEvent()
+    {
+        if (selectedTimeline is null)
+        {
+            message = "Select a timeline before adding an event.";
+            return;
+        }
+        var storyEvent = Session.CreateTimelineEvent(selectedTimeline.Id, timelineEventTitle, timelineEventSummary, timelineEventPlacement);
+        message = $"Added world event '{storyEvent.Title}' to timeline '{selectedTimeline.Name}'.";
+        timelineEventTitle = "Key event";
+        timelineEventSummary = string.Empty;
+        timelineEventPlacement = string.Empty;
     }
 
     private void OnSessionChanged() => _ = InvokeAsync(() =>

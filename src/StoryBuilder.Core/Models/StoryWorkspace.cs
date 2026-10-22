@@ -53,6 +53,8 @@ public sealed record StoryEvent
     public string Title { get; init; } = "Untitled event";
     public string Summary { get; init; } = string.Empty;
     public string? InWorldDateOrPeriod { get; init; }
+    public Guid? TimelineId { get; init; }
+    public TimelinePlacementKind PlacementKind { get; init; } = TimelinePlacementKind.Unresolved;
     public List<Guid> ParticipantIds { get; init; } = [];
     public List<Guid> CauseEventIds { get; init; } = [];
     public List<Guid> ConsequenceEventIds { get; init; } = [];
@@ -233,6 +235,8 @@ public sealed class StoryWorkspace
     {
         ArgumentNullException.ThrowIfNull(storyEvent);
         EnsureUnique(_events.Select(x => x.Id), storyEvent.Id, nameof(storyEvent));
+        if (storyEvent.TimelineId is Guid timelineId && !_timelines.Any(timeline => timeline.Id == timelineId))
+            throw new KeyNotFoundException($"Timeline '{timelineId}' must exist before an event can be assigned to it.");
         _events.Add(storyEvent);
     }
 

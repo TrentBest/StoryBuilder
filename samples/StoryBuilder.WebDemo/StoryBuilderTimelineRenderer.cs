@@ -35,7 +35,9 @@ public sealed class StoryBuilderTimelineRenderer
 
         var maxDepth = depthById.Values.DefaultIfEmpty(0).Max();
         var maxPlanningPoints = timelines.Select(timeline => session.Workspace.PlanningPoints.Count(point => point.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
-        var width = Math.Max(100, (maxDepth + 1) * 32 + 8 + maxPlanningPoints * 17);
+        var maxEvents = timelines.Select(timeline => session.Workspace.Events.Count(item => item.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
+        var maxMarkers = maxPlanningPoints + maxEvents;
+        var width = Math.Max(100, (maxDepth + 1) * 32 + 8 + maxMarkers * 17);
         var height = Math.Max(36, timelines.Count * 15 + 16);
         var root = GuiBuilder.Create("svg-scene", "storybuilder-timeline-map")
             .Text("StoryBuilder timeline constellation")
@@ -112,6 +114,23 @@ public sealed class StoryBuilderTimelineRenderer
                     .Property("x", (pointX + 0.7).ToString(CultureInfo.InvariantCulture))
                     .Property("y", (y + 3.2).ToString(CultureInfo.InvariantCulture))
                     .Property("font-size", "1.35").Property("fill", "#ffe0a1"));
+            }
+
+            var events = session.Workspace.Events.Where(item => item.TimelineId == timeline.Id).ToList();
+            for (var index = 0; index < events.Count; index++)
+            {
+                var storyEvent = events[index];
+                var eventX = x + 28 + (points.Count + index) * 17;
+                root.Child("svg-rect", $"world-event-card-{storyEvent.Id:N}", node => node
+                    .Property("x", eventX.ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (y + 0.5).ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "15.5").Property("height", "4.5").Property("rx", "0.7")
+                    .Property("fill", "#202f43").Property("stroke", "#8bb7e8").Property("stroke-width", "0.25"));
+                root.Child("svg-text", $"world-event-label-{storyEvent.Id:N}", node => node
+                    .Text(Shorten(storyEvent.Title, 12))
+                    .Property("x", (eventX + 0.7).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (y + 3.2).ToString(CultureInfo.InvariantCulture))
+                    .Property("font-size", "1.35").Property("fill", "#cfe4ff"));
             }
         }
 

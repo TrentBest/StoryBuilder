@@ -244,6 +244,38 @@ public sealed class StoryBuilderSession
         return claim;
     }
 
+    public StoryEvent CreateTimelineEvent(Guid timelineId, string? title = null, string? summary = null, string? approximatePlacement = null)
+    {
+        if (!Workspace.Timelines.Any(timeline => timeline.Id == timelineId))
+            throw new KeyNotFoundException($"Timeline '{timelineId}' does not exist in this workspace.");
+        return AddEvent(new StoryEvent
+        {
+            TimelineId = timelineId,
+            Title = string.IsNullOrWhiteSpace(title) ? "Untitled event" : title.Trim(),
+            Summary = NormalizeOptional(summary) ?? string.Empty,
+            InWorldDateOrPeriod = NormalizeOptional(approximatePlacement),
+            PlacementKind = string.IsNullOrWhiteSpace(approximatePlacement)
+                ? TimelinePlacementKind.Unresolved
+                : TimelinePlacementKind.Approximate
+        });
+    }
+
+    public ManuscriptEdition LinkEventToManuscriptSection(Guid manuscriptId, Guid sectionId, Guid eventId, bool linked = true)
+    {
+        if (!Workspace.Events.Any(item => item.Id == eventId))
+            throw new KeyNotFoundException($"Event '{eventId}' does not exist in this workspace.");
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
+        var section = manuscript.Sections.FirstOrDefault(item => item.Id == sectionId)
+            ?? throw new KeyNotFoundException($"No section with ID '{sectionId}' exists in this manuscript.");
+        var eventIds = section.EventIds.ToList();
+        if (linked && !eventIds.Contains(eventId))
+            eventIds.Add(eventId);
+        else if (!linked)
+            eventIds.Remove(eventId);
+        return UpdateManuscript(manuscript.ReplaceSection(section with { EventIds = eventIds }));
+    }
+
     public StoryEvent AddEvent(StoryEvent storyEvent)
     {
         ArgumentNullException.ThrowIfNull(storyEvent);

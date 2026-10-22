@@ -117,6 +117,10 @@
                         {
                             <p class="book-paragraph">@section.Body</p>
                         }
+                        @if (section.EventIds.Count > 0)
+                        {
+                            <p class="muted">Portrays: @string.Join(", ", Session.Workspace.Events.Where(item => section.EventIds.Contains(item.Id)).Select(item => item.Title))</p>
+                        }
                     </section>
                 }
             </article>
@@ -138,6 +142,33 @@
                     <textarea id="edit-section-body" @bind="editSectionBody" rows="10" placeholder="Write the passage as it should appear in the book."></textarea>
                 </div>
                 <button @onclick="SaveSection">Save and refresh product preview</button>
+                <div class="field">
+                    <label for="section-event">Link a world event portrayed here</label>
+                    <select id="section-event" @bind="selectedEventId">
+                        <option value="">Choose an event</option>
+                        @foreach (var storyEvent in Session.Workspace.Events)
+                        {
+                            <option value="@storyEvent.Id">@storyEvent.Title</option>
+                        }
+                    </select>
+                </div>
+                <button @onclick="LinkSelectedEvent" disabled="@string.IsNullOrWhiteSpace(selectedEventId)">Link event to this section</button>
+                @if (selectedSection.EventIds.Count > 0)
+                {
+                    <div class="list">
+                        @foreach (var eventId in selectedSection.EventIds)
+                        {
+                            var linkedEvent = Session.Workspace.Events.FirstOrDefault(item => item.Id == eventId);
+                            if (linkedEvent is not null)
+                            {
+                                <div class="list-item">
+                                    <strong>@linkedEvent.Title</strong>
+                                    <button class="danger" @onclick="() => UnlinkEvent(eventId)">Unlink</button>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
             }
         }
     </section>
@@ -149,6 +180,7 @@
     private string newSectionKind = nameof(ManuscriptSectionKind.Chapter);
     private string editSectionTitle = string.Empty;
     private string editSectionBody = string.Empty;
+    private string selectedEventId = string.Empty;
     private Guid? selectedManuscriptId;
     private Guid? selectedSectionId;
 
@@ -201,6 +233,20 @@
         if (CurrentManuscript is null || selectedSectionId is not Guid sectionId)
             return;
         Session.UpdateManuscriptSection(CurrentManuscript.Id, sectionId, editSectionTitle, editSectionBody);
+    }
+
+    private void LinkSelectedEvent()
+    {
+        if (CurrentManuscript is null || selectedSectionId is not Guid sectionId || !Guid.TryParse(selectedEventId, out var eventId))
+            return;
+        Session.LinkEventToManuscriptSection(CurrentManuscript.Id, sectionId, eventId);
+    }
+
+    private void UnlinkEvent(Guid eventId)
+    {
+        if (CurrentManuscript is null || selectedSectionId is not Guid sectionId)
+            return;
+        Session.LinkEventToManuscriptSection(CurrentManuscript.Id, sectionId, eventId, linked: false);
     }
 
     private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
