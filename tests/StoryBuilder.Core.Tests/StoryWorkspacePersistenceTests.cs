@@ -12,8 +12,14 @@ public sealed class StoryWorkspacePersistenceTests
     public void BinaryDocumentRoundTripsWorkspaceRecordsAndSynonymMappings()
     {
         var session = new StoryBuilderSession("Persistence campaign");
-        var character = session.CreateCharacter("Mara", "Investigator")
-            .WithDescription("A brave explorer.")
+        var premise = session.CreatePremise(
+            "A starship cartographer returns to a vanished Earth.",
+            title: "The Lost Cartographer",
+            scale: "Connected series",
+            genre: "Science fiction",
+            primaryTarget: "Novel");
+        var character = session.CreateCharacter("Mara", "Investigator") with { NarrativeRole = CharacterNarrativeRole.Hero };
+        character = character.WithDescription("A brave explorer.")
             .AddTrait(new CharacterTrait { Term = "methodical", Attribution = "Author" });
         session.UpdateCharacter(character);
         session.AddSynonym("courageous", "brave");
@@ -67,7 +73,13 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Equal(session.Workspace.Id, restoredSession.Workspace.Id);
         Assert.Equal("Persistence campaign", restoredSession.Workspace.Name);
-        Assert.Equal(character.Id, Assert.Single(restoredSession.Workspace.Characters).Id);
+        var restoredPremise = Assert.Single(restoredSession.Workspace.Premises);
+        Assert.Equal(premise.Id, restoredPremise.Id);
+        Assert.Equal("The Lost Cartographer", restoredPremise.Title);
+        Assert.Equal("Connected series", restoredPremise.Scale);
+        var restoredCharacter = Assert.Single(restoredSession.Workspace.Characters);
+        Assert.Equal(character.Id, restoredCharacter.Id);
+        Assert.Equal(CharacterNarrativeRole.Hero, restoredCharacter.NarrativeRole);
         Assert.Equal(scene.Id, Assert.Single(restoredSession.Workspace.Scenes).Id);
         Assert.Equal("left hand on the latch", Assert.Single(restoredSession.Workspace.Scenes[0].Beats).PoseOrPosition);
         Assert.Equal(source.Id, Assert.Single(restoredSession.Workspace.Sources).Id);
@@ -75,6 +87,19 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(CanonStatus.Proposed, Assert.Single(restoredSession.Workspace.ParticipantActions).Status);
         Assert.Equal("courageous", Assert.Single(restoredSession.Vocabulary.Search("brave")).CanonicalTerm);
         Assert.Contains(restoredSession.Vocabulary.Search("brave"), usage => usage.OccurrenceCount >= 1);
+    }
+
+    [Fact]
+    public void VersionOneWorkspacePayloadMigratesWithUndecidedCharacterRolesAndNoPremises()
+    {
+        using var input = new MemoryBinaryStream(CreateVersionOneEmptyWorkspacePayload());
+        var document = new StoryWorkspaceBinaryDocument();
+
+        document.Unpack(input);
+
+        Assert.Equal("Legacy workspace", document.Workspace.Name);
+        Assert.Empty(document.Workspace.Premises);
+        Assert.Empty(document.Workspace.Characters);
     }
 
     [Fact]
@@ -89,6 +114,37 @@ public sealed class StoryWorkspacePersistenceTests
         using var input = new MemoryBinaryStream(payload);
         var document = new StoryWorkspaceBinaryDocument();
         Assert.Throws<InvalidDataException>(() => document.Unpack(input));
+    }
+
+    private static byte[] CreateVersionOneEmptyWorkspacePayload()
+    {
+        using var stream = new MemoryStream();
+        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
+        writer.Write(System.Text.Encoding.ASCII.GetBytes("SBWS"));
+        writer.Write(1);
+        writer.Write(Guid.Empty.ToByteArray());
+        WriteLegacyString(writer, "Legacy workspace");
+        writer.Write(Guid.Empty.ToByteArray());
+        WriteLegacyString(writer, "Legacy experience");
+        WriteLegacyString(writer, "Legacy purpose");
+        WriteLegacyString(writer, "Legacy audience");
+        for (var i = 0; i < 12; i++)
+            writer.Write(0);
+        writer.Flush();
+        return stream.ToArray();
+    }
+
+    private static void WriteLegacyString(BinaryWriter writer, string? value)
+    {
+        if (value is null)
+        {
+            writer.Write(-1);
+            return;
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(value);
+        writer.Write(bytes.Length);
+        writer.Write(bytes);
     }
 
     [Fact]
