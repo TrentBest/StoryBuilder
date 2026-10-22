@@ -6,10 +6,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- Hosts with a shared GUI checkout can override this to prevent duplicate GUI.Core assembly identities. -->
+    <WorkshopGuiCoreProject Condition="'$(WorkshopGuiCoreProject)' == ''">$(MSBuildThisFileDirectory)..\..\external\TheSingularityWorkshop.GUI\src\Core\TheSingularityWorkshop.GUI.Core.csproj</WorkshopGuiCoreProject>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../StoryBuilder.Core/StoryBuilder.Core.csproj" />
-    <ProjectReference Include="../../external/TheSingularityWorkshop.GUI/src/Core/TheSingularityWorkshop.GUI.Core.csproj" />
+    <ProjectReference Include="$(WorkshopGuiCoreProject)" />
     <PackageReference Include="TheSingularityWorkshop.MicroBundleDomain" Version="1.0.1" />
   </ItemGroup>
 </Project>
