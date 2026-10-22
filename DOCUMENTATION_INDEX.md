@@ -7,11 +7,12 @@
 | Prepare the first public Alpha responsibly | [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) |
 | Understand the purpose and boundary | [README](README.md) |
 | Meet the Narrator and understand the first-session flow | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
+| Find causal cycles, inconsistent event links, and timeline branch cycles | [StoryContinuityAnalyzer](src/StoryBuilder.Core/Services/StoryContinuityAnalyzer.md) |
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
 | Understand the manifest/configuration contracts and binary package artifacts | [Package contract UML](docs/UML/CompositionPackageContractsUML.md), [Binary artifacts UML](docs/UML/CompositionPackageBinaryArtifactsUML.md), [Validator UML](docs/UML/CompositionPackageValidatorUML.md) |
 | Add an approximate Plot Twist to a timeline | Timeline planning point model [UML](docs/UML/TimelinePlanningPointUML.md) and the WebDemo Timelines page |
 | Constrain narration to an observer's knowledge | Observer knowledge ledger and evaluator [UML](docs/UML/ObserverKnowledgeRecordUML.md) |
-| Produce observer-safe input for narration or portrayal | [ObserverKnowledgeProjection UML](docs/UML/ObserverKnowledgeProjectionUML.md), [projection tests](tests/StoryBuilder.Core.Tests/ObserverKnowledgeProjectionServiceTests.md); NarratorAgent exposes the projection through its observer FSM
+| Produce observer-safe input for narration or portrayal | [ObserverKnowledgeProjection UML](docs/UML/ObserverKnowledgeProjectionUML.md), [projection tests](tests/StoryBuilder.Core.Tests/ObserverKnowledgeProjectionServiceTests.md); NarratorAgent exposes the projection through its observer FSM |
 | Inspect or accept an observer's knowledge | [Observer Lens](samples/StoryBuilder.WebDemo/ObserverLens.md), route /observers |
 | Understand the Narrator's cooperating FSMs | [NarratorAgent](src/StoryBuilder.FSM/NarratorAgent.md), [Narrator UML](docs/UML/NarratorAgentUML.md) |
 | Link key events to the actual book | The GUI.SVG portrayal rail on `/timelines` and event links on `/book`; manuscript sections reference events by stable ID |
@@ -44,4 +45,4 @@
 | Review branch preservation and integration | [Branch Reconciliation](docs/BRANCH_RECONCILIATION.md) |
 | Build and test | [Development workflow](docs/DEVELOPMENT.md) |
 
-The README is the front door. Source code and tests define current behavior; design documents describe intended capabilities and must not be mistaken for proof that those capabilities run.
+The README is the front door. Source code and tests define current behavior; user guides describe verified behavior and must not promise capabilities that are not available in the running product.
