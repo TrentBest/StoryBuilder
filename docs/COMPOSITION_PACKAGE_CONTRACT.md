@@ -6,6 +6,18 @@ Workshop arbitration must produce a reusable composition package that AnyApp can
 
 The manifest/configuration contracts, validator, binary artifact compiler, and reader are implemented and passed CI. Actual integration with the AnyApp host, provider activation, deployment packaging, and the complete repeated-consumption proof remain future work.
 
+## Host launch manifest versus StoryBuilder composition package
+
+These are two different artifacts with different jobs.
+
+- The **AnyApp Experience manifest** is the host-facing launch descriptor. It identifies the Experience/runtime and requests the MicroBundles needed to compose it. AnyApp currently reads a versioned local `experiences/<name>/<version>/manifest.json` and can also accept an explicit manifest file.
+- The **StoryBuilder composition package** is the content-and-decisions artifact described below: versioned binary manifest, per-bundle configuration, and workspace content payload with integrity hashes and the captured arbitration identity.
+- The **workspace** is mutable project data (for example, a book in progress) opened by the StoryBuilder Experience.
+
+Do not conflate the AnyApp launch manifest's current JSON transport with the binary composition package contract. The StoryBuilder core and package reader remain host-neutral; an AnyApp integration adapter must translate the host's launch request into the supported StoryBuilder surface and decide which workspace/package to open. The local launch path must work without an Experience repository, web host, or cloud service.
+
+AnyApp's current catalog and renderer explicitly support Moniker and Forge. StoryBuilder is not launchable merely by registering its bundle: a compatible surface/presentation integration and a native-host integration test are required. This remains unfinished work.
+
 ## Three responsibilities
 
 1. **Composition model — what exists.** Stable identities and relationships for an Experience, timelines, events, characters, scenes, beats, manuscript structure, observer knowledge, disclosure intent, and publication editions.
