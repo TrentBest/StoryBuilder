@@ -34,6 +34,7 @@
 | Inspect UML and use cases | [UML directory](docs/UML/) |
 | Understand FSM_API lifecycle | [StoryLifecycleSession UML](docs/UML/StoryLifecycleSessionUML.md), [Lifecycle Registry UML](docs/UML/StoryLifecycleRegistryUML.md) |
 | Understand the FSM_COS-composable bundle | [StoryBuilderAuthoringBundle UML](docs/UML/StoryBuilderAuthoringBundleUML.md) |
+| Bind desktop controls to supported StoryBuilder operations | [StoryBuilderAuthoringController](src/StoryBuilder.MicroBundle/StoryBuilderAuthoringController.md), [controller UML](docs/UML/StoryBuilderAuthoringControllerUML.md), [controller tests](tests/StoryBuilder.Core.Tests/StoryBuilderAuthoringControllerTests.md) |
 | Understand binary workspace persistence | [StoryWorkspaceBinaryDocument UML](docs/UML/StoryWorkspaceBinaryDocumentUML.md), [Persistence guide](src/StoryBuilder.Persistence/StoryWorkspaceBinaryDocument.md) |
 | Understand browser-local autosave | [Persistence coordinator guide](samples/StoryBuilder.WebDemo/StoryBuilderPersistenceCoordinator.md) |
 | Review implemented work and gaps | [Development Status](docs/DEVELOPMENT_STATUS.md) |
