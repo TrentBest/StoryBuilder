@@ -2,7 +2,9 @@
 
 | If you want to... | Start here |
 |---|---|
-| Get a concise phone-friendly status review | [Phone Review Guide](docs/PHONE_REVIEW.md) |\n| Understand the purpose and boundary | [README](README.md) |
+| Get a concise phone-friendly status review | [Phone Review Guide](docs/PHONE_REVIEW.md) |
+| Prepare the first public Alpha responsibly | [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) |
+| Understand the purpose and boundary | [README](README.md) |
 | Meet the Narrator and understand the first-session flow | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
 | Understand the manifest/configuration contracts and binary package artifacts | [Package contract UML](docs/UML/CompositionPackageContractsUML.md), [Binary artifacts UML](docs/UML/CompositionPackageBinaryArtifactsUML.md), [Validator UML](docs/UML/CompositionPackageValidatorUML.md) |
