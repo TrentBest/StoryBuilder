@@ -85,8 +85,8 @@ The estimate reflects five equal workstreams: domain contracts, automated verifi
 
 ## Immediate next steps
 
-1. Expose the observer-safe accepted-knowledge projection in the WebDemo and use GUI.SVG to inspect which claims are available at a selected observer and timeline anchor.
-2. Validate composition-package consumption through the real AnyApp host without rerunning arbitration.
+1. Validate StoryBuilder composition-package consumption through the real AnyApp host without rerunning arbitration; the native persistence probe is verified, but it does not prove the package composition boundary.
+2. Extend the Observer Lens/GUI.SVG projection view with clearer inspection of accepted claims at the selected observer and event anchor; the current projection view already exists.
 3. Connect accepted-knowledge constraints to Renderer-backed portrayals through a host-neutral contract; keep narrative knowledge separate from visual/computational detail selection.
 4. Add richer Plot Twist alternatives, consequence/impact links, and promotion to canonical world events only by explicit author decision.
 5. Add immutable publication editions and corrected-edition lineage, with export and stable manuscript-to-scene/beat navigation.
