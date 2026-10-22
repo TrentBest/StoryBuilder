@@ -6,11 +6,11 @@
 
 | Branch | Observed head | Disposition |
 |---|---|---|
-| development | Active integration branch | Contains the domain core, tests, console quickstart, interactive WebDemo, documentation, CI, FSM_API lifecycle adapter, and FSM_COS-composable MicroBundle. |
+| development | Active integration branch | Contains the domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, interactive Blazor workbench, console quickstart, tests, docs, and CI. |
 | master | 3eef29a7b6c8b016db02c6d1acd44170585211c5 | Stable target; currently behind the implementation. Pull request [#1](https://github.com/TrentBest/StoryBuilder/pull/1) reconciles development into master. |
 | main | 9fabe16bcf7a50f3fbbdd9d6f4e2236ca5e79e06 | Original repository seed commit. Development descends from this history, and master was created downstream of development. No unique work has been identified on main. No deletion performed. |
 
-The repository's default branch is now **master**.
+The repository's default branch is **master**.
 
 ## Reconciliation plan
 
