@@ -1,25 +1,27 @@
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
 
-var characterBuilder = new CharacterBuilder();
-var mara = characterBuilder.Create("Mara", "Investigator")
-    .WithDescription("A patient observer.")
-    .AddTrait(new CharacterTrait
-    {
-        Term = "methodical",
-        Category = "Temperament",
-        Attribution = "Author",
-        Status = CanonStatus.Proposed
-    });
+var session = new StoryBuilderSession("StoryBuilder quickstart");
+var trait = new CharacterTrait
+{
+    Term = "methodical",
+    Category = "Temperament",
+    Attribution = "Author",
+    Status = CanonStatus.Proposed
+};
 
-var vocabulary = new VocabularyIndex();
+var mara = session.CreateCharacter("Mara", "Investigator")
+    .WithDescription("A patient observer.")
+    .AddTrait(trait);
+mara = session.UpdateCharacter(mara);
+
+var vocabulary = session.Vocabulary;
 vocabulary.AddSynonym("courageous", "brave");
-vocabulary.AddSynonym("courageous", "fearless");
-vocabulary.Record("brave", VocabularyCategory.Adjective, mara.Id, mara.Name, "Traits", attribution: "Author");
+vocabulary.Record("brave", VocabularyCategory.Adjective, mara.Id, mara.Name, "Dialogue",
+    context: "A companion describes Mara.", attribution: "Companion");
 var usage = vocabulary.Search("courageous").Single();
 
-var composer = new SceneComposer();
-var scene = composer.Create("At the North Gate", "North gate", SceneCaptureMode.Claymation)
+var scene = session.CreateScene("At the North Gate", "North gate", SceneCaptureMode.Claymation)
     .AddBeat(new SceneBeat
     {
         Kind = SceneBeatKind.Pose,
@@ -41,14 +43,16 @@ var scene = composer.Create("At the North Gate", "North gate", SceneCaptureMode.
         ActorLabel = mara.Name,
         Action = "opens the gate slowly"
     });
+session.UpdateScene(scene);
 
 Console.WriteLine("CASTING");
 Console.WriteLine($"{mara.Name} — {mara.Role}");
 Console.WriteLine($"Description: {mara.Description}");
 Console.WriteLine($"Traits: {string.Join(", ", mara.Traits.Select(t => t.Term))}");
+Console.WriteLine($"Indexed trait occurrences: {session.Vocabulary.Search("methodical").Single().OccurrenceCount}");
 Console.WriteLine();
 Console.WriteLine("VOCABULARY");
 Console.WriteLine($"The concept '{usage.CanonicalTerm}' has {usage.OccurrenceCount} recorded occurrence(s).");
 Console.WriteLine();
 Console.WriteLine("SCENE DRAFT");
-Console.WriteLine(composer.ComposeNarration(scene));
+Console.WriteLine(session.SceneComposer.ComposeNarration(scene));
