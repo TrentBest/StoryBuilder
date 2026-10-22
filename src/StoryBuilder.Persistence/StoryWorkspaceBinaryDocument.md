@@ -12,7 +12,7 @@ See [StoryWorkspaceBinaryDocument UML](../../docs/UML/StoryWorkspaceBinaryDocume
 
 ## Safety and compatibility
 
-The format starts with the SBWS magic and version 1. Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. A future incompatible schema requires a new format version and migration tests.
+The format starts with the SBWS magic and version 2. It reads version 1 payloads by defaulting NarrativeRole to Undecided and initializing the new Premises collection empty. Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. Future incompatible schemas require a new format version and migration tests.
 
 ## Restore behavior
 
