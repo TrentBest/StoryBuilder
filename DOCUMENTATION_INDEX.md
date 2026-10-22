@@ -1,6 +1,7 @@
 # StoryBuilder Documentation Index
 
 | If you want to... | Start here |
+| Learn the craft of composing a story, with examples and exercises | [Storycraft Workshop](docs/STORYCRAFT_WORKSHOP.md) |
 |---|---|
 | Get a concise phone-friendly status review | [Phone Review Guide](docs/PHONE_REVIEW.md) |
 | Prepare the first public Alpha responsibly | [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) |
