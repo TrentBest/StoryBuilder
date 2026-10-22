@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 8;
+    private const int FormatVersion = 9;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -107,6 +107,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.ParticipantActions, WriteParticipantAction);
         BinaryCodec.WriteList(stream, workspace.Sources, WriteSource);
         BinaryCodec.WriteList(stream, workspace.ContinuityIssues, WriteContinuityIssue);
+        BinaryCodec.WriteString(stream, workspace.LegacyProjectSourceJson);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
@@ -127,8 +128,9 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var actions = BinaryCodec.ReadList(stream, ReadParticipantAction);
         var sources = BinaryCodec.ReadList(stream, ReadSource);
         var issues = BinaryCodec.ReadList(stream, ReadContinuityIssue);
+        var legacyProjectSourceJson = version >= 9 ? BinaryCodec.ReadString(stream) : null;
 
-        var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience };
+        var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
         foreach (var item in planningPoints) workspace.AddPlanningPoint(item);
         foreach (var item in manuscripts) workspace.AddManuscript(item);
