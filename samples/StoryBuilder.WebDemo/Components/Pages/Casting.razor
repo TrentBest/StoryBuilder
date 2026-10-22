@@ -421,8 +421,15 @@
         characterChange = ReadCharacterNote("ChangeChoice");
     }
 
-    private string ReadCharacterNote(string key) =>
-        selectedCharacter?.Notes.TryGetValue($"Storycraft.{key}", out var value) == true ? value : string.Empty;
+    private string ReadCharacterNote(string key)
+    {
+        if (selectedCharacter is null)
+            return string.Empty;
+
+        return selectedCharacter.Notes.TryGetValue($"Storycraft.{key}", out var value)
+            ? value
+            : string.Empty;
+    }
 
     private void SaveCharacter()
     {
