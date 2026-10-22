@@ -19,17 +19,19 @@ public sealed record NarratorDraftSubmission(
 /// </summary>
 public sealed class NarratorAgent : IDisposable
 {
-    private const string IntentDefinition = "StoryBuilder.Narrator.Intent";
-    private const string PlanningDefinition = "StoryBuilder.Narrator.Planning";
-    private const string ObserverDefinition = "StoryBuilder.Narrator.Observer";
-    private const string DraftDefinition = "StoryBuilder.Narrator.DraftReview";
-    private static readonly object DefinitionGate = new();
-    private static bool _definitionsCreated;
+    private const string IntentDefinitionPrefix = "StoryBuilder.Narrator.Intent";
+    private const string PlanningDefinitionPrefix = "StoryBuilder.Narrator.Planning";
+    private const string ObserverDefinitionPrefix = "StoryBuilder.Narrator.Observer";
+    private const string DraftDefinitionPrefix = "StoryBuilder.Narrator.DraftReview";
 
     private readonly StoryBuilderSession _session;
     private readonly ObserverKnowledgeEvaluator _knowledgeEvaluator = new();
     private readonly object _eventGate = new();
     private readonly List<NarratorAgentEvent> _events = [];
+    private readonly string _intentDefinition;
+    private readonly string _planningDefinition;
+    private readonly string _observerDefinition;
+    private readonly string _draftDefinition;
     private readonly string _intentGroup;
     private readonly string _planningGroup;
     private readonly string _observerGroup;
@@ -50,20 +52,27 @@ public sealed class NarratorAgent : IDisposable
     public NarratorAgent(StoryBuilderSession session)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
-        EnsureDefinitions();
         var suffix = Guid.NewGuid().ToString("N");
-        _intentGroup = $"StoryBuilder.Narrator.Intent.{suffix}";
-        _planningGroup = $"StoryBuilder.Narrator.Planning.{suffix}";
-        _observerGroup = $"StoryBuilder.Narrator.Observer.{suffix}";
-        _draftGroup = $"StoryBuilder.Narrator.DraftReview.{suffix}";
+        _intentDefinition = $"{IntentDefinitionPrefix}.{suffix}";
+        _planningDefinition = $"{PlanningDefinitionPrefix}.{suffix}";
+        _observerDefinition = $"{ObserverDefinitionPrefix}.{suffix}";
+        _draftDefinition = $"{DraftDefinitionPrefix}.{suffix}";
+        _intentGroup = _intentDefinition;
+        _planningGroup = _planningDefinition;
+        _observerGroup = _observerDefinition;
+        _draftGroup = _draftDefinition;
+        BuildIntentDefinition(_intentDefinition, _intentGroup);
+        BuildPlanningDefinition(_planningDefinition, _planningGroup);
+        BuildObserverDefinition(_observerDefinition, _observerGroup);
+        BuildDraftDefinition(_draftDefinition, _draftGroup);
         _intent = new NarratorFsmContext("Intent", Emit);
         _planning = new NarratorFsmContext("Planning", Emit);
         _observer = new NarratorFsmContext("Observer", Emit);
         _draft = new NarratorFsmContext("DraftReview", Emit);
-        _intentHandle = FSM_API.Create.CreateInstance(IntentDefinition, _intent, _intentGroup);
-        _planningHandle = FSM_API.Create.CreateInstance(PlanningDefinition, _planning, _planningGroup);
-        _observerHandle = FSM_API.Create.CreateInstance(ObserverDefinition, _observer, _observerGroup);
-        _draftHandle = FSM_API.Create.CreateInstance(DraftDefinition, _draft, _draftGroup);
+        _intentHandle = FSM_API.Create.CreateInstance(_intentDefinition, _intent, _intentGroup);
+        _planningHandle = FSM_API.Create.CreateInstance(_planningDefinition, _planning, _planningGroup);
+        _observerHandle = FSM_API.Create.CreateInstance(_observerDefinition, _observer, _observerGroup);
+        _draftHandle = FSM_API.Create.CreateInstance(_draftDefinition, _draft, _draftGroup);
         Initialize(_intentGroup);
         Initialize(_planningGroup);
         Initialize(_observerGroup);
@@ -279,6 +288,10 @@ public sealed class NarratorAgent : IDisposable
         FSM_API.Interaction.DestroyInstance(_planningHandle);
         FSM_API.Interaction.DestroyInstance(_observerHandle);
         FSM_API.Interaction.DestroyInstance(_draftHandle);
+        FSM_API.Interaction.DestroyFiniteStateMachine(_intentDefinition, _intentGroup);
+        FSM_API.Interaction.DestroyFiniteStateMachine(_planningDefinition, _planningGroup);
+        FSM_API.Interaction.DestroyFiniteStateMachine(_observerDefinition, _observerGroup);
+        FSM_API.Interaction.DestroyFiniteStateMachine(_draftDefinition, _draftGroup);
     }
 
     private static void Initialize(string group) => FSM_API.Interaction.Update(group);
@@ -301,25 +314,9 @@ public sealed class NarratorAgent : IDisposable
             _events.Add(new NarratorAgentEvent(_events.Count + 1L, machine, kind, detail, DateTimeOffset.UtcNow));
     }
 
-    private static void EnsureDefinitions()
+    private static void BuildIntentDefinition(string definitionName, string processingGroup)
     {
-        if (_definitionsCreated)
-            return;
-        lock (DefinitionGate)
-        {
-            if (_definitionsCreated)
-                return;
-            BuildIntentDefinition();
-            BuildPlanningDefinition();
-            BuildObserverDefinition();
-            BuildDraftDefinition();
-            _definitionsCreated = true;
-        }
-    }
-
-    private static void BuildIntentDefinition()
-    {
-        var builder = FSM_API.Create.CreateFiniteStateMachine(IntentDefinition, -1, IntentDefinition)
+        var builder = FSM_API.Create.CreateFiniteStateMachine(definitionName, -1, processingGroup)
             .State("Idle", context => Enter(context, "Idle"), _ => { }, _ => { })
             .State("Captured", context => Enter(context, "Captured"), _ => { }, _ => { })
             .State("Ready", context => Enter(context, "Ready"), _ => { }, _ => { })
@@ -330,9 +327,9 @@ public sealed class NarratorAgent : IDisposable
         builder.BuildDefinition();
     }
 
-    private static void BuildPlanningDefinition()
+    private static void BuildPlanningDefinition(string definitionName, string processingGroup)
     {
-        var builder = FSM_API.Create.CreateFiniteStateMachine(PlanningDefinition, -1, PlanningDefinition)
+        var builder = FSM_API.Create.CreateFiniteStateMachine(definitionName, -1, processingGroup)
             .State("Empty", context => Enter(context, "Empty"), _ => { }, _ => { })
             .State("Anchored", context => Enter(context, "Anchored"), _ => { }, _ => { })
             .State("Specified", context => Enter(context, "Specified"), _ => { }, _ => { })
@@ -343,9 +340,9 @@ public sealed class NarratorAgent : IDisposable
         builder.BuildDefinition();
     }
 
-    private static void BuildObserverDefinition()
+    private static void BuildObserverDefinition(string definitionName, string processingGroup)
     {
-        var builder = FSM_API.Create.CreateFiniteStateMachine(ObserverDefinition, -1, ObserverDefinition)
+        var builder = FSM_API.Create.CreateFiniteStateMachine(definitionName, -1, processingGroup)
             .State("Unselected", context => Enter(context, "Unselected"), _ => { }, _ => { })
             .State("Selected", context => Enter(context, "Selected"), _ => { }, _ => { })
             .State("Allowed", context => Enter(context, "Allowed"), _ => { }, _ => { })
@@ -364,9 +361,9 @@ public sealed class NarratorAgent : IDisposable
         builder.BuildDefinition();
     }
 
-    private static void BuildDraftDefinition()
+    private static void BuildDraftDefinition(string definitionName, string processingGroup)
     {
-        var builder = FSM_API.Create.CreateFiniteStateMachine(DraftDefinition, -1, DraftDefinition)
+        var builder = FSM_API.Create.CreateFiniteStateMachine(definitionName, -1, processingGroup)
             .State("Idle", context => Enter(context, "Idle"), _ => { }, _ => { })
             .State("Requested", context => Enter(context, "Requested"), _ => { }, _ => { })
             .State("Ready", context => Enter(context, "Ready"), _ => { }, _ => { })
