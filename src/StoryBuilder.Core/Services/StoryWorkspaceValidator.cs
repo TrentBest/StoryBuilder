@@ -16,6 +16,7 @@ public static class StoryWorkspaceValidator
         var planningPoints = workspace.PlanningPoints.Select(x => x.Id).ToHashSet();
         var events = workspace.Events.Select(x => x.Id).ToHashSet();
         var characters = workspace.Characters.Select(x => x.Id).ToHashSet();
+        var places = workspace.Places.Select(x => x.Id).ToHashSet();
         var scenes = workspace.Scenes.Select(x => x.Id).ToHashSet();
         var manuscripts = workspace.Manuscripts.Select(x => x.Id).ToHashSet();
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
@@ -27,7 +28,7 @@ public static class StoryWorkspaceValidator
         var continuityIssues = workspace.ContinuityIssues.Select(x => x.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
             .Concat(scenes).Concat(manuscripts).Concat(sources).Concat(campaigns).Concat(premises)
-            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).ToHashSet();
+            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).ToHashSet();
 
         void Missing(string ownerType, Guid ownerId, string relationship, Guid targetId, HashSet<Guid> targetIds)
         {
@@ -49,6 +50,7 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.PlanningPoints, item => item.Id, nameof(TimelinePlanningPoint));
         DuplicateIds(workspace.Events, item => item.Id, nameof(StoryEvent));
         DuplicateIds(workspace.Characters, item => item.Id, nameof(CharacterProfile));
+        DuplicateIds(workspace.Places, item => item.Id, nameof(PlaceRecord));
         DuplicateIds(workspace.Scenes, item => item.Id, nameof(SceneRecord));
         DuplicateIds(workspace.Manuscripts, item => item.Id, nameof(ManuscriptEdition));
         DuplicateIds(workspace.Premises, item => item.Id, nameof(StoryPremise));
@@ -69,6 +71,7 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.PlanningPoints.Select(item => (item.Id, nameof(TimelinePlanningPoint))));
         typedIds.AddRange(workspace.Events.Select(item => (item.Id, nameof(StoryEvent))));
         typedIds.AddRange(workspace.Characters.Select(item => (item.Id, nameof(CharacterProfile))));
+        typedIds.AddRange(workspace.Places.Select(item => (item.Id, nameof(PlaceRecord))));
         typedIds.AddRange(workspace.Scenes.Select(item => (item.Id, nameof(SceneRecord))));
         typedIds.AddRange(workspace.Scenes.SelectMany(item => item.Beats).Select(item => (item.Id, nameof(SceneBeat))));
         typedIds.AddRange(workspace.Manuscripts.Select(item => (item.Id, nameof(ManuscriptEdition))));
@@ -92,6 +95,10 @@ public static class StoryWorkspaceValidator
         foreach (var timeline in workspace.Timelines)
             if (timeline.ParentTimelineId is Guid parentId)
                 Missing(nameof(TimelineDefinition), timeline.Id, "parent timeline", parentId, timelines);
+
+        foreach (var place in workspace.Places)
+            if (place.ParentPlaceId is Guid parentPlaceId)
+                Missing(nameof(PlaceRecord), place.Id, "parent place", parentPlaceId, places);
 
         foreach (var point in workspace.PlanningPoints)
             Missing(nameof(TimelinePlanningPoint), point.Id, "timeline", point.TimelineId, timelines);
@@ -138,12 +145,17 @@ public static class StoryWorkspaceValidator
         }
 
         foreach (var scene in workspace.Scenes)
-        foreach (var beat in scene.Beats)
         {
+            if (scene.PlaceId is Guid placeId)
+                Missing(nameof(SceneRecord), scene.Id, "place", placeId, places);
+
+            foreach (var beat in scene.Beats)
+            {
             if (beat.ActorId is Guid actorId)
                 Missing(nameof(SceneBeat), beat.Id, "actor character", actorId, characters);
             foreach (var id in beat.EventIds)
                 Missing(nameof(SceneBeat), beat.Id, "event", id, events);
+            }
         }
 
         foreach (var knowledge in workspace.ObserverKnowledge)
