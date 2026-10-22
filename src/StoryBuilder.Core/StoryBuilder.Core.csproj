@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>TheSingularityWorkshop.StoryBuilder.Core</AssemblyName>
+    <RootNamespace>TheSingularityWorkshop.StoryBuilder</RootNamespace>
+    <Version>0.1.0-alpha.1</Version>
+    <Description>Host-neutral story composition model and local project persistence.</Description>
+  </PropertyGroup>
+</Project>
