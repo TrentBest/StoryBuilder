@@ -159,6 +159,24 @@ public sealed class StoryWorkspacePersistenceTests
     }
 
     [Fact]
+    public void BinaryDocumentRejectsBrokenCrossRecordReferencesBeforeWriting()
+    {
+        var workspace = new StoryWorkspace { Name = "Broken workspace" };
+        workspace.AddEvent(new StoryEvent
+        {
+            Title = "An event with a missing participant",
+            ParticipantIds = [Guid.NewGuid()]
+        });
+        var document = new StoryWorkspaceBinaryDocument(workspace);
+        using var output = new MemoryBinaryStream();
+
+        var exception = Assert.Throws<InvalidDataException>(() => document.Pack(output));
+
+        Assert.Contains("broken reference", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(0, output.Length);
+    }
+
+    [Fact]
     public void BinaryDocumentRejectsUnknownFormatVersion()
     {
         var session = new StoryBuilderSession("Version test");
