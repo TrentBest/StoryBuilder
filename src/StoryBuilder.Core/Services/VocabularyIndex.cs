@@ -111,7 +111,7 @@ public sealed class VocabularyIndex
         foreach (var rawToken in text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
         {
             var token = new string(rawToken
-                .Where(c => char.IsLetterOrDigit(c) || c is '\\'' or '’' or '-')
+                .Where(c => char.IsLetterOrDigit(c) || c == (char)39 || c == '’' || c == '-')
                 .ToArray());
             if (token.Length == 0)
                 continue;
