@@ -20,8 +20,14 @@ public static class StoryWorkspaceValidator
         var manuscripts = workspace.Manuscripts.Select(x => x.Id).ToHashSet();
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
         var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();
+        var premises = workspace.Premises.Select(x => x.Id).ToHashSet();
+        var claims = workspace.HistoricalClaims.Select(x => x.Id).ToHashSet();
+        var knowledgeRecords = workspace.ObserverKnowledge.Select(x => x.Id).ToHashSet();
+        var participantActions = workspace.ParticipantActions.Select(x => x.Id).ToHashSet();
+        var continuityIssues = workspace.ContinuityIssues.Select(x => x.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
-            .Concat(scenes).Concat(manuscripts).Concat(sources).Concat(campaigns).ToHashSet();
+            .Concat(scenes).Concat(manuscripts).Concat(sources).Concat(campaigns).Concat(premises)
+            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).ToHashSet();
 
         void Missing(string ownerType, Guid ownerId, string relationship, Guid targetId, HashSet<Guid> targetIds)
         {
