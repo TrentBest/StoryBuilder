@@ -20,5 +20,6 @@
     <ProjectReference Include="../../src/StoryBuilder.Core/StoryBuilder.Core.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.FSM/StoryBuilder.FSM.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj" />
+    <ProjectReference Include="../../src/StoryBuilder.Persistence/StoryBuilder.Persistence.csproj" />
   </ItemGroup>
 </Project>
