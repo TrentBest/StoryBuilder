@@ -12,6 +12,43 @@ public sealed class VocabularyIndex
     private readonly Dictionary<string, VocabularyConcept> _concepts = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
 
+    /// <summary>Returns one copy of each explicit synonym concept, suitable for durable storage.</summary>
+    public IReadOnlyList<VocabularyConcept> ExportConcepts()
+    {
+        lock (_gate)
+        {
+            return _concepts.Values
+                .GroupBy(concept => Normalize(concept.CanonicalTerm), StringComparer.OrdinalIgnoreCase)
+                .Select(group => group.First() with { Synonyms = group.First().Synonyms.ToList() })
+                .OrderBy(concept => concept.CanonicalTerm, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+    }
+
+    /// <summary>Clears indexed occurrences and synonym mappings before restoring a workspace.</summary>
+    public void Clear()
+    {
+        lock (_gate)
+        {
+            _occurrences.Clear();
+            _concepts.Clear();
+        }
+    }
+
+    /// <summary>Restores explicit synonym mappings and reconciles any occurrences already indexed.</summary>
+    public void ImportConcepts(IEnumerable<VocabularyConcept> concepts)
+    {
+        ArgumentNullException.ThrowIfNull(concepts);
+        foreach (var concept in concepts)
+        {
+            if (string.IsNullOrWhiteSpace(concept.CanonicalTerm))
+                throw new ArgumentException("A persisted vocabulary concept must have a canonical term.", nameof(concepts));
+
+            foreach (var synonym in concept.Synonyms)
+                AddSynonym(concept.CanonicalTerm, synonym, concept.Category);
+        }
+    }
+
     public IReadOnlyList<WordOccurrence> Occurrences
     {
         get { lock (_gate) return _occurrences.ToArray(); }
