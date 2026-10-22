@@ -10,7 +10,11 @@ flowchart TD
   Bundle --> Session
   Session --> Workspace[StoryWorkspace]
   Session --> Vocabulary[VocabularyIndex]
-  Session --> Composer[SceneComposer]\n  Session --> Persistence[StoryBuilderPersistenceCoordinator]\n  Persistence --> Binary[StoryWorkspaceBinaryDocument]\n  Persistence --> LocalStorage[Browser localStorage]\n  Session --> SvgRenderer[GUI.SVG living map]
+  Session --> Composer[SceneComposer]
+  Session --> Persistence[StoryBuilderPersistenceCoordinator]
+  Persistence --> Binary[StoryWorkspaceBinaryDocument]
+  Persistence --> LocalStorage[Browser localStorage]
+  Session --> SvgRenderer[GUI.SVG living map]
   Bundle -. composed by host contract .-> COS[FSM_COS via MicroBundleDomain]
 ```
 
