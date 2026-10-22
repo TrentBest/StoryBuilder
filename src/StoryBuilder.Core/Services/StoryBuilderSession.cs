@@ -93,6 +93,59 @@ public sealed class StoryBuilderSession
         return updated;
     }
 
+    /// <summary>Replaces a planning point's alternative outcomes while preserving their author-entered order.</summary>
+    public TimelinePlanningPoint SetPlanningPointAlternatives(Guid planningPointId, IEnumerable<string> alternatives)
+    {
+        ArgumentNullException.ThrowIfNull(alternatives);
+        var point = Workspace.PlanningPoints.FirstOrDefault(item => item.Id == planningPointId)
+            ?? throw new KeyNotFoundException($"Planning point '{planningPointId}' does not exist in this workspace.");
+        var normalized = alternatives.Where(item => !string.IsNullOrWhiteSpace(item))
+            .Select(item => item.Trim()).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var updated = point with
+        {
+            Alternatives = normalized,
+            Status = normalized.Count > 0 && point.Status == TimelinePlanningStatus.Placeholder
+                ? TimelinePlanningStatus.Brainstorming
+                : point.Status,
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        Workspace.ReplacePlanningPoint(updated);
+        NotifyChanged();
+        return updated;
+    }
+
+    /// <summary>Links or unlinks a scene affected by a provisional planning point.</summary>
+    public TimelinePlanningPoint LinkPlanningPointToScene(Guid planningPointId, Guid sceneId, bool linked = true)
+    {
+        if (!Workspace.Scenes.Any(item => item.Id == sceneId))
+            throw new KeyNotFoundException($"Scene '{sceneId}' does not exist in this workspace.");
+        var point = Workspace.PlanningPoints.FirstOrDefault(item => item.Id == planningPointId)
+            ?? throw new KeyNotFoundException($"Planning point '{planningPointId}' does not exist in this workspace.");
+        var ids = point.RelatedSceneIds.ToList();
+        if (linked && !ids.Contains(sceneId)) ids.Add(sceneId);
+        else if (!linked) ids.Remove(sceneId);
+        var updated = point with { RelatedSceneIds = ids, UpdatedAtUtc = DateTimeOffset.UtcNow };
+        Workspace.ReplacePlanningPoint(updated);
+        NotifyChanged();
+        return updated;
+    }
+
+    /// <summary>Links or unlinks an existing event affected by a provisional planning point.</summary>
+    public TimelinePlanningPoint LinkPlanningPointToEvent(Guid planningPointId, Guid eventId, bool linked = true)
+    {
+        if (!Workspace.Events.Any(item => item.Id == eventId))
+            throw new KeyNotFoundException($"Event '{eventId}' does not exist in this workspace.");
+        var point = Workspace.PlanningPoints.FirstOrDefault(item => item.Id == planningPointId)
+            ?? throw new KeyNotFoundException($"Planning point '{planningPointId}' does not exist in this workspace.");
+        var ids = point.RelatedEventIds.ToList();
+        if (linked && !ids.Contains(eventId)) ids.Add(eventId);
+        else if (!linked) ids.Remove(eventId);
+        var updated = point with { RelatedEventIds = ids, UpdatedAtUtc = DateTimeOffset.UtcNow };
+        Workspace.ReplacePlanningPoint(updated);
+        NotifyChanged();
+        return updated;
+    }
+
     /// <summary>Creates an editable manuscript product whose sections can be composed incrementally.</summary>
     public ManuscriptEdition CreateManuscript(string? title = null, string? subtitle = null, string? author = null)
     {
