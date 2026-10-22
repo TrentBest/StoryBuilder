@@ -10,8 +10,9 @@
 - [x] Event-to-manuscript passage linkage is represented by canonical IDs and covered by domain persistence round-trip tests.
 - [x] The command-level event → passage → link workflow survives a binary save/reopen test in [CI run 39821291048](https://github.com/TrentBest/StoryBuilder/actions/runs/39821291048).
 - [x] The AnyApp dispatcher was updated to accept event creation, passage creation, and event-to-passage linking commands while preserving its save-after-success behavior.
-- [x] AnyApp Windows Release build and test suite passed after the dispatcher change: [workflow run 39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164).
-- [ ] Perform or automate a real AnyApp --storybuilder create → link → save → restart → reopen smoke test, confirming IDs and links survive.
+- [x] AnyApp Windows Release build and test suite passed after the dispatcher change: [workflow run 39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164). This historical run does not verify the newer host-local binary persistence implementation.
+- [ ] Obtain green CI for the current AnyApp `development` source, including `StoryBuilderDesktopPersistenceStore` restore/save behavior and the expanded command dispatcher.
+- [ ] Perform or automate a real AnyApp `--storybuilder` create → link → save → restart → reopen smoke test, confirming the same event ID and passage link survive.
 - [x] Trent selected MIT to align with the Workshop's existing open-source direction; added the repository `LICENSE` and linked it from the README.
 - [ ] Reconcile the open development → master PR. The current live GitHub comparison reports **432 commits ahead, 13 behind** (refreshed 22 October 2026); do not blindly merge.
 - [ ] Decide the Alpha's exact version/tag, included projects, known limitations, and install/run instructions.
