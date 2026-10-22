@@ -10,7 +10,7 @@ public sealed class VocabularySpanTests
     public void RecordTextPreservesSurfaceWordOffsetsAndLengths()
     {
         var index = new VocabularyIndex();
-        var source = "Mara was brave, and brave-minded when the station shook.";
+        var source = "Mara was brave, and brave was how the rumor described her; she was brave-minded when the station shook.";
 
         var occurrences = index.RecordText(
             source,
