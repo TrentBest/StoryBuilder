@@ -13,6 +13,7 @@ dotnet run --project samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --
 Open http://localhost:5080.
 
 - **Narrator:** capture an idea as an editable premise proposal. The page exposes the four cooperating FSM_API machines for intent, planning, observer constraints, and draft/review.
+- **Places (Core API):** create canonical `PlaceRecord` entries, optionally nest them under parent places, and assign scenes to place IDs while retaining free-form location notes. This is available through `StoryBuilderSession`; it is not yet presented as a dedicated workbench screen.
 - **Casting:** create and edit character records; assign Hero / Neutral / Antagonist / Undecided grouping; compare current profile, proposed revision, and indexed source context; add traits and synonyms.
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder beats; link a world event to a specific beat; copy an editable narration draft.
 - **World Archive:** record a historical claim and optionally attach a source record.
