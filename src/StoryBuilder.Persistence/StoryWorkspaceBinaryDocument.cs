@@ -325,7 +325,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var statement = BinaryCodec.ReadRequiredString(stream, nameof(HistoricalClaim.Statement));
         var period = BinaryCodec.ReadString(stream);
         var attribution = BinaryCodec.ReadRequiredString(stream, nameof(HistoricalClaim.Attribution));
-        var confidence = BinaryCodec.ReadBoolean(stream) ? BinaryCodec.ReadDouble(stream) : null;
+        double? confidence = BinaryCodec.ReadBoolean(stream) ? BinaryCodec.ReadDouble(stream) : null;
         return new HistoricalClaim
         {
             Id = id,
