@@ -99,7 +99,9 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Equal("Legacy workspace", document.Workspace.Name);
         Assert.Empty(document.Workspace.Premises);
-        Assert.Empty(document.Workspace.Characters);
+        var legacyCharacter = Assert.Single(document.Workspace.Characters);
+        Assert.Equal("Legacy Hero", legacyCharacter.Name);
+        Assert.Equal(CharacterNarrativeRole.Undecided, legacyCharacter.NarrativeRole);
     }
 
     [Fact]
@@ -128,8 +130,26 @@ public sealed class StoryWorkspacePersistenceTests
         WriteLegacyString(writer, "Legacy experience");
         WriteLegacyString(writer, "Legacy purpose");
         WriteLegacyString(writer, "Legacy audience");
-        for (var i = 0; i < 12; i++)
-            writer.Write(0);
+        writer.Write(0); // Experience capabilities
+        writer.Write(0); // Experience constraints
+        writer.Write(0); // Experience design decisions
+        writer.Write(1); // Characters
+        writer.Write(Guid.Parse("11111111-1111-1111-1111-111111111111").ToByteArray());
+        WriteLegacyString(writer, "Legacy Hero");
+        WriteLegacyString(writer, "Scout");
+        WriteLegacyString(writer, "A careful explorer.");
+        WriteLegacyString(writer, null); // Pronouns
+        WriteLegacyString(writer, null); // Species
+        writer.Write((int)CanonStatus.Proposed);
+        writer.Write(0); // Traits
+        writer.Write(0); // Relationships
+        writer.Write(0); // Notes
+        writer.Write(DateTimeOffset.UnixEpoch.Ticks);
+        writer.Write(TimeSpan.Zero.Ticks);
+        writer.Write(DateTimeOffset.UnixEpoch.Ticks);
+        writer.Write(TimeSpan.Zero.Ticks);
+        for (var i = 0; i < 8; i++)
+            writer.Write(0); // Scenes, claims, events, campaigns, actions, sources, issues, synonyms
         writer.Flush();
         return stream.ToArray();
     }
