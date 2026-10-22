@@ -35,6 +35,20 @@ public sealed class PublishedBookEditionTests
     }
 
     [Fact]
+    public void WorkspaceValidationRejectsTamperedPublishedContent()
+    {
+        var session = new StoryBuilderSession();
+        var manuscript = session.CreateManuscript("Integrity");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter);
+        session.UpdateManuscriptSection(manuscript.Id, section.Sections[0].Id, "Chapter 1", "Original text.");
+        var published = session.PublishManuscript(manuscript.Id);
+        session.Workspace.AddPublishedEdition(published with { Id = Guid.NewGuid(), Markdown = published.Markdown + "tampered" });
+
+        var issue = Assert.Single(StoryWorkspaceValidator.Validate(session.Workspace), item => item.Relationship == "content hash");
+        Assert.Contains("SHA-256", issue.Message);
+    }
+
+    [Fact]
     public void PublishedEditionsAndCorrectionLineageSurviveBinaryRoundTrip()
     {
         var session = new StoryBuilderSession("Publication persistence");
