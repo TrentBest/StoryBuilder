@@ -12,7 +12,7 @@
 - [x] The AnyApp dispatcher was updated to accept event creation, passage creation, and event-to-passage linking commands while preserving its save-after-success behavior.
 - [x] AnyApp Windows Release build and test suite passed after the dispatcher change: [workflow run 39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164).
 - [ ] Perform or automate a real AnyApp --storybuilder create → link → save → restart → reopen smoke test, confirming IDs and links survive.
-- [ ] Select and add the repository license. README currently says license selection is pending; do not present the source as permissively licensed until this is resolved.
+- [x] Trent selected MIT to align with the Workshop's existing open-source direction; added the repository `LICENSE` and linked it from the README.
 - [ ] Reconcile the open development → master PR. The current GitHub comparison reports substantial divergence (419 commits ahead, 13 behind); do not blindly merge.
 - [ ] Decide the Alpha's exact version/tag, included projects, known limitations, and install/run instructions.
 - [ ] Create the GitHub Alpha release only after the preceding gates are resolved and the final release commit is verified.
