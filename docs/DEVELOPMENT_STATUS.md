@@ -32,6 +32,7 @@
 - Runnable console quickstart and interactive Blazor WebDemo.
 - GUI.SVG source pinned as a submodule; CI builds source rather than relying on an unpublished package.
 - Companion Markdown pages and focused UML/use-case diagrams for maintained types.
+- Author-facing Continuity Review at `/continuity`, linked in the main WebDemo navigation. It runs the continuity analyzer against the live workspace and displays finding codes, messages, primary record IDs, and related record IDs without modifying author data. The page and navigation passed workflow [39868041058](https://github.com/TrentBest/StoryBuilder/actions/runs/39868041058) on commit `7dee2ad7cd3c00436794c6afa971524de01999b8`.
 - GitHub Actions builds projects and tests; checkout action is pinned to an immutable commit SHA.
 
 ## Architecture contracts added
@@ -84,8 +85,8 @@ The estimate reflects five equal workstreams: domain contracts, automated verifi
 
 ## Immediate next steps
 
-1. Expose the observer-safe accepted-knowledge projection in the WebDemo and use GUI.SVG to inspect which claims are available at a selected observer and timeline anchor.
-2. Verify the new AnyApp host persistence tests in CI, then run a native restart/reopen smoke test proving event-to-passage links survive; separately validate composition-package consumption through the real host without rerunning arbitration.
+1. Perform or automate the real AnyApp `--storybuilder` create → link → save → restart → reopen smoke test, confirming the same event ID and passage link survive a process restart.
+2. Expose the observer-safe accepted-knowledge projection in the WebDemo and use GUI.SVG to inspect which claims are available at a selected observer and timeline anchor.
 3. Connect accepted-knowledge constraints to Renderer-backed portrayals through a host-neutral contract; keep narrative knowledge separate from visual/computational detail selection.
 4. Add richer Plot Twist alternatives, consequence/impact links, and promotion to canonical world events only by explicit author decision.
 5. Add immutable publication editions and corrected-edition lineage, with export and stable manuscript-to-scene/beat navigation.
