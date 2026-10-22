@@ -86,7 +86,7 @@ public sealed class StoryBuilderLivingMapRenderer
                     .Property("font-size", "1.8").Property("font-weight", "700").Property("fill", "#edf0f5"));
 
                 root.Child("svg-text", $"{cardId}-role", node => node
-                    .Text(Shorten(character.Role, 34))
+                    .Text(Shorten($"{character.NarrativeRole} · {character.Role}", 34))
                     .Property("x", (x + 2).ToString(CultureInfo.InvariantCulture))
                     .Property("y", (y + 5.4).ToString(CultureInfo.InvariantCulture))
                     .Property("font-size", "1.25").Property("fill", "#a8b2c2"));
