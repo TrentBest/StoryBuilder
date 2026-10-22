@@ -16,8 +16,8 @@ public sealed class StoryBuilderLivingMapRendererTests
         var emptySvg = renderer.Render(session);
         Assert.DoesNotContain("Mara", emptySvg);
 
-        var character = session.CreateCharacter("Mara", "Cartographer")
-            .AddTrait(new CharacterTrait { Term = "observant", Attribution = "Rival" });
+        var character = session.CreateCharacter("Mara") with { Role = "Cartographer" };
+        character = character.AddTrait(new CharacterTrait { Term = "observant", Attribution = "Rival" });
         session.UpdateCharacter(character);
 
         var populatedSvg = renderer.Render(session);
