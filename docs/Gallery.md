@@ -26,7 +26,9 @@ Open http://localhost:5080.
 
 The local Blazor host creates a session through StoryBuilderAuthoringBundle and uses the source-pinned GUI.SVG project to render living views. It autosaves a versioned binary workspace (currently format version 11) in browser localStorage and restores it after refresh. Storage is local to this browser; there is no cloud sync, account sharing, or WebPage deployment yet.
 
-## Recipe 2: host-neutral first-book command slice\n\n`StoryBuilderAuthoringSurface` exposes explicit commands for creating a timeline event, creating a manuscript passage, and linking the latest event to the latest passage. Event creation creates a default `Main Timeline` if the workspace has none; passage creation creates an `Untitled Book` if necessary. The link command reports a safe failure if either side is missing. Automated tests cover these command-to-domain effects and the stable event ID stored by the passage. AnyApp now has dispatch and persistence code for this command slice; the remaining desktop gap is selecting/binding the StoryBuilder surface and refreshing the rendered tree after a command.\n\n## Recipe 3: run the compact domain example
+## Recipe 2: host-neutral first-book command slice 
+
+`StoryBuilderAuthoringSurface` exposes explicit commands for creating a timeline event, creating a manuscript passage, and linking the latest event to the latest passage. Event creation creates a default `Main Timeline` if the workspace has none; passage creation creates an `Untitled Book` if necessary. The link command reports a safe failure if either side is missing. Automated tests cover these command-to-domain effects and the stable event ID stored by the passage. AnyApp now has dispatch and persistence code for this command slice; the remaining desktop gap is selecting/binding the StoryBuilder surface and refreshing the rendered tree after a command.\n\n## Recipe 3: run the compact domain example
 
 ```sh
 dotnet run --project samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj
