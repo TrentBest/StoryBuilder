@@ -28,7 +28,7 @@ The host-neutral MicroBundle surface now exposes commands to:
 3. Link the latest event to the latest passage by stable event ID.
 4. Refuse the link safely if its prerequisites are missing.
 
-Regression tests now exercise these effects and verify the passage stores the event's ID. The command/test increment passed CI on commit [`4416df3`](https://github.com/TrentBest/StoryBuilder/actions/runs/39726767850); the later documentation-only commits have separate CI runs in progress. These commands are not yet wired into the AnyApp desktop command dispatcher, so this is not yet proof of the full native desktop workflow.
+Regression tests now exercise these effects and verify the passage stores the event's ID. The command/test increment passed CI on commit [`4416df3`](https://github.com/TrentBest/StoryBuilder/actions/runs/39726767850); the later documentation-only commits have separate CI runs in progress. The current AnyApp `development` source now dispatches these commands and includes a host-local FSM_Serialization binary workspace store. The latest verified AnyApp source-mode build/test run is [39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164), but that run alone does not prove the full persistence path. The real native-host create → link → save → restart → reopen smoke test remains open.
 
 ## Open critical path
 
