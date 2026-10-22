@@ -17,7 +17,7 @@ public sealed record PublishedBookEdition
     public DateTimeOffset SourceUpdatedAtUtc { get; init; }
     public Guid? PreviousEditionId { get; init; }
     public string? CorrectionNotes { get; init; }
-    public List<Guid> SectionIds { get; init; } = [];
-    public List<Guid> SceneIds { get; init; } = [];
-    public List<Guid> EventIds { get; init; } = [];
+    public IReadOnlyList<Guid> SectionIds { get; init; } = Array.Empty<Guid>();
+    public IReadOnlyList<Guid> SceneIds { get; init; } = Array.Empty<Guid>();
+    public IReadOnlyList<Guid> EventIds { get; init; } = Array.Empty<Guid>();
 }
