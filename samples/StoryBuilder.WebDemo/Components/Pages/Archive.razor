@@ -1,0 +1,154 @@
+@page "/archive"
+@inject StoryBuilderSession Session
+
+<PageTitle>World Archive · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Door 03 · The World Archive</div>
+    <h1>Keep what is known, and how it is known.</h1>
+    <p class="lede">A historical claim, the source that made it, and what the author accepts are separate records. Memory, rumor, disputed history, and canon can coexist without being confused.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">New historical claim</div>
+        <h2>Record an account</h2>
+        <div class="field">
+            <label for="statement">What is being claimed?</label>
+            <textarea id="statement" @bind="statement" placeholder="The first colony lost contact with Earth before the third expansion wave."></textarea>
+        </div>
+        <div class="field-grid">
+            <div class="field">
+                <label for="period">In-world date or period</label>
+                <input id="period" @bind="period" placeholder="Late Expansion Age" />
+            </div>
+            <div class="field">
+                <label for="attribution">Who says this?</label>
+                <input id="attribution" @bind="attribution" placeholder="Archivist, witness, narrator..." />
+            </div>
+        </div>
+        <div class="field">
+            <label for="status">Author's canon decision</label>
+            <select id="status" @bind="status">
+                <option value="Draft">Draft</option>
+                <option value="Proposed">Proposed</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Deprecated">Deprecated</option>
+            </select>
+        </div>
+        <hr />
+        <div class="eyebrow">Optional provenance</div>
+        <div class="field">
+            <label for="source-title">Source title</label>
+            <input id="source-title" @bind="sourceTitle" placeholder="A surviving flight recorder, oral history..." />
+        </div>
+        <div class="field-grid">
+            <div class="field">
+                <label for="source-type">Source type</label>
+                <select id="source-type" @bind="sourceType">
+                    <option>Author note</option>
+                    <option>Oral history</option>
+                    <option>Archive</option>
+                    <option>Artifact</option>
+                    <option>Witness account</option>
+                    <option>Rumor</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="perspective">Perspective / reliability note</label>
+                <input id="perspective" @bind="sourcePerspective" placeholder="Who preserved it? What may be missing?" />
+            </div>
+        </div>
+        <button @onclick="AddClaim" disabled="@string.IsNullOrWhiteSpace(statement)">Record claim</button>
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <p class="muted">@message</p>
+        }
+    </section>
+
+    <section class="panel stack">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Archive inventory</div>
+                <h2>Historical claims</h2>
+            </div>
+            <span class="chip">@Session.Workspace.HistoricalClaims.Count claims</span>
+        </div>
+        @if (Session.Workspace.HistoricalClaims.Count == 0)
+        {
+            <div class="empty">No claims recorded yet. Start with one sentence and refine it later.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var claim in Session.Workspace.HistoricalClaims.OrderByDescending(c => c.InWorldDateOrPeriod))
+                {
+                    <div class="list-item">
+                        <div class="row">
+                            <strong>@claim.InWorldDateOrPeriod</strong>
+                            <span class="chip">@claim.Status</span>
+                            <span class="grow"></span>
+                            <span class="chip">@claim.SourceIds.Count source(s)</span>
+                        </div>
+                        <p>@claim.Statement</p>
+                        <p class="muted">Attribution: @claim.Attribution</p>
+                        @foreach (var sourceId in claim.SourceIds)
+                        {
+                            var source = Session.Workspace.Sources.FirstOrDefault(s => s.Id == sourceId);
+                            if (source is not null)
+                            {
+                                <p class="muted">Source: @source.Title · @source.SourceType · @(source.Perspective ?? "Perspective not recorded")</p>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@code {
+    private string statement = string.Empty;
+    private string period = string.Empty;
+    private string attribution = "Author";
+    private string status = "Proposed";
+    private string sourceTitle = string.Empty;
+    private string sourceType = "Author note";
+    private string sourcePerspective = string.Empty;
+    private string message = string.Empty;
+
+    private void AddClaim()
+    {
+        if (string.IsNullOrWhiteSpace(statement))
+            return;
+
+        var sourceIds = new List<Guid>();
+        if (!string.IsNullOrWhiteSpace(sourceTitle))
+        {
+            var source = new SourceRecord
+            {
+                Title = sourceTitle.Trim(),
+                SourceType = sourceType,
+                Perspective = string.IsNullOrWhiteSpace(sourcePerspective) ? null : sourcePerspective.Trim()
+            };
+            Session.Workspace.AddSource(source);
+            sourceIds.Add(source.Id);
+        }
+
+        var claim = new HistoricalClaim
+        {
+            Statement = statement.Trim(),
+            InWorldDateOrPeriod = string.IsNullOrWhiteSpace(period) ? null : period.Trim(),
+            Attribution = string.IsNullOrWhiteSpace(attribution) ? "Author" : attribution.Trim(),
+            Status = Enum.TryParse<CanonStatus>(status, out var parsed) ? parsed : CanonStatus.Proposed,
+            SourceIds = sourceIds
+        };
+        Session.AddHistoricalClaim(claim);
+        statement = string.Empty;
+        period = string.Empty;
+        sourceTitle = string.Empty;
+        sourcePerspective = string.Empty;
+        message = "Claim recorded. It remains in the status you selected; the tool does not silently promote it to canon.";
+    }
+}
