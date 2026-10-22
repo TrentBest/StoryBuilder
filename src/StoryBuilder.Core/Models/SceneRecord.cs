@@ -26,6 +26,8 @@ public sealed record SceneRecord
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Title { get; init; } = "Untitled scene";
     public string? Location { get; init; }
+    /// <summary>Optional canonical place identity; Location remains available for legacy/free-form text.</summary>
+    public Guid? PlaceId { get; init; }
     public string? Purpose { get; init; }
     public SceneCaptureMode CaptureMode { get; init; } = SceneCaptureMode.Freeform;
     public SceneStatus Status { get; init; } = SceneStatus.Sketch;
