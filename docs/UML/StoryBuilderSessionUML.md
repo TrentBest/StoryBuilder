@@ -5,7 +5,7 @@
 ```mermaid
 classDiagram
 class StoryBuilderSession {
-  +StoryWorkspace Workspace
+  +StoryWorkspace Workspace\n  +event Changed
   +CharacterBuilder CharacterBuilder
   +SceneComposer SceneComposer
   +VocabularyIndex Vocabulary
@@ -15,7 +15,7 @@ class StoryBuilderSession {
   +UpdateScene(scene) SceneRecord
   +AddHistoricalClaim(claim) HistoricalClaim
   +AddEvent(storyEvent) StoryEvent\n  +AddSource(source) SourceRecord\n  +AddContinuityIssue(issue) ContinuityIssue\n  +AddCampaign(campaign) CampaignRecord\n  +AddParticipantAction(action) ParticipantAction\n  +UpdateParticipantAction(action) ParticipantAction
-  -IndexCharacter(character)
+  -IndexPremise(premise)\n  -IndexCharacter(character)
   -IndexScene(scene)
 }
 StoryBuilderSession *-- StoryWorkspace
@@ -26,4 +26,4 @@ StoryBuilderSession ..> SceneComposer
 
 ## Use case
 
-The host routes Casting and Stage edits through one workspace session. When a character trait or scene beat changes, the session removes that target's previous word occurrences and indexes the updated record. Searches therefore follow edits instead of preserving stale counts.
+The Narrator, Casting, and Stage route edits through one workspace session. When a character trait or scene beat changes, the session removes that target's previous word occurrences and indexes the updated record. Searches therefore follow edits instead of preserving stale counts.
