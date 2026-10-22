@@ -424,6 +424,48 @@ public sealed class StoryBuilderSession
         });
     }
 
+    /// <summary>Updates an existing canonical event while keeping the vocabulary index synchronized.</summary>
+    public StoryEvent UpdateTimelineEvent(StoryEvent storyEvent)
+    {
+        ArgumentNullException.ThrowIfNull(storyEvent);
+        var updated = storyEvent with
+        {
+            Title = string.IsNullOrWhiteSpace(storyEvent.Title) ? "Untitled event" : storyEvent.Title.Trim(),
+            Summary = NormalizeOptional(storyEvent.Summary) ?? string.Empty
+        };
+        Workspace.ReplaceEvent(updated);
+        Vocabulary.RemoveTarget(updated.Id);
+        Vocabulary.RecordText(updated.Title, VocabularyCategory.Other, updated.Id, updated.Title,
+            nameof(StoryEvent.Title), context: updated.Summary, status: updated.Status);
+        Vocabulary.RecordText(updated.Summary, VocabularyCategory.Other, updated.Id, updated.Title,
+            nameof(StoryEvent.Summary), context: updated.Summary, status: updated.Status);
+        NotifyChanged();
+        return updated;
+    }
+
+    /// <summary>Creates or removes a reciprocal cause-to-consequence edge between two distinct events.</summary>
+    public void LinkEventCausality(Guid causeEventId, Guid consequenceEventId, bool linked = true)
+    {
+        if (causeEventId == consequenceEventId)
+            throw new InvalidOperationException("An event cannot be its own cause or consequence.");
+        var cause = Workspace.Events.FirstOrDefault(item => item.Id == causeEventId)
+            ?? throw new KeyNotFoundException($"Cause event '{causeEventId}' does not exist in this workspace.");
+        var consequence = Workspace.Events.FirstOrDefault(item => item.Id == consequenceEventId)
+            ?? throw new KeyNotFoundException($"Consequence event '{consequenceEventId}' does not exist in this workspace.");
+
+        var causeConsequences = cause.ConsequenceEventIds.Where(id => id != consequenceEventId).ToList();
+        var consequenceCauses = consequence.CauseEventIds.Where(id => id != causeEventId).ToList();
+        if (linked)
+        {
+            causeConsequences.Add(consequenceEventId);
+            consequenceCauses.Add(causeEventId);
+        }
+
+        Workspace.ReplaceEvent(cause with { ConsequenceEventIds = causeConsequences });
+        Workspace.ReplaceEvent(consequence with { CauseEventIds = consequenceCauses });
+        NotifyChanged();
+    }
+
     public ManuscriptEdition LinkEventToManuscriptSection(Guid manuscriptId, Guid sectionId, Guid eventId, bool linked = true)
     {
         if (!Workspace.Events.Any(item => item.Id == eventId))
