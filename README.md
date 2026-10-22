@@ -36,17 +36,17 @@ The .NET 8 domain core includes:
 - **Composition contract:** StoryBuilder.MicroBundle exposes authoring capabilities through MicroBundleDomain. An automated test composes it through FSM_COS; the bundle itself does not depend on the composition kernel.
 - **Persistence:** StoryBuilder.Persistence uses FSM_Serialization's binary stream contract with a versioned StoryBuilder workspace schema. The WebDemo autosaves to browser localStorage; it does not use JSON.
 
-The architecture follows the Workshop's boundaries: [FSM_API](https://github.com/TrentBest/FSM_API) governs explicit state behavior where appropriate; [FSM_COS](https://github.com/TrentBest/TheSingularityWorkshop.FSM_COS) composes capabilities at the host boundary; [GUI](https://github.com/TrentBest/TheSingularityWorkshop.GUI) and GUI.SVG are the intended semantic authoring and living-documentation layers; [WebApp](https://github.com/TrentBest/TheSingularityWorkshop.WebApp) and [WebPage](https://github.com/TrentBest/WebPage) are potential hosts. The local Blazor workbench is interactive; integration into the Workshop's WebPage and living GUI.SVG views is still open.
+The architecture follows the Workshop's boundaries: [FSM_API](https://github.com/TrentBest/FSM_API) governs explicit state behavior where appropriate; [FSM_COS](https://github.com/TrentBest/TheSingularityWorkshop.FSM_COS) composes capabilities at the host boundary; [GUI](https://github.com/TrentBest/TheSingularityWorkshop.GUI) and GUI.SVG provide the semantic model and living SVG manifestation; [WebApp](https://github.com/TrentBest/TheSingularityWorkshop.WebApp) and [WebPage](https://github.com/TrentBest/WebPage) are the intended Workshop hosts. The local Blazor workbench now includes a GUI.SVG map rendered from live StoryBuilderSession records; embedding the Experience into the Workshop's WebPage remains open.
 
 ## 🟢 04 See it in a minute
 
-Prerequisite: .NET 8 SDK. From the repository root, run the interactive workbench:
+Prerequisite: .NET 8 SDK. Initialize the pinned GUI.SVG source submodule once with `git submodule update --init --recursive`, then run the interactive workbench from the repository root:
 
 ```sh
 dotnet run --project samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --urls http://localhost:5080
 ```
 
-Open http://localhost:5080. Try Casting to create and revise a character, The Stage to add and reorder beats, World Archive to record a sourced claim, or Campaign Room to record a participant choice.
+Open http://localhost:5080. Try Casting to create and revise a character, The Stage to add and reorder beats, World Archive to record a sourced claim, Campaign Room to record a participant choice, or Living Map to see the current cast and vocabulary rendered by GUI.SVG.
 
 The demo uses real StoryBuilder domain records and a session created through StoryBuilderAuthoringBundle. It autosaves a versioned binary workspace in this browser's localStorage and restores it after refresh. Saves are browser-local; there is no cloud sync or multi-user sharing. It is a local proving ground, not yet the integrated WebPage experience.
 
@@ -80,7 +80,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 ## Current boundary
 
-The domain core, FSM_API lifecycle adapter, and FSM_COS-composable MicroBundle contract are implemented and tested. The interactive Blazor workbench has a successful build/test run at commit aaabdbe91e818ad766fb6773e8817726c7a2623a; subsequent documentation commits trigger fresh checks. Data is currently in memory; persistent storage, full campaign runtime, physics-backed fight playback, and live GUI.SVG views remain open work. No package publishing or release has been authorized.
+The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, interactive Blazor workbench, and GUI.SVG living map are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, physics-backed fight playback, and broader source-derived visualizations remain open. No package publishing or release has been authorized.
 
 ## License
 
