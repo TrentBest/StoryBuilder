@@ -60,6 +60,16 @@ public sealed class StoryWorkspacePersistenceTests
             Status = CanonStatus.Proposed
         });
 
+        var originalTimeline = new TimelineDefinition { Name = "Original timeline", Description = "Shared history." };
+        var branchTimeline = new TimelineDefinition
+        {
+            Name = "Changed history",
+            Description = "A divergent branch.",
+            ParentTimelineId = originalTimeline.Id
+        };
+        session.Workspace.AddTimeline(originalTimeline);
+        session.Workspace.AddTimeline(branchTimeline);
+
         var document = StoryWorkspaceBinaryDocument.FromSession(session);
         using var output = new MemoryBinaryStream();
         document.Pack(output);
@@ -73,6 +83,11 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Equal(session.Workspace.Id, restoredSession.Workspace.Id);
         Assert.Equal("Persistence campaign", restoredSession.Workspace.Name);
+        Assert.Equal(2, restoredSession.Workspace.Timelines.Count);
+        Assert.Equal(originalTimeline.Id, restoredSession.Workspace.Timelines[0].Id);
+        Assert.Equal(branchTimeline.Id, restoredSession.Workspace.Timelines[1].Id);
+        Assert.Equal(originalTimeline.Id, restoredSession.Workspace.Timelines[1].ParentTimelineId);
+        Assert.True(restoredSession.Workspace.Timelines[1].IsBranch);
         var restoredPremise = Assert.Single(restoredSession.Workspace.Premises);
         Assert.Equal(premise.Id, restoredPremise.Id);
         Assert.Equal("The Lost Cartographer", restoredPremise.Title);
