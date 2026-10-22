@@ -32,9 +32,9 @@ Regression tests now exercise these effects and verify the passage stores the ev
 
 ## Open critical path
 
-- [ ] Green CI for the latest documentation/UML commits (the command/test increment itself is green).
-- [ ] Wire the new command IDs into AnyApp's desktop dispatcher.
-- [ ] Prove create event → create passage → link → save → restart → reopen with the same IDs and links.
+- [ ] Green CI for the latest StoryBuilder documentation/status commits.
+- [x] Wire the new command IDs into AnyApp's desktop dispatcher (source present; full-path CI verification still needed).
+- [ ] Verify the new AnyApp host-local binary persistence path in CI, then prove create event → create passage → link → save → restart → reopen with the same IDs and links.
 - [ ] Add/verify full persistence round-trip coverage for temporal links, manuscript order, and provenance.
 - [ ] Exercise the validated composition package in the real AnyApp host without rerunning arbitration.
 - [ ] Then consider WebPage hosting, Renderer portrayal, immutable publication editions/export, and broader observer-aware editing.
