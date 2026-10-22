@@ -136,8 +136,24 @@
         <div>
             <h3>Traits and adjectives</h3>
             <p class="muted">Keep the author's words and who used them. Add, remove, or revise traits whenever the character changes.</p>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="trait-text">Trait / adjective</label>
+                    <input id="trait-text" @bind="traitText" placeholder="stubborn, quietly generous, afraid of heights" />
+                </div>
+                <div class="field">
+                    <label for="trait-attribution">Who uses this description?</label>
+                    <select id="trait-attribution" @bind="traitAttribution">
+                        <option>Author</option>
+                        <option>Self-description</option>
+                        <option>Companion</option>
+                        <option>Rival</option>
+                        <option>Narrator</option>
+                        <option>Rumor</option>
+                    </select>
+                </div>
+            </div>
             <div class="row">
-                <input class="grow" @bind="traitText" placeholder="e.g. stubborn, quietly generous, afraid of heights" />
                 <button @onclick="AddTypedTrait" disabled="@string.IsNullOrWhiteSpace(traitText)">Add trait</button>
             </div>
             @if (selectedCharacter.Traits.Count == 0)
@@ -236,6 +252,7 @@
     private string editRole = string.Empty;
     private string editDescription = string.Empty;
     private string traitText = string.Empty;
+    private string traitAttribution = "Author";
     private string searchTerm = string.Empty;
     private string canonicalTerm = string.Empty;
     private string synonymTerm = string.Empty;
@@ -287,7 +304,8 @@
         if (selectedCharacter is null)
             return;
 
-        var lifecycle = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
+        var previousStatus = selectedCharacter.Status;
+        var lifecycle = Lifecycles.GetSession(selectedCharacter.Id, previousStatus, $"Character {selectedCharacter.Name} review");
         var reachedStatus = lifecycle.Request(requestedStatus);
         selectedCharacter = Session.UpdateCharacter(selectedCharacter with
         {
@@ -296,7 +314,7 @@
         });
         statusMessage = reachedStatus == requestedStatus
             ? $"Character status is now {reachedStatus}."
-            : $"That transition is not available from {selectedCharacter.Status}; the status was not changed.";
+            : $"That transition is not available from {previousStatus}; the status was not changed.";
     }
 
     private void AddTypedTrait()
@@ -314,7 +332,7 @@
         {
             Term = term.Trim(),
             Category = "Trait",
-            Attribution = "Author",
+            Attribution = traitAttribution,
             Status = CanonStatus.Draft
         }));
     }
