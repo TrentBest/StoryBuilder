@@ -53,7 +53,7 @@ The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather
 - **FSM_API:** implemented in the optional StoryBuilder.FSM adapter for the draft/proposed/accepted/rejected/deprecated review lifecycle. StoryBuilder.Core remains independent of FSM_API.
 - **MicroBundleDomain / FSM_COS:** StoryBuilder.MicroBundle implements the domain-owned MicroBundle contract and declares workspace, Casting, Stage, vocabulary, history, and campaign providers. An automated composition test uses FSM_COS to load it.
 - **FSM_Serialization:** implemented in StoryBuilder.Persistence as an explicit, bounded, versioned binary workspace document. The WebDemo stores that document in browser localStorage; StoryBuilder.Core remains independent of the serialization package.
-- **GUI / GUI.SVG:** render semantic authoring controls and living diagrams from actual workspace state. The current domain core has no GUI dependency; GUI.Core's present semantic tree does not itself provide event callbacks.
+- **GUI / GUI.SVG:** the WebDemo now references the source-pinned GUI.SVG project and renders a live workspace map from actual StoryBuilderSession data. The domain core remains GUI-independent; GUI.SVG is an optional manifestation adapter.
 - **WebApp / WebPage:** the local Blazor host proves authoring interactions; the next integration is to mount the StoryBuilder Experience in the Workshop host without duplicating domain logic.
 - **Physics / Visualize / Renderer:** potential optional scene interaction and inspectable output layers, not required dependencies of the domain model.
 
