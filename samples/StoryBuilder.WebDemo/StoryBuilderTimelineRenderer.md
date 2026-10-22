@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Trent Best — Living timeline map for StoryBuilder. Renders canonical timeline definitions, provisional planning points, numbered world-event markers, and event-to-manuscript-section portrayals through GUI.SVG.
+Trent Best — Living timeline map for StoryBuilder. Renders canonical timeline definitions, provisional planning points, numbered world events, and event portrayals in book sections and scene beats through GUI.SVG.
 
 ## UML class card
 
@@ -16,6 +16,7 @@ See [StoryBuilderTimelineRenderer UML](../../docs/UML/StoryBuilderTimelineRender
 - Place an unresolved Plot Twist without promoting it to canon.
 - Add a key world event with approximate or unresolved world-time placement and a readable per-timeline event number.
 - Link one event to one or more chapters, scenes, or passages in a manuscript.
-- Inspect the generated portrayal rail to see which sections recount each event.
+- Link the same event to the exact scene beat that portrays it.
+- Inspect the book and scene-beat portrayal rails to see where the event is recounted and enacted.
 
-The parent connectors show branch lineage, not causality or measured chronology. The portrayal rail represents the distinct event-to-manuscript relationship. All labels are generated from the current workspace records.
+The parent connectors show branch lineage, not causality or measured chronology. Book portrayal and scene-beat portrayal are distinct relationships. All labels are generated from current workspace records.

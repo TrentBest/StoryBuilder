@@ -14,11 +14,11 @@ Open http://localhost:5080.
 
 - **Narrator:** capture an idea as an editable premise proposal. The page exposes the four cooperating FSM_API machines for intent, planning, observer constraints, and draft/review.
 - **Casting:** create and edit character records; assign Hero / Neutral / Antagonist / Undecided grouping; compare current profile, proposed revision, and indexed source context; add traits and synonyms.
-- **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder beats; copy an editable narration draft.
+- **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder beats; link a world event to a specific beat; copy an editable narration draft.
 - **World Archive:** record a historical claim and optionally attach a source record.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
 - **Living Map:** see GUI.SVG render current characters, statuses, traits, and most-used vocabulary from StoryBuilderSession. The view updates when workspace records change.
-- **Timelines:** create root histories and named child branches, add provisional Plot Twist points, and record world events with approximate or unresolved placement. GUI.SVG distinguishes planning points from actual events and now draws an event-to-book portrayal rail from the same canonical event IDs used by the manuscript.
+- **Timelines:** create root histories and named child branches, add provisional Plot Twist points, and record world events with approximate or unresolved placement. GUI.SVG distinguishes planning points from actual events and draws separate event-to-book-section and event-to-scene-beat portrayal rails from canonical event IDs.
 - **Book Preview:** create a working manuscript, add ordered chapters/scenes/passages, write actual text, and link sections to world-event identities.
 - **Observer Lens:** record how a character witnessed, heard about, inferred, believed, disputed, or forgot an event. Accept knowledge explicitly, then evaluate whether a claim is allowed, blocked, or unresolved at a chosen event anchor.
 

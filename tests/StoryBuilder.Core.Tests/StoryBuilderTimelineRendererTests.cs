@@ -23,4 +23,25 @@ public sealed class StoryBuilderTimelineRendererTests
         Assert.Contains("E1: The", svg, StringComparison.Ordinal);
         Assert.Contains("The Lost Cartographer: The North Gate", svg, StringComparison.Ordinal);
     }
+    [Fact]
+    public void TimelineMapShowsEventToSceneBeatPortrayalRail()
+    {
+        var session = new StoryBuilderSession();
+        var timeline = session.CreateTimeline("Main history");
+        var storyEvent = session.CreateTimelineEvent(timeline.Id, "The reveal", "The hidden truth emerges.", "Midpoint");
+        var scene = session.CreateScene("The Vault");
+        scene = session.UpdateScene(scene.AddBeat(new SceneBeat
+        {
+            Kind = SceneBeatKind.Action,
+            Action = "breaks the seal",
+            Status = CanonStatus.Accepted
+        }));
+        session.LinkEventToSceneBeat(scene.Id, scene.Beats[0].Id, storyEvent.Id);
+
+        var svg = new StoryBuilderTimelineRenderer().Render(session);
+
+        Assert.Contains("SCENE BEAT RAIL", svg, StringComparison.Ordinal);
+        Assert.Contains("The Vault b1", svg, StringComparison.Ordinal);
+        Assert.Contains("breaks the seal", svg, StringComparison.Ordinal);
+    }
 }

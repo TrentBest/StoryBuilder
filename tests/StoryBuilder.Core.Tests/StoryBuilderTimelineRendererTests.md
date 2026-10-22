@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Verifies that the GUI.SVG timeline manifestation derives an event-to-manuscript-section portrayal rail from canonical workspace records.
+Verifies that the GUI.SVG timeline manifestation derives event-to-manuscript-section and event-to-scene-beat portrayal rails from canonical workspace records.
 
 ## UML class card
 
@@ -12,4 +12,4 @@ See [StoryBuilderTimelineRendererTests UML](../../docs/UML/StoryBuilderTimelineR
 
 ## Acceptance evidence
 
-The rendered SVG includes the linked event and the actual book/section title, proving the portrayal rail is data-driven rather than a static mockup.
+The rendered SVG includes the linked event, actual book/section title, and scene/beat label, proving both portrayal rails are data-driven rather than static mockups.

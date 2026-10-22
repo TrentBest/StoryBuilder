@@ -29,6 +29,19 @@ public sealed class StoryBuilderTimelineRenderer
                 })))
             .Where(link => workspace.Events.Any(storyEvent => storyEvent.Id == link.EventId))
             .ToList();
+        var sceneBeatLinks = workspace.Scenes
+            .OrderBy(scene => scene.Title, StringComparer.Ordinal)
+            .SelectMany(scene => scene.Beats
+                .OrderBy(beat => beat.Sequence)
+                .SelectMany(beat => beat.EventIds.Select(eventId => new
+                {
+                    EventId = eventId,
+                    SceneId = scene.Id,
+                    SceneTitle = scene.Title,
+                    Beat = beat
+                })))
+            .Where(link => workspace.Events.Any(storyEvent => storyEvent.Id == link.EventId))
+            .ToList();
 
         var depthById = new Dictionary<Guid, int>();
         int Depth(TimelineDefinition timeline, HashSet<Guid> visiting)
@@ -53,15 +66,17 @@ public sealed class StoryBuilderTimelineRenderer
         var maxEvents = timelines.Select(timeline => workspace.Events.Count(item => item.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
         var maxMarkers = maxPlanningPoints + maxEvents;
         var width = Math.Max(100, (maxDepth + 1) * 32 + 8 + maxMarkers * 17);
-        if (portrayalLinks.Count > 0)
+        if (portrayalLinks.Count > 0 || sceneBeatLinks.Count > 0)
             width += 64;
-        var railHeight = portrayalLinks.Count == 0 ? 0 : 15 + portrayalLinks.Count * 8;
+        var bookRailHeight = portrayalLinks.Count == 0 ? 0 : 15 + portrayalLinks.Count * 8;
+        var sceneRailHeight = sceneBeatLinks.Count == 0 ? 0 : 15 + sceneBeatLinks.Count * 8;
+        var railHeight = bookRailHeight + sceneRailHeight;
         var height = Math.Max(36, timelines.Count * 15 + 16 + railHeight);
         var root = GuiBuilder.Create("svg-scene", "storybuilder-timeline-map")
-            .Text("StoryBuilder timeline constellation and book portrayal links")
+            .Text("StoryBuilder timeline constellation with book and scene-beat portrayal links")
             .Property("viewBox", $"0 0 {width} {height}")
-            .Property("aria-label", "Timeline definitions, planning points, world events, and event-to-book-section portrayal links")
-            .Property("description", "Parent connectors show timeline lineage. The portrayal rail connects a world event to manuscript sections that recount it; neither relationship implies measured world time.");
+            .Property("aria-label", "Timeline definitions, planning points, world events, event-to-book-section links, and event-to-scene-beat links")
+            .Property("description", "Parent connectors show timeline lineage. Separate rails connect world events to manuscript sections and scene beats that portray them; neither relationship implies measured world time.");
 
         root.Child("svg-rect", "timeline-background", node => node
             .Property("x", "0").Property("y", "0").Property("width", width.ToString(CultureInfo.InvariantCulture))
@@ -213,7 +228,70 @@ public sealed class StoryBuilderTimelineRenderer
             }
         }
 
+        if (sceneBeatLinks.Count > 0)
+        {
+            var titleY = 13 + timelines.Count * 15 + bookRailHeight;
+            var firstRowY = titleY + 4;
+            root.Child("svg-text", "scene-beat-portrayal-rail-title", node => node
+                .Text("SCENE BEAT RAIL · WORLD EVENT → SCENE BEAT")
+                .Property("x", "4").Property("y", titleY.ToString(CultureInfo.InvariantCulture))
+                .Property("font-size", "2").Property("font-weight", "700").Property("fill", "#b7c9df"));
+
+            for (var index = 0; index < sceneBeatLinks.Count; index++)
+            {
+                var link = sceneBeatLinks[index];
+                var rowY = firstRowY + index * 8;
+                var storyEvent = workspace.Events.First(item => item.Id == link.EventId);
+                var eventX = eventXById.GetValueOrDefault(link.EventId, 4);
+                var eventLabel = eventNumberById.TryGetValue(link.EventId, out var eventNumber)
+                    ? $"E{eventNumber}: {storyEvent.Title}"
+                    : $"E?: {storyEvent.Title}";
+                var nodeSuffix = $"{link.EventId:N}-{link.SceneId:N}-{link.Beat.Id:N}";
+                if (eventYById.TryGetValue(link.EventId, out var eventY))
+                {
+                    root.Child("svg-rect", $"scene-beat-vertical-{nodeSuffix}", node => node
+                        .Property("x", (eventX + 7.7).ToString(CultureInfo.InvariantCulture))
+                        .Property("y", (eventY + 5).ToString(CultureInfo.InvariantCulture))
+                        .Property("width", "0.2")
+                        .Property("height", Math.Max(0.2, rowY + 2.5 - (eventY + 5)).ToString(CultureInfo.InvariantCulture))
+                        .Property("fill", "#c29a74"));
+                }
+                root.Child("svg-rect", $"scene-beat-event-{nodeSuffix}", node => node
+                    .Property("x", eventX.ToString(CultureInfo.InvariantCulture))
+                    .Property("y", rowY.ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "15.5").Property("height", "5").Property("rx", "0.6")
+                    .Property("fill", "#202f43").Property("stroke", "#8bb7e8").Property("stroke-width", "0.25"));
+                root.Child("svg-text", $"scene-beat-event-label-{nodeSuffix}", node => node
+                    .Text(Shorten(eventLabel, 12))
+                    .Property("x", (eventX + 0.6).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (rowY + 3.2).ToString(CultureInfo.InvariantCulture))
+                    .Property("font-size", "1.25").Property("fill", "#cfe4ff"));
+                root.Child("svg-rect", $"scene-beat-connector-{nodeSuffix}", node => node
+                    .Property("x", (eventX + 15.5).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (rowY + 2.4).ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "2").Property("height", "0.2").Property("fill", "#c29a74"));
+                var beatX = eventX + 17.5;
+                root.Child("svg-rect", $"scene-beat-target-{nodeSuffix}", node => node
+                    .Property("x", beatX.ToString(CultureInfo.InvariantCulture))
+                    .Property("y", rowY.ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "44").Property("height", "5").Property("rx", "0.6")
+                    .Property("fill", "#3a2b22").Property("stroke", "#d8b49a").Property("stroke-width", "0.25"));
+                root.Child("svg-text", $"scene-beat-target-label-{nodeSuffix}", node => node
+                    .Text(Shorten($"{link.SceneTitle} b{link.Beat.Sequence}: {BeatLabel(link.Beat)}", 40))
+                    .Property("x", (beatX + 0.6).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (rowY + 3.2).ToString(CultureInfo.InvariantCulture))
+                    .Property("font-size", "1.25").Property("fill", "#f0d7c7"));
+            }
+        }
+
         return renderer.Render(root.Build(), 1000, (int)(height * 10));
+    }
+
+    private static string BeatLabel(SceneBeat beat)
+    {
+        var content = new[] { beat.Action, beat.Dialogue, beat.Reaction, beat.PoseOrPosition, beat.CaptureNote, beat.ActorLabel }
+            .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+        return string.IsNullOrWhiteSpace(content) ? beat.Kind.ToString() : $"{beat.Kind}: {content}";
     }
 
     private static string Shorten(string value, int maxLength) =>

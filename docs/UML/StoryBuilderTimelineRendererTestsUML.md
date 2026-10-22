@@ -4,6 +4,7 @@
 classDiagram
     class StoryBuilderTimelineRendererTests {
         +TimelineMapShowsEventToBookSectionPortrayalRail()
+        +TimelineMapShowsEventToSceneBeatPortrayalRail()
     }
     StoryBuilderTimelineRendererTests ..> StoryBuilderTimelineRenderer : verifies
     StoryBuilderTimelineRendererTests ..> StoryBuilderSession : constructs canonical data
@@ -11,6 +12,5 @@ classDiagram
 
 ## Use cases
 
-- A world event is assigned to a timeline.
-- A manuscript section references that event.
-- The generated SVG shows the event and the section that portrays it.
+- A manuscript section references an event and appears on the book portrayal rail.
+- A scene beat references the same event and appears on the scene-beat rail.

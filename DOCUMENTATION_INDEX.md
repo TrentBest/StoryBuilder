@@ -17,7 +17,8 @@
 | Understand publication output versus physical printing | [Narrator Experience — Publication Boundary](docs/NARRATOR_EXPERIENCE.md#publication-boundary) |
 | Explore the casting-room concept | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) |
 | Understand the timeline Process Group foundation | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [TimelineProcessGroup UML](docs/UML/TimelineProcessGroupUML.md), [Timeline tests](tests/StoryBuilder.Core.Tests/TimelineProcessGroupTests.cs) |
-| Design timeline console, scene/beat event links, and immutable editions | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md) |
+| Link timeline events to actual book sections and scene beats | [Timeline renderer UML](docs/UML/StoryBuilderTimelineRendererUML.md), [Scene-beat link tests](tests/StoryBuilder.Core.Tests/SceneBeatEventLinkTests.md) |
+| Design timeline console and immutable editions | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md) |
 | Design plural timelines, time-travel branches, gestures, and multiverse history | [Timelines, Gestures, and Multiverse History](docs/TIMELINES_GESTURES_MULTIVERSE.md) |
 | Inspect character words, context, and pronoun references | [Character Casting Studio — Word and Reference Observability](docs/CHARACTER_CASTING_STUDIO.md#word-and-reference-observability) |
 | Run the authoring workbench | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md) |

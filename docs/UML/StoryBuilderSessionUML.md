@@ -13,9 +13,13 @@ classDiagram
         +Changed
     }
     class StoryWorkspace
-    class ObserverKnowledgeProjectionService
+    class SceneRecord
+    class SceneBeat
+    class StoryEvent
     StoryBuilderSession --> StoryWorkspace : owns canonical records
-    StoryBuilderSession ..> ObserverKnowledgeProjectionService : observer projection service is called by NarratorAgent
+    StoryBuilderSession ..> SceneRecord : updates scene beat links
+    SceneRecord o-- SceneBeat : contains
+    SceneBeat --> StoryEvent : references by stable ID
 ```
 
 ## Use cases

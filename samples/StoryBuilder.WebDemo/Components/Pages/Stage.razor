@@ -150,9 +150,44 @@
                         @if (!string.IsNullOrWhiteSpace(beat.PoseOrPosition)) { <p>Pose: @beat.PoseOrPosition</p> }
                         @if (!string.IsNullOrWhiteSpace(beat.EmotionalTone)) { <p>Tone: @beat.EmotionalTone</p> }
                         @if (!string.IsNullOrWhiteSpace(beat.CaptureNote)) { <p class="muted">@beat.CaptureNote</p> }
+                        @if (beat.EventIds.Count > 0)
+                        {
+                            <p class="muted">Linked events: @string.Join(" · ", beat.EventIds.Select(eventId => Session.Workspace.Events.FirstOrDefault(item => item.Id == eventId)?.Title ?? "Missing event"))</p>
+                        }
                     </div>
                 }
             </div>
+        }
+        @if (Session.Workspace.Events.Count > 0 && currentScene.Beats.Count > 0)
+        {
+            <hr />
+            <div class="eyebrow">Timeline connections</div>
+            <h3>Link a key event to a specific beat</h3>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="event-link-beat">Scene beat</label>
+                    <select id="event-link-beat" @bind="selectedBeatId">
+                        @foreach (var beat in currentScene.Beats.OrderBy(item => item.Sequence))
+                        {
+                            <option value="@beat.Id">@(beat.Sequence.ToString("00")) · @beat.Kind · @(beat.Action ?? beat.Dialogue ?? beat.ActorLabel ?? "Untitled beat")</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="event-link-event">World event</label>
+                    <select id="event-link-event" @bind="selectedEventId">
+                        @foreach (var storyEvent in Session.Workspace.Events)
+                        {
+                            <option value="@storyEvent.Id">@storyEvent.Title</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <button class="secondary" @onclick="LinkEventToBeat">Link event to beat</button>
+            @if (!string.IsNullOrWhiteSpace(eventLinkMessage))
+            {
+                <p class="muted" role="status">@eventLinkMessage</p>
+            }
         }
         <hr />
         <div class="eyebrow">Narration draft</div>
@@ -181,13 +216,22 @@
     private string toneText = string.Empty;
     private string captureNote = string.Empty;
     private string copyMessage = string.Empty;
+    private string selectedBeatId = string.Empty;
+    private string selectedEventId = string.Empty;
+    private string eventLinkMessage = string.Empty;
 
     private SceneCaptureMode SelectedCaptureMode =>
         Enum.TryParse<SceneCaptureMode>(captureMode, out var value) ? value : SceneCaptureMode.Freeform;
 
+    protected override void OnInitialized()
+    {
+        selectedEventId = Session.Workspace.Events.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+    }
+
     private void CreateScene()
     {
         currentScene = Session.CreateScene(sceneTitle, sceneLocation, SelectedCaptureMode);
+        selectedBeatId = string.Empty;
         sceneTitle = "Untitled scene";
         sceneLocation = string.Empty;
     }
@@ -198,6 +242,7 @@
         sceneTitle = scene.Title;
         sceneLocation = scene.Location ?? string.Empty;
         captureMode = scene.CaptureMode.ToString();
+        selectedBeatId = scene.Beats.OrderBy(beat => beat.Sequence).FirstOrDefault()?.Id.ToString() ?? string.Empty;
     }
 
     private void AddBeat()
@@ -221,6 +266,7 @@
         };
 
         currentScene = Session.UpdateScene(currentScene.AddBeat(beat));
+        selectedBeatId = beat.Id.ToString();
         actionText = string.Empty;
         reactionText = string.Empty;
         dialogueText = string.Empty;
@@ -241,6 +287,27 @@
             .Select((beat, index) => beat with { Sequence = index + 1 })
             .ToList();
         currentScene = Session.UpdateScene(currentScene with { Beats = beats, UpdatedAtUtc = DateTimeOffset.UtcNow });
+        selectedBeatId = currentScene.Beats.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+    }
+
+    private void LinkEventToBeat()
+    {
+        if (currentScene is null || !Guid.TryParse(selectedBeatId, out var beatId)
+            || !Guid.TryParse(selectedEventId, out var eventId))
+        {
+            eventLinkMessage = "Choose a scene beat and world event first.";
+            return;
+        }
+
+        try
+        {
+            currentScene = Session.LinkEventToSceneBeat(currentScene.Id, beatId, eventId);
+            eventLinkMessage = "Linked the existing world event to this beat. The event itself was not duplicated.";
+        }
+        catch (KeyNotFoundException exception)
+        {
+            eventLinkMessage = exception.Message;
+        }
     }
 
     private void MoveBeat(Guid beatId, int offset)
