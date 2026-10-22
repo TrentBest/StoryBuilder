@@ -45,6 +45,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         if (!stream.CanWrite)
             throw new ArgumentException("The binary stream is not writable.", nameof(stream));
 
+        EnsureWorkspaceIntegrity(Workspace);
         stream.Write(Magic);
         BinaryCodec.WriteInt32(stream, FormatVersion);
         WriteWorkspace(stream, Workspace);
@@ -68,9 +69,24 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 
         Workspace = ReadWorkspace(stream, version);
         Synonyms = BinaryCodec.ReadList(stream, ReadVocabularyConcept);
+        EnsureWorkspaceIntegrity(Workspace);
 
         if (stream.Position != stream.Length)
             throw new InvalidDataException("The workspace payload contains trailing bytes.");
+    }
+
+    private static void EnsureWorkspaceIntegrity(StoryWorkspace workspace)
+    {
+        var issues = StoryWorkspaceValidator.Validate(workspace);
+        if (issues.Count == 0)
+            return;
+
+        var preview = string.Join(Environment.NewLine, issues.Take(5).Select(issue => issue.Message));
+        var remainder = issues.Count > 5
+            ? $"{Environment.NewLine}...and {issues.Count - 5} more broken reference(s)."
+            : string.Empty;
+        throw new InvalidDataException(
+            $"The StoryBuilder workspace contains {issues.Count} broken reference(s) and cannot be persisted or restored.{Environment.NewLine}{preview}{remainder}");
     }
 
     private static void WriteWorkspace(IBinaryStream stream, StoryWorkspace workspace)
