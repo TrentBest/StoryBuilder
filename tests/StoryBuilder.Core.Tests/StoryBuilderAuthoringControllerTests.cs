@@ -24,12 +24,18 @@ public sealed class StoryBuilderAuthoringControllerTests
         Assert.Equal(commandId, result.CommandId);
         Assert.NotNull(result.RecordId);
         Assert.Contains(name, result.Message);
-        Assert.Equal(1, session.Workspace.Timelines.Count
-            + session.Workspace.Characters.Count
-            + session.Workspace.Scenes.Count
-            + session.Workspace.Manuscripts.Count
-            + session.Workspace.Events.Count
-            + session.Workspace.Manuscripts.Sum(item => item.Sections.Count));
+        var recordExists = commandId switch
+        {
+            StoryBuilderAuthoringCommands.CreateTimeline => session.Workspace.Timelines.Any(item => item.Id == result.RecordId),
+            StoryBuilderAuthoringCommands.CreateCharacter => session.Workspace.Characters.Any(item => item.Id == result.RecordId),
+            StoryBuilderAuthoringCommands.CreateScene => session.Workspace.Scenes.Any(item => item.Id == result.RecordId),
+            StoryBuilderAuthoringCommands.CreateManuscript => session.Workspace.Manuscripts.Any(item => item.Id == result.RecordId),
+            StoryBuilderAuthoringCommands.CreateEvent => session.Workspace.Events.Any(item => item.Id == result.RecordId),
+            StoryBuilderAuthoringCommands.CreateManuscriptSection => session.Workspace.Manuscripts
+                .SelectMany(item => item.Sections).Any(item => item.Id == result.RecordId),
+            _ => false
+        };
+        Assert.True(recordExists);
     }
 
     [Fact]
