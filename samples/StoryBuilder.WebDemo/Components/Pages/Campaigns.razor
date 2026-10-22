@@ -1,5 +1,6 @@
 @page "/campaigns"
 @inject StoryBuilderSession Session
+@inject StoryLifecycleRegistry Lifecycles
 
 <PageTitle>Campaign Room · StoryBuilder</PageTitle>
 
@@ -115,6 +116,27 @@
                                         <span class="chip">@character.Name</span>
                                     }
                                 </div>
+                                <div class="row">
+                                    @if (action.Status == CanonStatus.Draft)
+                                    {
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Proposed)">Propose</button>
+                                    }
+                                    else if (action.Status == CanonStatus.Proposed)
+                                    {
+                                        <button @onclick="() => RequestActionStatus(action, CanonStatus.Accepted)">Accept as canon</button>
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Rejected)">Reject</button>
+                                    }
+                                    else if (action.Status == CanonStatus.Accepted)
+                                    {
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Proposed)">Reopen for revision</button>
+                                        <button class="danger" @onclick="() => RequestActionStatus(action, CanonStatus.Deprecated)">Deprecate</button>
+                                    }
+                                    else if (action.Status == CanonStatus.Rejected)
+                                    {
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Draft)">Return to draft</button>
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Proposed)">Re-propose</button>
+                                    }
+                                </div>
                             </div>
                         }
                     }
@@ -149,6 +171,17 @@
         message = "Campaign created. It is ready for participant choices.";
     }
 
+    private void RequestActionStatus(ParticipantAction action, CanonStatus requestedStatus)
+    {
+        var previousStatus = action.Status;
+        var lifecycle = Lifecycles.GetSession(action.Id, previousStatus, $"Participant choice {action.Id}");
+        var reachedStatus = lifecycle.Request(requestedStatus);
+        Session.UpdateParticipantAction(action with { Status = reachedStatus });
+        message = reachedStatus == requestedStatus
+            ? $"Choice status is now {reachedStatus}."
+            : $"That transition is not available from {previousStatus}; the status was not changed.";
+    }
+
     private void RecordAction()
     {
         if (!Guid.TryParse(selectedCampaignId, out var campaignId) ||
@@ -159,14 +192,17 @@
             ? parsedCharacterId
             : null;
 
-        Session.AddParticipantAction(new ParticipantAction
+        var action = Session.AddParticipantAction(new ParticipantAction
         {
             CampaignId = campaignId,
             CharacterId = characterId,
             Description = actionDescription.Trim(),
             Attribution = "Participant",
-            Status = CanonStatus.Proposed
+            Status = CanonStatus.Draft
         });
+        var lifecycle = Lifecycles.GetSession(action.Id, action.Status, $"Participant choice {action.Id}");
+        var proposedStatus = lifecycle.Request(CanonStatus.Proposed);
+        Session.UpdateParticipantAction(action with { Status = proposedStatus });
         actionDescription = string.Empty;
         message = "Choice recorded as a proposal. It does not become canon until deliberately accepted.";
     }
