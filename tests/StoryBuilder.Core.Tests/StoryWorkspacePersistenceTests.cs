@@ -130,6 +130,7 @@ public sealed class StoryWorkspacePersistenceTests
         var manuscript = session.CreateManuscript("The Lost Cartographer", "A book in progress", "T. Best");
         var chapter = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
         session.UpdateManuscriptSection(manuscript.Id, chapter.Sections[0].Id, "The North Gate", "Mara placed her hand on the latch.");
+        session.LinkSceneToManuscriptSection(manuscript.Id, chapter.Sections[0].Id, scene.Id);
         session.LinkEventToManuscriptSection(manuscript.Id, chapter.Sections[0].Id, timelineEvent.Id);
         session.LinkEventToSceneBeat(scene.Id, scene.Beats[0].Id, timelineEvent.Id);
         var observerKnowledge = session.AddObserverKnowledge(new ObserverKnowledgeRecord
@@ -161,6 +162,7 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal("The Lost Cartographer", restoredManuscript.Title);
         Assert.Equal("T. Best", restoredManuscript.Author);
         Assert.Equal("Mara placed her hand on the latch.", Assert.Single(restoredManuscript.Sections).Body);
+        Assert.Contains(scene.Id, Assert.Single(restoredManuscript.Sections).SceneIds);
         Assert.Contains(timelineEvent.Id, Assert.Single(restoredManuscript.Sections).EventIds);
         var restoredTimelineEvent = Assert.Single(restoredSession.Workspace.Events);
         Assert.Equal(timelineEvent.Id, restoredTimelineEvent.Id);
