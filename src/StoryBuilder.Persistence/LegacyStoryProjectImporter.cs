@@ -130,7 +130,7 @@ public static class LegacyStoryProjectImporter
 
     private static DateTimeOffset? GetDateTimeOffset(JsonElement element, string name) =>
         DateTimeOffset.TryParse(GetString(element, name), CultureInfo.InvariantCulture,
-            DateTimeStyles.RoundtripKind, out var value) ? value : null;
+            DateTimeStyles.None, out var value) ? value : null;
 
     private static List<JsonElement> GetArray(JsonElement element, string name) =>
         TryGet(element, name, out var value) && value.ValueKind == JsonValueKind.Array
