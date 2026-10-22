@@ -25,7 +25,7 @@ This ledger is a file/behavior inventory, not a claim that the histories are saf
 | `README.md` | Revises product framing around both Experience/Tool design records and narrative composition, links the desktop-first decision, and describes Workshop package boundaries and later visualization goals. | **Reconcile prose with the current README rather than overwrite wholesale.** Preserve the product distinction between implementation facts and fictional canon; ensure all links exist and all claims match shipped code. |
 | `docs/Gallery.md` | Compare reports a 20-addition/10-deletion documentation change. | **Preserve useful recipes, but verify every demonstration.** Label implemented behavior, planned work, and screenshots/diagrams accurately. |
 
-The compare endpoint reported the following aggregate change counts for the 10 paths: 334 additions and 17 deletions. This is the endpoint's aggregate for the files listed above; it is not a test result.
+The compare endpoint reported the following aggregate change counts for the 10 paths: 404 additions and 17 deletions. This is the endpoint's aggregate for the files listed above; it is not a test result.
 
 ## Required behavior-level reconciliation
 
