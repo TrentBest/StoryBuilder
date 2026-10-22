@@ -12,9 +12,14 @@ It does not own host lifecycle, durable storage, GUI rendering, physics simulati
 Author / participant
         |
         v
-Host experience (WebApp / WebPage / another host)
+Interactive StoryBuilder WebDemo (local proving ground)
         |
-        +---- GUI semantic model / GUI.SVG manifestations
+        +---- future Workshop WebPage host
+        |
+        +---- future GUI / GUI.SVG living manifestations
+        |
+        v
+StoryBuilder.MicroBundle
         |
         v
 StoryBuilder.Core (host-neutral domain)
@@ -25,15 +30,13 @@ StoryBuilder.Core (host-neutral domain)
         |
         +---- StoryBuilder.FSM (optional FSM_API lifecycle adapter)
         |
-        +---- StoryBuilder.MicroBundle (MicroBundleDomain capability contract)
-        |
         +---- future serialization adapter
         |
         v
 FSM_COS composes MicroBundles; the host owns persistence and presentation
 ```
 
-The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather than FSM_COS itself. That preserves the composition boundary: a host catalog resolves StoryBuilderAuthoringBundle, and FSM_COS loads and arbitrates it.
+The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather than FSM_COS itself. The automated composition test resolves and loads StoryBuilderAuthoringBundle through FSM_COS. The local Blazor workbench creates its session through the same bundle factory, but is not yet hosted by WebPage.
 
 ## Core invariants
 
@@ -48,12 +51,12 @@ The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather
 ## Integration plan
 
 - **FSM_API:** implemented in the optional StoryBuilder.FSM adapter for the draft/proposed/accepted/rejected/deprecated review lifecycle. StoryBuilder.Core remains independent of FSM_API.
-- **MicroBundleDomain / FSM_COS:** StoryBuilder.MicroBundle implements the domain-owned MicroBundle contract and declares workspace, Casting, Stage, vocabulary, history, and campaign providers. An automated composition test uses FSM_COS to load it. Host-specific UI and persistence remain outside this bundle.
+- **MicroBundleDomain / FSM_COS:** StoryBuilder.MicroBundle implements the domain-owned MicroBundle contract and declares workspace, Casting, Stage, vocabulary, history, and campaign providers. An automated composition test uses FSM_COS to load it.
 - **FSM_Serialization:** integrate after its current contracts are inspected and the workspace record shape is tested against them. The current core has no serialization package dependency.
 - **GUI / GUI.SVG:** render semantic authoring controls and living diagrams from actual workspace state. The current domain core has no GUI dependency; GUI.Core's present semantic tree does not itself provide event callbacks.
-- **WebApp / WebPage:** provide the user-facing Experience after the core authoring contract is verified.
+- **WebApp / WebPage:** the local Blazor host proves authoring interactions; the next integration is to mount the StoryBuilder Experience in the Workshop host without duplicating domain logic.
 - **Physics / Visualize / Renderer:** potential optional scene interaction and inspectable output layers, not required dependencies of the domain model.
 
 ## Current implementation boundary
 
-The .NET 8 core provides character drafts and templates, structured scene beats, a narration draft, automatic indexing of character and scene words through StoryBuilderSession, explicit synonym mapping, usage search, and a workspace record model. Optional adapters demonstrate FSM_API lifecycle behavior and the FSM_COS MicroBundle contract. The core is in-memory. Persistence, a clickable authoring UI, campaign execution, and live GUI.SVG views remain open.
+The .NET 8 core provides character drafts and templates, structured scene beats, a narration draft, automatic indexing of character and scene words through StoryBuilderSession, explicit synonym mapping, usage search, and a workspace record model. Optional adapters demonstrate FSM_API lifecycle behavior and the FSM_COS MicroBundle contract. The local Blazor workbench has clickable Casting, Stage, Archive, and Campaign pages. The data is in-memory; persistence, Workshop-host integration, and living GUI.SVG views remain open.
