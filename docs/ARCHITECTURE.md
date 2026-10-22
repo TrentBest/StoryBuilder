@@ -2,7 +2,7 @@
 
 ## Ownership
 
-StoryBuilder owns the authoring domain: Experience design, character profiles, world claims and events, scenes, campaigns, participant actions, provenance, continuity, vocabulary, timeline definitions, manuscript structure, provisional planning points, timeline-assigned world events, and event-to-section references; observer knowledge and immutable publication editions remain future capabilities.
+StoryBuilder owns the authoring domain: Experience design, character profiles, world claims and events, scenes, campaigns, participant actions, provenance, continuity, vocabulary, timeline definitions, manuscript structure, provisional planning points, timeline-assigned world events, event-to-section references, and observer knowledge. Immutable publication editions and reader-disclosure policy remain future capabilities.
 
 It does not own host lifecycle, durable storage implementation, GUI rendering, physics simulation, or the general composition kernel.
 
@@ -53,7 +53,7 @@ Distinguish world chronology, causality, manuscript order, observer knowledge ti
 
 ## Timeline and Narrator
 
-Every timeline is intended to be a semantic Process Group advanced by a compatible host driver. Its update must not accept canon or mutate published content. NarratorAgent now coordinates four isolated FSM_API state machines for intent, planning, observer constraints, and draft/review. Its transitions are tested, its draft guard consumes ObserverKnowledgeEvaluator results, and it keeps canonical state in StoryBuilderSession. LLM-backed drafting, Renderer integration, and additional continuity/composition/package FSM responsibilities remain future work; expand the agent only through explicit contracts and tests.
+Every timeline is intended to be a semantic Process Group advanced by a compatible host driver. Its update must not accept canon or mutate published content. NarratorAgent coordinates four isolated FSM_API state machines for intent, planning, observer constraints, and draft/review. Its transitions are tested, its draft guard consumes ObserverKnowledgeEvaluator results, and it keeps canonical state in StoryBuilderSession. LLM-backed drafting, Renderer integration, and additional continuity/composition/package FSM responsibilities remain future work; expand the agent only through explicit contracts and tests.
 
 The timeline console should have a configurable keyboard shortcut and accessible visible control. GUI.SVG can show event IDs and distinct relationship rails to books, chapters, scenes, and passages. Branch, causality, portrayal, and disclosure links must have different semantics.
 
@@ -61,6 +61,6 @@ See [Timeline Authoring and Observer Model](TIMELINE_AUTHORING_MODEL.md), [Timel
 
 ## Current implementation boundary
 
-The .NET 8 core currently provides character drafts, structured scene beats, a narration draft, vocabulary indexing, timeline definitions, provisional planning points, timeline-assigned world events, manuscript sections, event-to-section references, observer-knowledge records, and a host-neutral Process Group driver contract. ObserverKnowledgeEvaluator conservatively checks whether an observer can make a requested claim at an explicit event anchor. Optional adapters demonstrate FSM_API lifecycle behavior and the MicroBundleDomain contract. The local Blazor workbench includes Casting, Stage, Archive, Campaign, Living Map, and Timeline views. Versioned binary workspace persistence and browser-local autosave are implemented. The latest GUI.SVG timeline map CI is green.
+The .NET 8 core currently provides character drafts, structured scene beats, a narration draft, vocabulary indexing, timeline definitions, provisional planning points, timeline-assigned world events, manuscript sections, event-to-section references, observer-knowledge records, and a host-neutral Process Group driver contract. ObserverKnowledgeEvaluator conservatively checks whether an observer can make a requested claim at an explicit event anchor. Optional adapters demonstrate FSM_API lifecycle behavior and the MicroBundleDomain contract. The local Blazor workbench includes Casting, Stage, Archive, Campaign, Living Map, Timeline, Book Preview, and Observer Lens views. Versioned binary workspace persistence and browser-local autosave are implemented. The latest GUI.SVG timeline map CI is green.
 
-Still planned: scene/beat-to-event links, book export, full temporal/causal graph editing, reader-disclosure policy, LLM-backed drafting and Renderer integration, immutable publication editions, package manifest/configuration production and consumption, cloud persistence, and Workshop-host integration.
+Still planned: scene/beat-to-event links, book export, full temporal/causal graph editing, reader-disclosure policy, LLM-backed drafting and Renderer integration, immutable publication editions, binary package manifest/configuration production and consumption, exact payload hashing, cloud persistence, and Workshop-host integration.

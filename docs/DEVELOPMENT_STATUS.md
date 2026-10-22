@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 62% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, and a four-FSM Narrator agent. LLM-backed drafting, Renderer integration, reader disclosure, package production/consumption, and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 62% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, and a four-FSM Narrator agent. Host-neutral package manifest/configuration contracts and a host capability validator have been added in the current increment; their CI verification is pending. Binary package production, AnyApp consumption, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -21,7 +21,8 @@
 - Host-neutral IStoryProcessGroup and StoryProcessGroupDriver; each inserted group is updated once per driver Update.
 - Optional FSM_API-backed TimelineProcessGroup with inspectable entry, driver-update, runtime-tick, and exit observations.
 - NarratorAgent: four isolated FSM_API definitions and processing groups for intent, planning, observer constraints, and draft/review. The Home page displays their live states; premise capture uses the intent FSM, timeline planning uses the planning FSM, and draft submission is held for review when declared event claims exceed accepted observer knowledge. The agent records transitions and disposes its instances and definitions.
-- Binary workspace format version 7 persists timeline definitions (v3), manuscripts (v4), provisional planning points (v5), timeline assignment/placement for world events (v6), and observer-knowledge records (v7). Readers retain compatibility with versions 1 through 6.
+- Binary workspace format version 7 persists timeline definitions (v3), manuscripts (v4), provisional timeline planning points (v5), timeline assignment/placement for world events (v6), and observer-knowledge records (v7). Readers retain compatibility with versions 1 through 6.
+- Host-neutral composition manifest/configuration contracts and CompositionPackageValidator: checks package/workspace identity, content revision, SHA-256 inputs, bundle configuration, required host capabilities, versions, and duplicate identifiers without rerunning arbitration.
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
@@ -32,9 +33,9 @@
 
 ## Architecture contracts added
 
-- [Composition Package Contract](COMPOSITION_PACKAGE_CONTRACT.md): intended manifest/configuration boundary between Workshop arbitration and AnyApp consumption; package compiler/consumer is not implemented yet.
+- [Composition Package Contract](COMPOSITION_PACKAGE_CONTRACT.md): manifest/configuration data contracts and a host capability validator now exist; binary producer/consumer remains future work.
 - [Timeline Authoring and Observer Model](TIMELINE_AUTHORING_MODEL.md): provisional planning points, observer knowledge/disclosure, multi-FSM Narrator, and product-first views are specified as contracts, not claimed features.
-- [Architecture](ARCHITECTURE.md) now makes book-first composition and the package boundary explicit.
+- [Architecture](ARCHITECTURE.md) makes book-first composition and the package boundary explicit.
 
 ## Verification evidence
 
@@ -56,7 +57,7 @@
 - Keyboard timeline console, visual relationship rails from event markers to book sections, scene/beat navigation, and observer-aware recounting.
 - LLM-backed drafting provider, visible observer knowledge editor, Renderer adapter, and broader continuity/composition/package FSM responsibilities beyond the initial four machines.
 - Immutable published edition artifacts and corrected-edition lineage.
-- Workshop arbitration output: versioned composition manifest, per-MicroBundle configuration, validation, and AnyApp package consumption without repeat arbitration.
+- Workshop arbitration output: binary manifest/configuration/content artifact production, exact serialized-content hashing, AnyApp package loading, and deterministic repeated-consumption proof.
 - Cloud/server persistence, import/export, backup, and schema migration tooling.
 - Workshop WebPage host integration and browser-level interaction/accessibility automation.
 - Full Casting Studio reference observability and continuity impact preview.
@@ -65,15 +66,16 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work now includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, and four cooperating FSM_API Narrator machines. LLM-backed drafting, Renderer integration, package compiler/consumer, and Workshop-host integration remain absent. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, and four cooperating FSM_API Narrator machines. Package contracts and validator are awaiting CI; binary package production, Renderer integration, and Workshop-host integration remain absent. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Add a visible observer lens to create/review knowledge records and inspect why a draft claim is allowed, blocked, or unresolved.
-2. Connect the Narrator FSM workflow to the user's Renderer package through a host-neutral portrayal request and explicit result contract.
-3. Add alternative brainstorming and consequence/impact links to provisional planning points.
+1. Verify the package contract and validator in CI; fix any failures.
+2. Implement the binary manifest/configuration/content artifact producer using FSM_Serialization and hash the exact payload bytes.
+3. Add a deterministic AnyApp-side package reader/validator proof that does not rerun arbitration.
 4. Draw explicit GUI.SVG relationship rails from events to manuscript sections and add scene/beat links.
-5. Implement the versioned manifest and per-MicroBundle configuration producer/consumer, proving AnyApp does not repeat Workshop arbitration.
-6. Add immutable publication editions and corrected-edition lineage.
-7. Integrate StoryBuilder into the Workshop WebPage host.
-8. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
+5. Connect the Narrator FSM workflow to the user's Renderer package through a host-neutral portrayal request and explicit result contract.
+6. Add richer Plot Twist alternatives, consequence/impact links, and explicit promotion to world events.
+7. Add immutable publication editions and corrected-edition lineage.
+8. Integrate StoryBuilder into the Workshop WebPage host.
+9. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
