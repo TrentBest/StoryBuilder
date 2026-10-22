@@ -38,7 +38,7 @@
                 <select id="campaign-select" @bind="selectedCampaignId">
                     @foreach (var campaign in Session.Workspace.Campaigns)
                     {
-                        <option value="@campaign.Id.ToString("D")">@campaign.Name</option>
+                        <option value="@campaign.Id">@campaign.Name</option>
                     }
                 </select>
             </div>
@@ -48,7 +48,7 @@
                     <option value="">No character linked</option>
                     @foreach (var character in Session.Workspace.Characters)
                     {
-                        <option value="@character.Id.ToString("D")">@character.Name</option>
+                        <option value="@character.Id">@character.Name</option>
                     }
                 </select>
             </div>
