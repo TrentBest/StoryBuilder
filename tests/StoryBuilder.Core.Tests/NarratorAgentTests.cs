@@ -113,13 +113,34 @@ public sealed class NarratorAgentTests
         narrator.SelectObserver(character.Id);
         var projection = narrator.ProjectObserverKnowledge(witnessed.Id);
 
-        Assert.Equal("Projected", narrator.ObserverState);
+        Assert.Equal("Selected", narrator.ObserverState);
+        Assert.Equal("Ready", narrator.PortrayalState);
         Assert.Same(projection, narrator.LastObserverProjection);
         var projected = Assert.Single(projection.Events);
         Assert.Equal(witnessed.Id, projected.EventId);
         Assert.DoesNotContain(projection.Events, item => item.EventId == unknown.Id);
         Assert.Contains(projected.PermittedClaims, claim => claim.Mode == NarrationClaimMode.DirectFact && claim.Note == "I watched the gate open.");
         Assert.DoesNotContain(typeof(ObserverKnownEvent).GetProperties(), property => property.Name is "Title" or "Summary");
+    }
+
+
+
+    [Fact]
+    public void PortrayalFsmRequestsReviewWhenObserverHasNoAcceptedKnowledge()
+    {
+        var session = new StoryBuilderSession();
+        var timeline = session.CreateTimeline("Main history");
+        var observer = session.CreateCharacter("Mara");
+        session.CreateTimelineEvent(timeline.Id, "A hidden event", "The observer has no accepted knowledge of this event.");
+
+        using var narrator = new NarratorAgent(session);
+        narrator.SelectObserver(observer.Id);
+        var projection = narrator.ProjectObserverKnowledge();
+
+        Assert.Empty(projection.Events);
+        Assert.Equal("Selected", narrator.ObserverState);
+        Assert.Equal("NeedsReview", narrator.PortrayalState);
+        Assert.Contains(narrator.Events, item => item.Machine == "Portrayal" && item.Kind == "ProjectionNeedsReview");
     }
 
 

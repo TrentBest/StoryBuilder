@@ -14,7 +14,7 @@ public sealed record NarratorDraftSubmission(
     string Message);
 
 /// <summary>
-/// Coordinates focused FSM_API state machines for intent, planning, observer constraints, and draft review.
+/// Coordinates five focused FSM_API state machines for intent, planning, observer constraints, portrayal preparation, and draft review.
 /// Domain records remain authoritative; the agent orchestrates transitions and records evidence.
 /// </summary>
 public sealed class NarratorAgent : IDisposable
@@ -23,6 +23,7 @@ public sealed class NarratorAgent : IDisposable
     private const string PlanningDefinitionPrefix = "StoryBuilder.Narrator.Planning";
     private const string ObserverDefinitionPrefix = "StoryBuilder.Narrator.Observer";
     private const string DraftDefinitionPrefix = "StoryBuilder.Narrator.DraftReview";
+    private const string PortrayalDefinitionPrefix = "StoryBuilder.Narrator.Portrayal";
 
     private readonly StoryBuilderSession _session;
     private readonly ObserverKnowledgeEvaluator _knowledgeEvaluator = new();
@@ -32,18 +33,22 @@ public sealed class NarratorAgent : IDisposable
     private readonly string _planningDefinition;
     private readonly string _observerDefinition;
     private readonly string _draftDefinition;
+    private readonly string _portrayalDefinition;
     private readonly string _intentGroup;
     private readonly string _planningGroup;
     private readonly string _observerGroup;
     private readonly string _draftGroup;
+    private readonly string _portrayalGroup;
     private readonly NarratorFsmContext _intent;
     private readonly NarratorFsmContext _planning;
     private readonly NarratorFsmContext _observer;
     private readonly NarratorFsmContext _draft;
+    private readonly NarratorFsmContext _portrayal;
     private readonly FSMHandle _intentHandle;
     private readonly FSMHandle _planningHandle;
     private readonly FSMHandle _observerHandle;
     private readonly FSMHandle _draftHandle;
+    private readonly FSMHandle _portrayalHandle;
     private Guid? _draftManuscriptId;
     private Guid? _draftSectionId;
     private bool _allowOmniscientDraft;
@@ -57,32 +62,39 @@ public sealed class NarratorAgent : IDisposable
         _planningDefinition = $"{PlanningDefinitionPrefix}.{suffix}";
         _observerDefinition = $"{ObserverDefinitionPrefix}.{suffix}";
         _draftDefinition = $"{DraftDefinitionPrefix}.{suffix}";
+        _portrayalDefinition = $"{PortrayalDefinitionPrefix}.{suffix}";
         _intentGroup = _intentDefinition;
         _planningGroup = _planningDefinition;
         _observerGroup = _observerDefinition;
         _draftGroup = _draftDefinition;
+        _portrayalGroup = _portrayalDefinition;
         BuildIntentDefinition(_intentDefinition, _intentGroup);
         BuildPlanningDefinition(_planningDefinition, _planningGroup);
         BuildObserverDefinition(_observerDefinition, _observerGroup);
         BuildDraftDefinition(_draftDefinition, _draftGroup);
+        BuildPortrayalDefinition(_portrayalDefinition, _portrayalGroup);
         _intent = new NarratorFsmContext("Intent", Emit);
         _planning = new NarratorFsmContext("Planning", Emit);
         _observer = new NarratorFsmContext("Observer", Emit);
         _draft = new NarratorFsmContext("DraftReview", Emit);
+        _portrayal = new NarratorFsmContext("Portrayal", Emit);
         _intentHandle = FSM_API.Create.CreateInstance(_intentDefinition, _intent, _intentGroup);
         _planningHandle = FSM_API.Create.CreateInstance(_planningDefinition, _planning, _planningGroup);
         _observerHandle = FSM_API.Create.CreateInstance(_observerDefinition, _observer, _observerGroup);
         _draftHandle = FSM_API.Create.CreateInstance(_draftDefinition, _draft, _draftGroup);
+        _portrayalHandle = FSM_API.Create.CreateInstance(_portrayalDefinition, _portrayal, _portrayalGroup);
         Initialize(_intentGroup);
         Initialize(_planningGroup);
         Initialize(_observerGroup);
         Initialize(_draftGroup);
+        Initialize(_portrayalGroup);
     }
 
     public string IntentState => _intent.CurrentState;
     public string PlanningState => _planning.CurrentState;
     public string ObserverState => _observer.CurrentState;
     public string DraftState => _draft.CurrentState;
+    public string PortrayalState => _portrayal.CurrentState;
     public Guid? CurrentPremiseId { get; private set; }
     public Guid? LastPlanningPointId { get; private set; }
     public Guid? SelectedObserverId => _observer.ObserverId;
@@ -171,11 +183,13 @@ public sealed class NarratorAgent : IDisposable
             throw new KeyNotFoundException($"Observer character '{observerId}' does not exist in this workspace.");
         var observerChanged = _observer.ObserverId != observerId;
         _observer.ObserverId = observerId;
-        if (observerChanged || _observer.CurrentState is "Unselected" or "Projected")
+        if (observerChanged || _observer.CurrentState == "Unselected")
         {
             LastObserverEvaluation = null;
             LastObserverProjection = null;
             Move(_observer, _observerHandle, _observerGroup, "Selected");
+            if (_portrayal.CurrentState != "Idle")
+                Move(_portrayal, _portrayalHandle, _portrayalGroup, "Idle");
         }
         Emit("Observer", "ObserverSelected", $"Selected observer {observerId}.");
     }
@@ -188,6 +202,8 @@ public sealed class NarratorAgent : IDisposable
         LastObserverProjection = null;
         if (_observer.CurrentState != "Unselected")
             Move(_observer, _observerHandle, _observerGroup, "Unselected");
+        if (_portrayal.CurrentState != "Idle")
+            Move(_portrayal, _portrayalHandle, _portrayalGroup, "Idle");
     }
 
     public ObserverKnowledgeEvaluation EvaluateObserverClaim(Guid eventId, Guid? asOfEventId, NarrationClaimMode mode)
@@ -198,25 +214,38 @@ public sealed class NarratorAgent : IDisposable
         var result = _knowledgeEvaluator.Evaluate(_session.Workspace, observerId, eventId, asOfEventId, mode);
         LastObserverEvaluation = result;
         LastObserverProjection = null;
+        if (_portrayal.CurrentState != "Idle")
+            Move(_portrayal, _portrayalHandle, _portrayalGroup, "Idle");
         Move(_observer, _observerHandle, _observerGroup, result.IsAllowed ? "Allowed" : "Blocked");
         Emit("Observer", result.IsAllowed ? "ClaimAllowed" : result.IsUnresolved ? "ClaimUnresolved" : "ClaimBlocked", result.Explanation);
         return result;
     }
 
 
-    /// <summary>Projects only accepted knowledge claims available to the selected observer at an event anchor.</summary>
+    /// <summary>Prepares an observer-limited portrayal context in its own FSM, separate from knowledge evaluation.</summary>
     public ObserverKnowledgeProjection ProjectObserverKnowledge(Guid? asOfEventId = null)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (_observer.ObserverId is not Guid observerId)
             throw new InvalidOperationException("Select an observer before projecting observer knowledge.");
-        var projection = new ObserverKnowledgeProjectionService().Project(_session.Workspace, observerId, asOfEventId);
-        LastObserverProjection = projection;
-        LastObserverEvaluation = null;
-        if (_observer.CurrentState != "Projected")
-            Move(_observer, _observerHandle, _observerGroup, "Projected");
-        Emit("Observer", "KnowledgeProjected", $"Projected {projection.Events.Count} events with accepted knowledge for observer {observerId}.");
-        return projection;
+
+        Move(_portrayal, _portrayalHandle, _portrayalGroup, "Requested");
+        try
+        {
+            var projection = new ObserverKnowledgeProjectionService().Project(_session.Workspace, observerId, asOfEventId);
+            LastObserverProjection = projection;
+            var target = projection.Events.Count > 0 ? "Ready" : "NeedsReview";
+            Move(_portrayal, _portrayalHandle, _portrayalGroup, target);
+            Emit("Portrayal", target == "Ready" ? "ProjectionReady" : "ProjectionNeedsReview",
+                $"Prepared {projection.Events.Count} event(s) with accepted knowledge for observer {observerId}.");
+            return projection;
+        }
+        catch
+        {
+            if (_portrayal.CurrentState == "Requested")
+                Move(_portrayal, _portrayalHandle, _portrayalGroup, "Idle");
+            throw;
+        }
     }
 
     /// <summary>Begins a draft operation for a specific manuscript section.</summary>
@@ -308,14 +337,17 @@ public sealed class NarratorAgent : IDisposable
         _planning.IsValid = false;
         _observer.IsValid = false;
         _draft.IsValid = false;
+        _portrayal.IsValid = false;
         FSM_API.Interaction.DestroyInstance(_intentHandle);
         FSM_API.Interaction.DestroyInstance(_planningHandle);
         FSM_API.Interaction.DestroyInstance(_observerHandle);
         FSM_API.Interaction.DestroyInstance(_draftHandle);
+        FSM_API.Interaction.DestroyInstance(_portrayalHandle);
         FSM_API.Interaction.DestroyFiniteStateMachine(_intentDefinition, _intentGroup);
         FSM_API.Interaction.DestroyFiniteStateMachine(_planningDefinition, _planningGroup);
         FSM_API.Interaction.DestroyFiniteStateMachine(_observerDefinition, _observerGroup);
         FSM_API.Interaction.DestroyFiniteStateMachine(_draftDefinition, _draftGroup);
+        FSM_API.Interaction.DestroyFiniteStateMachine(_portrayalDefinition, _portrayalGroup);
     }
 
     private static void Initialize(string group) => FSM_API.Interaction.Update(group);
@@ -371,7 +403,6 @@ public sealed class NarratorAgent : IDisposable
             .State("Selected", context => Enter(context, "Selected"), _ => { }, _ => { })
             .State("Allowed", context => Enter(context, "Allowed"), _ => { }, _ => { })
             .State("Blocked", context => Enter(context, "Blocked"), _ => { }, _ => { })
-            .State("Projected", context => Enter(context, "Projected"), _ => { }, _ => { })
             .WithInitialState("Unselected");
         builder.Transition("Unselected", "Selected", context => Requested(context, "Selected"))
             .Transition("Selected", "Allowed", context => Requested(context, "Allowed"))
@@ -382,14 +413,26 @@ public sealed class NarratorAgent : IDisposable
             .Transition("Allowed", "Unselected", context => Requested(context, "Unselected"))
             .Transition("Blocked", "Selected", context => Requested(context, "Selected"))
             .Transition("Blocked", "Allowed", context => Requested(context, "Allowed"))
-            .Transition("Blocked", "Projected", context => Requested(context, "Projected"))
-            .Transition("Blocked", "Unselected", context => Requested(context, "Unselected"))
-            .Transition("Selected", "Projected", context => Requested(context, "Projected"))
-            .Transition("Allowed", "Projected", context => Requested(context, "Projected"))
-            .Transition("Projected", "Selected", context => Requested(context, "Selected"))
-            .Transition("Projected", "Allowed", context => Requested(context, "Allowed"))
-            .Transition("Projected", "Blocked", context => Requested(context, "Blocked"))
-            .Transition("Projected", "Unselected", context => Requested(context, "Unselected"));
+            .Transition("Blocked", "Unselected", context => Requested(context, "Unselected"));
+        builder.BuildDefinition();
+    }
+
+    private static void BuildPortrayalDefinition(string definitionName, string processingGroup)
+    {
+        var builder = FSM_API.Create.CreateFiniteStateMachine(definitionName, -1, processingGroup)
+            .State("Idle", context => Enter(context, "Idle"), _ => { }, _ => { })
+            .State("Requested", context => Enter(context, "Requested"), _ => { }, _ => { })
+            .State("Ready", context => Enter(context, "Ready"), _ => { }, _ => { })
+            .State("NeedsReview", context => Enter(context, "NeedsReview"), _ => { }, _ => { })
+            .WithInitialState("Idle");
+        builder.Transition("Idle", "Requested", context => Requested(context, "Requested"))
+            .Transition("Requested", "Ready", context => Requested(context, "Ready"))
+            .Transition("Requested", "NeedsReview", context => Requested(context, "NeedsReview"))
+            .Transition("Requested", "Idle", context => Requested(context, "Idle"))
+            .Transition("Ready", "Requested", context => Requested(context, "Requested"))
+            .Transition("Ready", "Idle", context => Requested(context, "Idle"))
+            .Transition("NeedsReview", "Requested", context => Requested(context, "Requested"))
+            .Transition("NeedsReview", "Idle", context => Requested(context, "Idle"));
         builder.BuildDefinition();
     }
 
