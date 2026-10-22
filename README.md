@@ -24,11 +24,15 @@ This is speculative alternate history, not a prediction. The premise and its cur
 
 StoryBuilder should reuse the Workshop's existing technology rather than create a parallel platform:
 
-- **FSM_API** — model deterministic behavior and state transitions.
-- **FSM_COS** — compose capabilities and bundles at the system boundary, preserving package independence.
-- **GUI / GUI.SVG** — provide interactive authoring and living visual documentation.
-- **WebApp / WebPage** — deliver the browser-based Experience when the core authoring flow is ready.
-- **Serialization and bundle infrastructure** — preserve and exchange authored artifacts when their contracts are verified.
+- **AnyApp** — first host: launch StoryBuilder as a local Windows desktop Experience without requiring a hosted platform.
+- **FSM_API** — model deterministic state transitions and workflow behavior where appropriate.
+- **FSM_COS** — compose capabilities at the system boundary, preserving package independence.
+- **MicroBundle infrastructure** — define, discover, and compose capabilities using verified contracts.
+- **GUI / GUI.WPF / GUI.SVG** — provide authoring surfaces and living visual documentation.
+- **Renderer / Visualize** — later portray the same structured story data textually and visually.
+- **Serialization** — use existing representation contracts where they fit; keep local project persistence explicit and testable.
+
+The desktop deployment decision is documented in [Deployment Decision](docs/DEPLOYMENT_DECISION.md). A browser host can be considered later, but hosted WebApp deployment is not a prerequisite for the initial authoring workflow.
 
 Dependencies should remain intentional. FSM_COS is the composition boundary; StoryBuilder should not tightly couple otherwise independent Workshop packages.
 
@@ -52,14 +56,17 @@ The diegetic-tool concept is described in [StoryBuilder as a Diegetic Workshop T
 - Preserve participant agency; authored backstory provides context, not a predetermined outcome for every choice.
 - Keep the initial implementation small, testable, and dependency-conscious.
 - Demonstrate real behavior in examples and documentation; do not substitute static mockups for working Experiences.
+- Prefer local-first authoring; a network service must not be required to write or reopen a project.
 
 ## Initial scope
 
-Start with the domain model and one end-to-end authoring slice: create an Experience, document its purpose and components, compose a small world and campaign, and record a participant choice with its resulting event. Keep hosting, large-scale collaboration, and automated narrative generation behind explicit future milestones until the core model is proven.
+The first runnable slice should launch through AnyApp, create and reopen a local project, edit its title/premise/manuscript, record a stable-ID event linked to a passage, and show that event in a chronology view. This proves the shared model and persistence before adding larger collaboration features or automated narrative generation.
 
 ## Development status
 
-This repository is being established. The initial charter is a direction, not a claim that these capabilities are implemented. No package publishing or release is authorized by this document.
+The repository is being established. The charter and deployment decision define direction, not a claim that the application, timeline engine, campaign runtime, or living visualizations have been implemented. No package publishing or release is authorized.
+
+See [Gallery](docs/Gallery.md) for the current proof target and implementation evidence.
 
 ## License
 
