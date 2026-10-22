@@ -17,7 +17,7 @@ Open http://localhost:5080.
 - **World Archive:** record a historical claim and optionally attach a source record.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
 
-This is an interactive local Blazor host using a session created through StoryBuilderAuthoringBundle. Data is in-memory and scoped to the browser circuit; refresh starts a new workspace. It is not yet deployed or embedded into WebPage.
+This is an interactive local Blazor host using a session created through StoryBuilderAuthoringBundle. It autosaves a versioned binary workspace in browser localStorage and restores it after refresh. Storage is local to this browser; there is no cloud sync, account sharing, or WebPage deployment yet.
 
 ## Recipe 2: run the compact domain example
 
@@ -29,4 +29,4 @@ This console sample creates an editable character, automatically indexes its tra
 
 ## Next living proof
 
-The next end-to-end Experience should show the same character and vocabulary state through GUI.SVG, generated from the actual StoryBuilderSession rather than a static mockup. After that, integrate the StoryBuilder MicroBundle into the Workshop host and add persistent storage, then extend The Stage with pose visualization and optional physics data.
+The next end-to-end Experience should show the same character and vocabulary state through GUI.SVG, generated from the actual StoryBuilderSession rather than a static mockup. After that, integrate the StoryBuilder MicroBundle into the Workshop host, add export/backup and schema migration, then extend The Stage with pose visualization and optional physics data.
