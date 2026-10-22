@@ -34,6 +34,7 @@ The .NET 8 domain core includes:
 - **Campaign Room:** create campaigns and record participant choices as proposals until deliberately accepted.
 - **Review lifecycle:** the optional StoryBuilder.FSM adapter uses FSM_API to govern draft, proposed, accepted, rejected, and deprecated transitions.
 - **Composition contract:** StoryBuilder.MicroBundle exposes authoring capabilities through MicroBundleDomain. An automated test composes it through FSM_COS; the bundle itself does not depend on the composition kernel.
+- **Persistence:** StoryBuilder.Persistence uses FSM_Serialization's binary stream contract with a versioned StoryBuilder workspace schema. The WebDemo autosaves to browser localStorage; it does not use JSON.
 
 The architecture follows the Workshop's boundaries: [FSM_API](https://github.com/TrentBest/FSM_API) governs explicit state behavior where appropriate; [FSM_COS](https://github.com/TrentBest/TheSingularityWorkshop.FSM_COS) composes capabilities at the host boundary; [GUI](https://github.com/TrentBest/TheSingularityWorkshop.GUI) and GUI.SVG are the intended semantic authoring and living-documentation layers; [WebApp](https://github.com/TrentBest/TheSingularityWorkshop.WebApp) and [WebPage](https://github.com/TrentBest/WebPage) are potential hosts. The local Blazor workbench is interactive; integration into the Workshop's WebPage and living GUI.SVG views is still open.
 
@@ -47,7 +48,7 @@ dotnet run --project samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --
 
 Open http://localhost:5080. Try Casting to create and revise a character, The Stage to add and reorder beats, World Archive to record a sourced claim, or Campaign Room to record a participant choice.
 
-The demo uses real StoryBuilder domain records and a session created through StoryBuilderAuthoringBundle. Data is in memory for the current browser circuit; refreshing starts a new workspace. It is a local proving ground, not yet the integrated WebPage experience.
+The demo uses real StoryBuilder domain records and a session created through StoryBuilderAuthoringBundle. It autosaves a versioned binary workspace in this browser's localStorage and restores it after refresh. Saves are browser-local; there is no cloud sync or multi-user sharing. It is a local proving ground, not yet the integrated WebPage experience.
 
 For the smaller console recipe:
 
