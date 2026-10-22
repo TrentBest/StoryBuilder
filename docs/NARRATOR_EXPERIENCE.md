@@ -6,6 +6,12 @@ The Narrator is StoryBuilder's personable guide, creative collaborator, and voic
 
 A book is an experience. StoryBuilder therefore helps create the underlying story and its structure, not manufacture or physically distribute the finished object. It can prepare a publication-ready digital artifact with the chosen output format, page size, margins, and layout constraints. Printing, binding, inventory, shipping, and physical fulfillment belong to external providers. A future Workshop-mediated referral or transaction may connect users to those providers, but it must remain a separate, explicit service boundary.
 
+## Runtime agent boundary
+
+The current WebDemo routes premise capture through NarratorAgent, which coordinates four independent FSM_API machines: intent, planning, observer constraint, and draft/review. The Home page exposes their states rather than hiding the workflow in one monolithic machine. The timeline page uses the planning FSM when adding a provisional point. Draft submission accepts explicitly declared event claims, checks them against accepted observer knowledge, and holds unsupported claims for review.
+
+This is orchestration infrastructure, not a claim that an LLM drafting provider or Renderer adapter is already connected. The domain records remain authoritative, and advancing a machine does not automatically accept canon.
+
 ## The Narrator's opening
 
 > Hello! I'm your Narrator.

@@ -4,7 +4,7 @@
 
 The timeline organizes world history and acts as an executable authoring Process Group. Authors need to place ideas before they know what those ideas mean, then develop them into events, scenes, passages, and a finished product without losing the original intent.
 
-This is a domain contract, not a claim that all described workflows are implemented. The current verified vertical slice includes timeline-assigned world events and stable event-to-manuscript-section references. ObserverKnowledgeRecord and ObserverKnowledgeEvaluator are implemented and tested. The evaluator accepts only author-accepted knowledge, requires appropriate claim framing, and fails closed when causal availability cannot be established. Renderer integration and reader-disclosure policy are not yet implemented.
+This is a domain contract, not a claim that all described workflows are implemented. The current verified vertical slice includes timeline-assigned world events and stable event-to-manuscript-section references. ObserverKnowledgeRecord and ObserverKnowledgeEvaluator are implemented and tested. NarratorAgent now coordinates separate FSM_API state machines for intent, planning, observer constraints, and draft/review. The evaluator accepts only author-accepted knowledge, requires appropriate claim framing, and fails closed when causal availability cannot be established. Renderer integration and reader-disclosure policy are not yet implemented.
 
 ## A provisional point is a real object
 
@@ -44,7 +44,7 @@ The Narrator is a coordinated agent of focused FSMs, not a monolithic state mach
 - Review: present issues and proposed changes for author approval.
 - Package: validate and capture resolved configuration and package revision.
 
-These are candidate boundaries, not a demand to instantiate every FSM before a useful vertical slice exists. Choose a small set with narrow contracts and tests. A coordinator sequences them; canonical story truth stays in domain records, not duplicated as competing FSM-local canon.
+The current implementation instantiates four of these responsibilities—intent, planning, observer constraint, and draft/review—as isolated FSM_API definitions and processing groups. Continuity, composition, and package responsibilities remain candidate future machines. A coordinator sequences them; canonical story truth stays in domain records, not duplicated as competing FSM-local canon.
 
 FSMs communicate through explicit proposals, events, and stable IDs. A transition does not itself accept canon or mutate an immutable published edition. Expensive arbitration results are captured in package configuration once their inputs are known.
 

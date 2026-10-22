@@ -1,6 +1,7 @@
 @page "/timelines"
 @implements IDisposable
 @inject StoryBuilderSession Session
+@inject NarratorAgent Narrator
 
 <PageTitle>Timelines · StoryBuilder</PageTitle>
 
@@ -12,7 +13,7 @@
 
 <div class="workbench-grid">
     <section class="panel stack">
-        <div class="eyebrow">Timeline authoring</div>
+        <div class="eyebrow">Timeline authoring · Narrator planning FSM: @Narrator.PlanningState</div>
         <h2>Start a history or branch one</h2>
         <div class="field">
             <label for="timeline-name">Timeline name</label>
@@ -199,7 +200,7 @@
             message = "Select a timeline before adding a planning point.";
             return;
         }
-        Session.CreatePlanningPoint(selectedTimeline.Id, planningPointLabel, planningPointPlacement);
+        Narrator.AddPlanningPoint(selectedTimeline.Id, planningPointLabel, planningPointPlacement);
         message = $"Added provisional point '{planningPointLabel}' without requiring its meaning to be known.";
         planningPointLabel = "Plot Twist";
         planningPointPlacement = string.Empty;
