@@ -76,13 +76,14 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [Vocabulary and Provenance](docs/VOCABULARY_AND_PROVENANCE.md) — synonym usage, attribution, source records, and canon status.
 - [Gallery](docs/Gallery.md) — runnable recipes and honest evidence of current behavior.
 - [Development Status](docs/DEVELOPMENT_STATUS.md) — implemented scope, open work, and readiness estimate.
+- [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) — evidence-based gates for the first public source Alpha.
 - [Branch Reconciliation](docs/BRANCH_RECONCILIATION.md) — the safe route to the canonical branch model.
 - [Story Foundation](docs/STORY_FOUNDATION.md) and [Historical Scale](docs/HISTORICAL_SCALE.md) — the initial science-fiction setting and its nested chronology.
 - [Diegetic StoryBuilder](docs/DIEGETIC_STORYBUILDER.md) — the in-world tool concept.
 
 ## Current boundary
 
-The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, authorable plural timelines and divergence views, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. No package publishing or release has been authorized.
+The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, authorable plural timelines and divergence views, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. Alpha release preparation is underway; no release has been created and no package has been published. NuGet publishing remains gated on final package validation and explicit approval.
 
 ## License
 
