@@ -115,7 +115,7 @@ public sealed record StoryPremise
 
 public sealed class StoryWorkspace
 {
-    private readonly List<CharacterProfile> _characters = [];
+    private readonly List<StoryPremise> _premises = [];\n    private readonly List<CharacterProfile> _characters = [];
     private readonly List<SceneRecord> _scenes = [];
     private readonly List<HistoricalClaim> _historicalClaims = [];
     private readonly List<StoryEvent> _events = [];
@@ -127,7 +127,7 @@ public sealed class StoryWorkspace
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
     public ExperienceDefinition Experience { get; set; } = new();
-    public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
+    public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();\n    public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
     public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
@@ -135,6 +135,19 @@ public sealed class StoryWorkspace
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
     public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
+
+    public void AddPremise(StoryPremise premise)
+    {
+        ArgumentNullException.ThrowIfNull(premise);
+        EnsureUnique(_premises.Select(x => x.Id), premise.Id, nameof(premise));
+        _premises.Add(premise);
+    }
+
+    public void ReplacePremise(StoryPremise premise)
+    {
+        ArgumentNullException.ThrowIfNull(premise);
+        ReplaceById(_premises, premise.Id, premise, nameof(premise));
+    }
 
     public void AddCharacter(CharacterProfile character)
     {
