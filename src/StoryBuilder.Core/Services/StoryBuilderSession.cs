@@ -172,7 +172,8 @@ public sealed class StoryBuilderSession
 
     private void RebuildVocabularyIndex()
     {
-        foreach (var premise in Workspace.Premises) IndexPremise(premise);\n        foreach (var character in Workspace.Characters) IndexCharacter(character);
+        foreach (var premise in Workspace.Premises) IndexPremise(premise);
+        foreach (var character in Workspace.Characters) IndexCharacter(character);
         foreach (var scene in Workspace.Scenes) IndexScene(scene);
         foreach (var claim in Workspace.HistoricalClaims)
         {
