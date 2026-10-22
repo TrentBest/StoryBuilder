@@ -115,6 +115,7 @@ public sealed record StoryPremise
     /// </summary>
 public sealed class StoryWorkspace
 {
+    private readonly List<TimelineDefinition> _timelines = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
     private readonly List<SceneRecord> _scenes = [];
@@ -128,6 +129,7 @@ public sealed class StoryWorkspace
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
     public ExperienceDefinition Experience { get; set; } = new();
+    public IReadOnlyList<TimelineDefinition> Timelines => _timelines.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
@@ -137,6 +139,15 @@ public sealed class StoryWorkspace
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
     public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
+
+    public void AddTimeline(TimelineDefinition timeline)
+    {
+        ArgumentNullException.ThrowIfNull(timeline);
+        EnsureUnique(_timelines.Select(x => x.Id), timeline.Id, nameof(timeline));
+        if (timeline.ParentTimelineId is Guid parentId && !_timelines.Any(x => x.Id == parentId))
+            throw new KeyNotFoundException($"Parent timeline '{parentId}' must exist in this workspace before its branch is added.");
+        _timelines.Add(timeline);
+    }
 
     public void AddPremise(StoryPremise premise)
     {
