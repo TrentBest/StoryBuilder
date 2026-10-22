@@ -1,3 +1,4 @@
+using System.Text;
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
 using Xunit;
@@ -30,6 +31,32 @@ public sealed class BookProductRendererTests
         Assert.Equal(new[] { storyEvent.Id }, first.ReferencedEventIds);
         Assert.Equal(first.ReferencedEventIds, second.ReferencedEventIds);
         Assert.Equal(1, first.SectionCount);
+    }
+
+    [Fact]
+    public void WritesUtf8MarkdownToCallerOwnedStream()
+    {
+        var session = new StoryBuilderSession();
+        var manuscript = session.CreateManuscript("Exported book");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "Opening");
+        session.UpdateManuscriptSection(manuscript.Id, section.Sections[0].Id, "Opening", "The door opens.");
+        using var destination = new MemoryStream();
+
+        var artifact = new BookProductRenderer().WriteMarkdown(session.Workspace, manuscript.Id, destination);
+
+        Assert.Equal(artifact.Markdown, Encoding.UTF8.GetString(destination.ToArray()));
+        Assert.True(destination.CanWrite);
+        Assert.StartsWith("# Exported book", artifact.Markdown, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void RejectsReadOnlyMarkdownDestination()
+    {
+        using var destination = new MemoryStream(Array.Empty<byte>(), writable: false);
+        var session = new StoryBuilderSession();
+        var manuscript = session.CreateManuscript("Read only");
+
+        Assert.Throws<ArgumentException>(() => new BookProductRenderer().WriteMarkdown(session.Workspace, manuscript.Id, destination));
     }
 
     [Fact]
