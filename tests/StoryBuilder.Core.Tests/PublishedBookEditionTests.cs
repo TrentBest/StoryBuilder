@@ -52,6 +52,24 @@ public sealed class PublishedBookEditionTests
     }
 
     [Fact]
+    public void CorrectionCannotPointToAnotherManuscriptsEdition()
+    {
+        var session = new StoryBuilderSession();
+        var firstManuscript = session.CreateManuscript("First book");
+        var firstSection = session.AddManuscriptSection(firstManuscript.Id, ManuscriptSectionKind.Chapter);
+        session.UpdateManuscriptSection(firstManuscript.Id, firstSection.Sections[0].Id, "Chapter 1", "First.");
+        var firstEdition = session.PublishManuscript(firstManuscript.Id);
+
+        var secondManuscript = session.CreateManuscript("Second book");
+        var secondSection = session.AddManuscriptSection(secondManuscript.Id, ManuscriptSectionKind.Chapter);
+        session.UpdateManuscriptSection(secondManuscript.Id, secondSection.Sections[0].Id, "Chapter 1", "Second.");
+        var secondEdition = session.PublishManuscript(secondManuscript.Id);
+
+        Assert.Throws<InvalidOperationException>(() => session.Workspace.AddPublishedEdition(
+            secondEdition with { Id = Guid.NewGuid(), PreviousEditionId = firstEdition.Id }));
+    }
+
+    [Fact]
     public void PublishedEditionsAndCorrectionLineageSurviveBinaryRoundTrip()
     {
         var session = new StoryBuilderSession("Publication persistence");
