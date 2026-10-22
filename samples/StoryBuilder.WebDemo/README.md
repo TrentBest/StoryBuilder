@@ -23,4 +23,4 @@ Open http://localhost:5080.
 
 ## Current boundary
 
-The workspace is scoped to the current Blazor circuit and is in memory. Refreshing the page starts a new workspace. This demo is not yet integrated into the WebPage host, does not persist data, and does not provide physics simulation or a fully visual claymation stage. Those are explicit next steps, not implied features.
+The workspace is scoped to the current browser and autosaves as a versioned binary document in localStorage. Refreshing the page restores characters, scenes, claims, sources, campaigns, participant actions, and synonym mappings. This demo is not yet integrated into the WebPage host, does not synchronize data across devices or users, and does not provide physics simulation or a fully visual claymation stage. Those are explicit next steps, not implied features.
