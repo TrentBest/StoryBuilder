@@ -69,3 +69,6 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
 
 .persist-banner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .65rem; padding: .6rem clamp(1rem, 4vw, 3rem); background: #151d26; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .8rem; }
 .persist-banner button { padding: .4rem .65rem; font-size: .78rem; }
+
+.living-svg { border: 1px solid var(--line); border-radius: .75rem; overflow: hidden; background: #10141b; }
+.living-svg svg { display: block; width: 100%; height: auto; }
