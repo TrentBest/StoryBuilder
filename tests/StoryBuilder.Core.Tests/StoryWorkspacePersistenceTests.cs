@@ -76,6 +76,14 @@ public sealed class StoryWorkspacePersistenceTests
         var chapter = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
         session.UpdateManuscriptSection(manuscript.Id, chapter.Sections[0].Id, "The North Gate", "Mara placed her hand on the latch.");
         session.LinkEventToManuscriptSection(manuscript.Id, chapter.Sections[0].Id, timelineEvent.Id);
+        var observerKnowledge = session.AddObserverKnowledge(new ObserverKnowledgeRecord
+        {
+            ObserverId = character.Id,
+            EventId = timelineEvent.Id,
+            Kind = ObserverKnowledgeKind.Witnessed,
+            AcquiredAtEventId = timelineEvent.Id,
+            Status = CanonStatus.Accepted
+        });
 
         var document = StoryWorkspaceBinaryDocument.FromSession(session);
         using var output = new MemoryBinaryStream();
@@ -100,6 +108,11 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(timelineEvent.Id, restoredTimelineEvent.Id);
         Assert.Equal(originalTimeline.Id, restoredTimelineEvent.TimelineId);
         Assert.Equal(TimelinePlacementKind.Approximate, restoredTimelineEvent.PlacementKind);
+        var restoredKnowledge = Assert.Single(restoredSession.Workspace.ObserverKnowledge);
+        Assert.Equal(observerKnowledge.Id, restoredKnowledge.Id);
+        Assert.Equal(character.Id, restoredKnowledge.ObserverId);
+        Assert.Equal(timelineEvent.Id, restoredKnowledge.EventId);
+        Assert.Equal(ObserverKnowledgeKind.Witnessed, restoredKnowledge.Kind);
         var restoredPoint = Assert.Single(restoredSession.Workspace.PlanningPoints);
         Assert.Equal(planningPoint.Id, restoredPoint.Id);
         Assert.Equal(originalTimeline.Id, restoredPoint.TimelineId);

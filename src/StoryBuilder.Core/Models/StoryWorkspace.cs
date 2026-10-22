@@ -119,6 +119,7 @@ public sealed class StoryWorkspace
 {
     private readonly List<TimelineDefinition> _timelines = [];
     private readonly List<TimelinePlanningPoint> _planningPoints = [];
+    private readonly List<ObserverKnowledgeRecord> _observerKnowledge = [];
     private readonly List<ManuscriptEdition> _manuscripts = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
@@ -135,6 +136,7 @@ public sealed class StoryWorkspace
     public ExperienceDefinition Experience { get; set; } = new();
     public IReadOnlyList<TimelineDefinition> Timelines => _timelines.AsReadOnly();
     public IReadOnlyList<TimelinePlanningPoint> PlanningPoints => _planningPoints.AsReadOnly();
+    public IReadOnlyList<ObserverKnowledgeRecord> ObserverKnowledge => _observerKnowledge.AsReadOnly();
     public IReadOnlyList<ManuscriptEdition> Manuscripts => _manuscripts.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
@@ -170,6 +172,23 @@ public sealed class StoryWorkspace
         if (!_timelines.Any(timeline => timeline.Id == point.TimelineId))
             throw new KeyNotFoundException($"Timeline '{point.TimelineId}' must exist before a planning point can be updated.");
         ReplaceById(_planningPoints, point.Id, point, nameof(point));
+    }
+
+    public void AddObserverKnowledge(ObserverKnowledgeRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        EnsureUnique(_observerKnowledge.Select(x => x.Id), record.Id, nameof(record));
+        if (!_events.Any(storyEvent => storyEvent.Id == record.EventId))
+            throw new KeyNotFoundException($"Event '{record.EventId}' must exist before observer knowledge can reference it.");
+        _observerKnowledge.Add(record);
+    }
+
+    public void ReplaceObserverKnowledge(ObserverKnowledgeRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        if (!_events.Any(storyEvent => storyEvent.Id == record.EventId))
+            throw new KeyNotFoundException($"Event '{record.EventId}' must exist before observer knowledge can reference it.");
+        ReplaceById(_observerKnowledge, record.Id, record, nameof(record));
     }
 
     public void AddManuscript(ManuscriptEdition manuscript)
@@ -288,6 +307,7 @@ public sealed class StoryWorkspace
         StoryPremise premise => premise.Id,
         ManuscriptEdition manuscript => manuscript.Id,
         TimelinePlanningPoint point => point.Id,
+        ObserverKnowledgeRecord record => record.Id,
         CharacterProfile character => character.Id,
         SceneRecord scene => scene.Id,
         ParticipantAction action => action.Id,

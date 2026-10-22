@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 6;
+    private const int FormatVersion = 7;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -63,7 +63,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -86,6 +86,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.Scenes, WriteScene);
         BinaryCodec.WriteList(stream, workspace.HistoricalClaims, WriteHistoricalClaim);
         BinaryCodec.WriteList(stream, workspace.Events, WriteStoryEvent);
+        BinaryCodec.WriteList(stream, workspace.ObserverKnowledge, WriteObserverKnowledge);
         BinaryCodec.WriteList(stream, workspace.Campaigns, WriteCampaign);
         BinaryCodec.WriteList(stream, workspace.ParticipantActions, WriteParticipantAction);
         BinaryCodec.WriteList(stream, workspace.Sources, WriteSource);
@@ -105,6 +106,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var scenes = BinaryCodec.ReadList(stream, ReadScene);
         var claims = BinaryCodec.ReadList(stream, ReadHistoricalClaim);
         var events = BinaryCodec.ReadList(stream, item => ReadStoryEvent(item, version));
+        var observerKnowledge = version >= 7 ? BinaryCodec.ReadList(stream, ReadObserverKnowledge) : [];
         var campaigns = BinaryCodec.ReadList(stream, ReadCampaign);
         var actions = BinaryCodec.ReadList(stream, ReadParticipantAction);
         var sources = BinaryCodec.ReadList(stream, ReadSource);
@@ -119,6 +121,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in scenes) workspace.AddScene(item);
         foreach (var item in claims) workspace.AddClaim(item);
         foreach (var item in events) workspace.AddEvent(item);
+        foreach (var item in observerKnowledge) workspace.AddObserverKnowledge(item);
         foreach (var item in campaigns) workspace.AddCampaign(item);
         foreach (var item in actions) workspace.AddParticipantAction(item);
         foreach (var item in sources) workspace.AddSource(item);
@@ -516,6 +519,49 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             ConsequenceEventIds = BinaryCodec.ReadGuidList(stream),
             SourceIds = BinaryCodec.ReadGuidList(stream),
             Status = BinaryCodec.ReadEnum<CanonStatus>(stream)
+        };
+    }
+
+    private static void WriteObserverKnowledge(IBinaryStream stream, ObserverKnowledgeRecord value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.ObserverId);
+        BinaryCodec.WriteGuid(stream, value.EventId);
+        BinaryCodec.WriteEnum(stream, value.Kind);
+        BinaryCodec.WriteNullableGuid(stream, value.AcquiredAtEventId);
+        BinaryCodec.WriteNullableGuid(stream, value.SourceId);
+        BinaryCodec.WriteString(stream, value.Attribution);
+        BinaryCodec.WriteString(stream, value.Note);
+        BinaryCodec.WriteBoolean(stream, value.Confidence.HasValue);
+        if (value.Confidence.HasValue) BinaryCodec.WriteDouble(stream, value.Confidence.Value);
+        BinaryCodec.WriteEnum(stream, value.Status);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+    }
+
+    private static ObserverKnowledgeRecord ReadObserverKnowledge(IBinaryStream stream)
+    {
+        var id = BinaryCodec.ReadGuid(stream);
+        var observerId = BinaryCodec.ReadGuid(stream);
+        var eventId = BinaryCodec.ReadGuid(stream);
+        var kind = BinaryCodec.ReadEnum<ObserverKnowledgeKind>(stream);
+        var acquiredAtEventId = BinaryCodec.ReadNullableGuid(stream);
+        var sourceId = BinaryCodec.ReadNullableGuid(stream);
+        var attribution = BinaryCodec.ReadRequiredString(stream, nameof(ObserverKnowledgeRecord.Attribution));
+        var note = BinaryCodec.ReadRequiredString(stream, nameof(ObserverKnowledgeRecord.Note));
+        double? confidence = BinaryCodec.ReadBoolean(stream) ? BinaryCodec.ReadDouble(stream) : null;
+        return new ObserverKnowledgeRecord
+        {
+            Id = id,
+            ObserverId = observerId,
+            EventId = eventId,
+            Kind = kind,
+            AcquiredAtEventId = acquiredAtEventId,
+            SourceId = sourceId,
+            Attribution = attribution,
+            Note = note,
+            Confidence = confidence,
+            Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
+            CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
         };
     }
 

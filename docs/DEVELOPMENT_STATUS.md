@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 59% — verified local authoring prototype with versioned binary browser persistence, living GUI.SVG views, a persisted book preview, provisional timeline planning points, timeline-assigned world events, and stable event-to-manuscript links. Full observer-aware narration, package production/consumption, and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 59% — verified local authoring prototype with versioned binary browser persistence, living GUI.SVG views, a persisted book preview, provisional timeline planning points, timeline-assigned world events, and stable event-to-manuscript links. Observer-knowledge records and a conservative narration evaluator are now being implemented. Package production/consumption and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -17,10 +17,10 @@
 - Timeline map: root/branch creation plus GUI.SVG markers for provisional planning points and world events assigned to each timeline. Placement is currently a descriptive approximate/unresolved label, not a measured time axis or causal graph.
 - VocabularyIndex with explicit synonym mapping, surface-word preservation, attribution, and re-indexing.
 - StoryBuilderSession coordinates workspace edits and creates canonical timeline definitions and branch references.
-- StoryWorkspace records for Experience, timelines, planning points, timeline-linked world events, manuscripts, event-to-section portrayal references, design decisions, sources, claims, campaigns, participant actions, and continuity issues.
+- StoryWorkspace records for Experience, timelines, planning points, timeline-linked world events, manuscripts, event-to-section portrayal references, and observer-knowledge records, sources, claims, campaigns, participant actions, and continuity issues.
 - Host-neutral IStoryProcessGroup and StoryProcessGroupDriver; each inserted group is updated once per driver Update.
 - Optional FSM_API-backed TimelineProcessGroup with inspectable entry, driver-update, runtime-tick, and exit observations.
-- Binary workspace format version 6 persists timeline definitions (v3), manuscripts (v4), provisional planning points (v5), and timeline assignment/placement for world events (v6). Readers retain compatibility with versions 1 through 5.
+- Binary workspace format version 6 persists timeline definitions (v3), manuscripts (v4), provisional planning points (v5), and timeline assignment/placement for world events (v6). Observer-knowledge records are being added in version 7; readers retain compatibility with versions 1 through 6.
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
@@ -49,7 +49,7 @@
 
 - Book Preview supports manuscript metadata, ordered sections, and actual authored text. Export, immutable publication editions, and links from manuscript sections to scene/beat records remain incomplete.
 - Richer Plot Twist brainstorming, alternatives editing, impact links, and promotion to events only by explicit author decision; the current increment creates a stable provisional point with approximate placement.
-- Observer knowledge/disclosure constraints, causal graph editing, synchronized timeline comparison, and unrevealed-event handling.
+- Observer-knowledge evaluator and record model are in progress; reader disclosure policy, full causal graph editing, synchronized timeline comparison, and unrevealed-event handling remain incomplete.
 - Keyboard timeline console, visual relationship rails from event markers to book sections, scene/beat navigation, and observer-aware recounting.
 - Narrator first-session workflow orchestrated by multiple focused FSM_API state machines.
 - Immutable published edition artifacts and corrected-edition lineage.

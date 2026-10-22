@@ -244,6 +244,14 @@ public sealed class StoryBuilderSession
         return claim;
     }
 
+    public ObserverKnowledgeRecord AddObserverKnowledge(ObserverKnowledgeRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        Workspace.AddObserverKnowledge(record);
+        NotifyChanged();
+        return record;
+    }
+
     public StoryEvent CreateTimelineEvent(Guid timelineId, string? title = null, string? summary = null, string? approximatePlacement = null)
     {
         if (!Workspace.Timelines.Any(timeline => timeline.Id == timelineId))
