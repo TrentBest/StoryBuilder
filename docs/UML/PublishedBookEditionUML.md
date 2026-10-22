@@ -16,6 +16,7 @@ classDiagram
       +Guid? PreviousEditionId
       +string? CorrectionNotes
       +List~Guid~ SectionIds
+      +List~Guid~ SceneIds
       +List~Guid~ EventIds
     }
     class ManuscriptEdition
