@@ -159,6 +159,8 @@ public static class StoryWorkspaceValidator
                     issues.Add(new WorkspaceIntegrityIssue(nameof(PublishedBookEdition), edition.Id, "published section", sectionId,
                         $"Published edition '{edition.Id}' references section '{sectionId}' that is not in its source manuscript."));
             }
+            foreach (var sceneId in edition.SceneIds)
+                Missing(nameof(PublishedBookEdition), edition.Id, "published scene", sceneId, scenes);
             foreach (var eventId in edition.EventIds)
                 Missing(nameof(PublishedBookEdition), edition.Id, "published event", eventId, events);
 
