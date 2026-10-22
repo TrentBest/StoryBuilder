@@ -11,10 +11,13 @@ From the repository root:
 
 ```sh
 dotnet build src/StoryBuilder.Core/StoryBuilder.Core.csproj --configuration Release
+dotnet build src/StoryBuilder.FSM/StoryBuilder.FSM.csproj --configuration Release
+dotnet build src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj --configuration Release
+dotnet build samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj --configuration Release
 dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
 ```
 
-The test suite covers low-friction character drafts, explicit synonym search with attribution, scene narration and reordering, and workspace boundaries/identity.
+The test suite covers low-friction character drafts, explicit synonym search with attribution, automatic re-indexing after edits, scene narration and reordering, workspace boundaries/identity, FSM_API lifecycle transitions, and FSM_COS composition of the StoryBuilder MicroBundle.
 
 ## Architecture guardrails
 
