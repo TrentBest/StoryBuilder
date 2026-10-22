@@ -13,6 +13,8 @@
 | Inspect domain UML and use cases | [UML directory](docs/UML/) |
 | Understand the FSM_API-backed review lifecycle | [StoryLifecycleSession UML](docs/UML/StoryLifecycleSessionUML.md), [Lifecycle Registry UML](docs/UML/StoryLifecycleRegistryUML.md) |
 | Understand the FSM_COS-composable bundle | [StoryBuilderAuthoringBundle UML](docs/UML/StoryBuilderAuthoringBundleUML.md) |
+| Understand binary workspace persistence | [StoryWorkspaceBinaryDocument UML](docs/UML/StoryWorkspaceBinaryDocumentUML.md), [Persistence adapter guide](src/StoryBuilder.Persistence/StoryWorkspaceBinaryDocument.md) |
+| Understand browser-local autosave | [Persistence coordinator guide](samples/StoryBuilder.WebDemo/StoryBuilderPersistenceCoordinator.md) |
 | Understand the interactive host boundary | [WebDemo UML](docs/UML/StoryBuilderWebDemoUML.md) |
 | Review what is implemented and what remains | [Development Status](docs/DEVELOPMENT_STATUS.md) |
 | Review branch preservation and integration | [Branch Reconciliation](docs/BRANCH_RECONCILIATION.md) |
