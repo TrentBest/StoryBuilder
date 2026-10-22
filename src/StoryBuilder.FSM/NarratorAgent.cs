@@ -87,6 +87,7 @@ public sealed class NarratorAgent : IDisposable
     public Guid? LastPlanningPointId { get; private set; }
     public Guid? SelectedObserverId => _observer.ObserverId;
     public ObserverKnowledgeEvaluation? LastObserverEvaluation { get; private set; }
+    public ObserverKnowledgeProjection? LastObserverProjection { get; private set; }
 
     public IReadOnlyList<NarratorAgentEvent> Events
     {
@@ -170,7 +171,9 @@ public sealed class NarratorAgent : IDisposable
             throw new KeyNotFoundException($"Observer character '{observerId}' does not exist in this workspace.");
         var observerChanged = _observer.ObserverId != observerId;
         _observer.ObserverId = observerId;
-        if (observerChanged || _observer.CurrentState == "Unselected")
+        LastObserverEvaluation = null;
+        LastObserverProjection = null;
+        if (observerChanged || _observer.CurrentState != "Selected")
             Move(_observer, _observerHandle, _observerGroup, "Selected");
         Emit("Observer", "ObserverSelected", $"Selected observer {observerId}.");
     }
@@ -180,6 +183,7 @@ public sealed class NarratorAgent : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         _observer.ObserverId = null;
         LastObserverEvaluation = null;
+        LastObserverProjection = null;
         if (_observer.CurrentState != "Unselected")
             Move(_observer, _observerHandle, _observerGroup, "Unselected");
     }
@@ -191,9 +195,26 @@ public sealed class NarratorAgent : IDisposable
             throw new InvalidOperationException("Select an observer before evaluating an observer-constrained claim.");
         var result = _knowledgeEvaluator.Evaluate(_session.Workspace, observerId, eventId, asOfEventId, mode);
         LastObserverEvaluation = result;
+        LastObserverProjection = null;
         Move(_observer, _observerHandle, _observerGroup, result.IsAllowed ? "Allowed" : "Blocked");
         Emit("Observer", result.IsAllowed ? "ClaimAllowed" : result.IsUnresolved ? "ClaimUnresolved" : "ClaimBlocked", result.Explanation);
         return result;
+    }
+
+
+    /// <summary>Projects only accepted knowledge claims available to the selected observer at an event anchor.</summary>
+    public ObserverKnowledgeProjection ProjectObserverKnowledge(Guid? asOfEventId = null)
+    {
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        if (_observer.ObserverId is not Guid observerId)
+            throw new InvalidOperationException("Select an observer before projecting observer knowledge.");
+        var projection = new ObserverKnowledgeProjectionService().Project(_session.Workspace, observerId, asOfEventId);
+        LastObserverProjection = projection;
+        LastObserverEvaluation = null;
+        if (_observer.CurrentState != "Projected")
+            Move(_observer, _observerHandle, _observerGroup, "Projected");
+        Emit("Observer", "KnowledgeProjected", $"Projected {projection.Events.Count} events with accepted knowledge for observer {observerId}.");
+        return projection;
     }
 
     /// <summary>Begins a draft operation for a specific manuscript section.</summary>
@@ -348,6 +369,7 @@ public sealed class NarratorAgent : IDisposable
             .State("Selected", context => Enter(context, "Selected"), _ => { }, _ => { })
             .State("Allowed", context => Enter(context, "Allowed"), _ => { }, _ => { })
             .State("Blocked", context => Enter(context, "Blocked"), _ => { }, _ => { })
+            .State("Projected", context => Enter(context, "Projected"), _ => { }, _ => { })
             .WithInitialState("Unselected");
         builder.Transition("Unselected", "Selected", context => Requested(context, "Selected"))
             .Transition("Selected", "Allowed", context => Requested(context, "Allowed"))
@@ -358,7 +380,14 @@ public sealed class NarratorAgent : IDisposable
             .Transition("Allowed", "Unselected", context => Requested(context, "Unselected"))
             .Transition("Blocked", "Selected", context => Requested(context, "Selected"))
             .Transition("Blocked", "Allowed", context => Requested(context, "Allowed"))
-            .Transition("Blocked", "Unselected", context => Requested(context, "Unselected"));
+            .Transition("Blocked", "Projected", context => Requested(context, "Projected"))
+            .Transition("Blocked", "Unselected", context => Requested(context, "Unselected"))
+            .Transition("Selected", "Projected", context => Requested(context, "Projected"))
+            .Transition("Allowed", "Projected", context => Requested(context, "Projected"))
+            .Transition("Projected", "Selected", context => Requested(context, "Selected"))
+            .Transition("Projected", "Allowed", context => Requested(context, "Allowed"))
+            .Transition("Projected", "Blocked", context => Requested(context, "Blocked"))
+            .Transition("Projected", "Unselected", context => Requested(context, "Unselected"));
         builder.BuildDefinition();
     }
 

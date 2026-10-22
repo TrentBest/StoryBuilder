@@ -90,4 +90,37 @@ public sealed class NarratorAgentTests
         Assert.NotEmpty(first.Events);
         Assert.Empty(secondSession.Workspace.Premises);
     }
+
+    [Fact]
+    public void ObserverFsmProjectsOnlyAcceptedKnowledgeForTheSelectedObserver()
+    {
+        var session = new StoryBuilderSession();
+        var timeline = session.CreateTimeline("Main history");
+        var character = session.CreateCharacter("Mara");
+        var witnessed = session.CreateTimelineEvent(timeline.Id, "The gate opens", "World truth that must not be copied into the projection.", "At dawn");
+        session.AddObserverKnowledge(new ObserverKnowledgeRecord
+        {
+            ObserverId = character.Id,
+            EventId = witnessed.Id,
+            Kind = ObserverKnowledgeKind.Witnessed,
+            AcquiredAtEventId = witnessed.Id,
+            Note = "I watched the gate open.",
+            Status = CanonStatus.Accepted
+        });
+        var unknown = session.CreateTimelineEvent(timeline.Id, "The hidden vault", "A secret the observer does not know.", "Later");
+
+        using var narrator = new NarratorAgent(session);
+        narrator.SelectObserver(character.Id);
+        var projection = narrator.ProjectObserverKnowledge(witnessed.Id);
+
+        Assert.Equal("Projected", narrator.ObserverState);
+        Assert.Same(projection, narrator.LastObserverProjection);
+        var projected = Assert.Single(projection.Events);
+        Assert.Equal(witnessed.Id, projected.EventId);
+        Assert.DoesNotContain(projection.Events, item => item.EventId == unknown.Id);
+        Assert.Contains(projected.PermittedClaims, claim => claim.Mode == NarrationClaimMode.DirectFact && claim.Note == "I watched the gate open.");
+        Assert.DoesNotContain(typeof(ObserverKnownEvent).GetProperties(), property => property.Name is "Title" or "Summary");
+    }
+
+
 }

@@ -1,13 +1,15 @@
 # NarratorAgentTests
 
-**User moniker:** Multi-FSM Narrator verification
+![The Singularity Workshop moniker](https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Visualize/development/docs/assets/moniker.svg)
 
-**Purpose:** Verifies that the Narrator's focused FSM_API machines coordinate without merging their state or bypassing observer constraints.
+## Purpose
 
-## Coverage
+Verifies that NarratorAgent coordinates independent FSM_API machines for intent, planning, observer constraints, and draft review. The observer machine can also produce a constrained knowledge projection for downstream narration or portrayal.
 
-- Intent, planning, observer, and draft/review states progress independently.
-- A witnessed event can be linked into a saved draft.
-- A reported event cannot be stated as directly witnessed by an observer.
-- A blocked draft remains unchanged and enters NeedsReview.
-- Separate agent instances do not share their intent state.
+## UML class card
+
+See [NarratorAgent UML](../../docs/UML/NarratorAgentUML.md).
+
+## Acceptance evidence
+
+Tests cover isolated agents, intent and timeline planning, draft review gates, and observer projection that includes accepted knowledge without copying unrestricted world-event summaries.
