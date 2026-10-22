@@ -24,9 +24,10 @@ The same world event can be referenced from more than one scene beat or manuscri
 | `ManuscriptSection` | A reading-order unit containing editable prose and references to scenes/events it portrays. | A second source of truth for the linked event. |
 | `HistoricalClaim` / `SourceRecord` | A claim about the world's past and provenance for an account or artifact. | The fact that a source made a statement is not, by itself, proof that the statement is canon. |
 | `ObserverKnowledgeRecord` | What a particular observer is established to know, how they know it, and when they acquired it. | Objective world state or unrestricted narrator access. |
+| `CharacterRelationship` | A character's attributed relationship to another character, with its own label, notes, and review status. | A free-text name; `TargetCharacterId` must resolve to a character in the same workspace. |
 | `ParticipantAction` | A participant's attributed proposed choice. | An accepted campaign consequence until deliberately resolved. |
 
-These distinctions are enforced in different places: record identity and basic workspace membership in the domain models/session; author-review status in the record lifecycle; narration constraints in `ObserverKnowledgeEvaluator` and the accepted-knowledge projection; and storage compatibility in the versioned persistence layer. A record's existence alone must not be presented as acceptance.
+These distinctions are enforced in different places: record identity and basic workspace membership in the domain models/session; author-review status in the record lifecycle; narration constraints in `ObserverKnowledgeEvaluator` and the accepted-knowledge projection; and storage compatibility in the versioned persistence layer. A record's existence alone must not be presented as acceptance. `StoryWorkspaceValidator.Validate` also checks cross-record references after assembly or restore, including character-to-character relationships, character participation in events, event causes and consequences, source attribution, scene-beat actors, and manuscript portrayals. It reports dangling links without repairing or deleting data; callers should resolve the reported IDs explicitly before persisting a workspace that must be internally consistent.
 
 ## Canon, attribution, and point of view
 
