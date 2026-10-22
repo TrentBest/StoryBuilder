@@ -10,15 +10,21 @@ Read [Story Foundation](STORY_FOUNDATION.md) for the premise and tonal rules, [H
 
 The first runnable proof targets [AnyApp](https://github.com/TrentBest/AnyApp), the Workshop's Windows desktop host. StoryBuilder should not require a hosted WebApp, Azure account, remote database, or network connection for ordinary local writing.
 
-The proof should let a developer:
+The intended end-to-end desktop proof is:
 1. Launch StoryBuilder through AnyApp.
 2. Create and reopen a local project.
 3. Edit the manuscript and project metadata.
 4. Add a stable-ID event linked to a passage.
 5. See the same event in a chronology view after reopening the project.
 
-## Current evidence
+## Current implementation evidence
 
-The repository currently contains the concept, story foundation, historical-scale outline, and deployment decision. These documents establish constraints; they do **not** claim that the application, timeline engine, campaign runtime, or living visualizations have been implemented.
+The host-neutral Core project now exists under `src/StoryBuilder.Core`:
+- `StoryProject` stores project identity, title, premise, manuscript, passage anchors, and timeline events.
+- Timeline events have stable GUID identity and can link to a reusable passage anchor.
+- Chronology orders dated events first and leaves undated events after them.
+- `LocalProjectStore` saves and reopens a schema-versioned local project file.
+- `tests/StoryBuilder.Core.Tests` covers passage reuse, invalid passage links, chronology ordering, and persistence round-trip.
+- [Integration Gap Register](INTEGRATION_GAPS.md) records why this Core slice is not yet launchable through the current AnyApp host.
 
-A Gallery entry should link to a runnable demo and its detailed recipe only after that behavior exists and is verified.
+The Core and test workflow have been committed, but no CI run has yet been independently confirmed. This is not yet a claim of a completed desktop application or living GUI.
