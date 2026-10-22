@@ -168,6 +168,12 @@ public sealed class StoryWorkspace
         _campaigns.Add(campaign);
     }
 
+    public void ReplaceParticipantAction(ParticipantAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        ReplaceById(_participantActions, action.Id, action, nameof(action));
+    }
+
     public void AddParticipantAction(ParticipantAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -202,6 +208,7 @@ public sealed class StoryWorkspace
     {
         CharacterProfile character => character.Id,
         SceneRecord scene => scene.Id,
+        ParticipantAction action => action.Id,
         _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
     };
 
