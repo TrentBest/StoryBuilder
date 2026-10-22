@@ -4,7 +4,7 @@
 
 ## Purpose
 
-These tests cover the first authoring contracts: character drafts remain useful with minimal input, suggested traits are not silently applied, explicit synonym search preserves surface words and attribution, and scene narration/reordering follows recorded beats.
+These tests cover the first authoring contracts: character drafts remain useful with minimal input, suggested traits are not silently applied, explicit synonym search preserves surface words and attribution, synonyms can be added after words have been recorded, workspace edits refresh word occurrences, and scene narration/reordering follows recorded beats.
 
 ## Verification
 
@@ -14,4 +14,4 @@ Run from the repository root:
 dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
 ```
 
-The tests are authored and wired into CI. Their pass/fail state must be taken from the actual workflow run, not inferred from their presence.
+The tests are wired into CI. Their pass/fail state must be taken from the actual workflow run, not inferred from their presence.
