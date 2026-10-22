@@ -21,7 +21,9 @@ jobs:
         run: dotnet --info
       - name: Build domain core
         run: dotnet build src/StoryBuilder.Core/StoryBuilder.Core.csproj --configuration Release
+      - name: Build FSM_API adapter
+        run: dotnet build src/StoryBuilder.FSM/StoryBuilder.FSM.csproj --configuration Release
       - name: Build quickstart
         run: dotnet build samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj --configuration Release
-      - name: Test domain core
+      - name: Test authoring and lifecycle
         run: dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
