@@ -52,6 +52,35 @@ public sealed class StoryWorkspaceValidatorTests
     }
 
     [Fact]
+    public void ValidateReportsMissingCanonicalScenePlace()
+    {
+        var workspace = new StoryWorkspace();
+        var missingPlaceId = Guid.NewGuid();
+        var scene = new SceneRecord { Title = "The arrival", PlaceId = missingPlaceId };
+        workspace.AddScene(scene);
+
+        var issue = Assert.Single(StoryWorkspaceValidator.Validate(workspace));
+        Assert.Equal(nameof(SceneRecord), issue.OwnerType);
+        Assert.Equal(scene.Id, issue.OwnerId);
+        Assert.Equal("place", issue.Relationship);
+        Assert.Equal(missingPlaceId, issue.MissingTargetId);
+    }
+
+    [Fact]
+    public void SessionCreatesAndAssignsCanonicalPlaces()
+    {
+        var session = new StoryBuilderSession();
+        var region = session.CreatePlace("The North", "A cold northern region.", "Region");
+        var city = session.CreatePlace("Greyhaven", "A port city.", "City", region.Id);
+        var scene = session.CreateScene("Arrival", "Harbor");
+        scene = session.AssignSceneToPlace(scene.Id, city.Id);
+
+        Assert.Equal(city.Id, scene.PlaceId);
+        Assert.Contains(session.Workspace.Places, place => place.Id == region.Id);
+        Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
+    }
+
+    [Fact]
     public void ValidateReportsIdentityReusedAcrossRecordTypes()
     {
         var workspace = new StoryWorkspace();
