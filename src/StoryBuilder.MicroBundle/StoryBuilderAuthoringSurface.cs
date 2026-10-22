@@ -27,17 +27,16 @@ public sealed class StoryBuilderAuthoringSurface
         get
         {
             var workspace = Session.Workspace;
+            var sectionCount = workspace.Manuscripts.Sum(item => item.Sections.Count);
             var root = GuiBuilders.Column("storybuilder-root")
                 .Property("padding", "24")
                 .Property("margin", "12")
                 .Child(GuiBuilders.Text("storybuilder-title", "STORYBUILDER").Property("fontSize", "28"))
-                .Child(GuiBuilders.Text("storybuilder-subtitle", "Compose a story from timelines, characters, scenes, and manuscripts."))
-                .Child(GuiBuilders.Text(
-                    "storybuilder-workspace",
-                    $"Workspace: {workspace.Name}"))
+                .Child(GuiBuilders.Text("storybuilder-subtitle", "Create the cast, timeline events, and manuscript passages that make a story." ))
+                .Child(GuiBuilders.Text("storybuilder-workspace", $"Workspace: {workspace.Name}"))
                 .Child(GuiBuilders.Text(
                     "storybuilder-counts",
-                    $"Timelines: {workspace.Timelines.Count}  |  Characters: {workspace.Characters.Count}  |  Scenes: {workspace.Scenes.Count}  |  Manuscripts: {workspace.Manuscripts.Count}"))
+                    $"Timelines: {workspace.Timelines.Count}  |  Characters: {workspace.Characters.Count}  |  Scenes: {workspace.Scenes.Count}  |  Events: {workspace.Events.Count}  |  Manuscripts: {workspace.Manuscripts.Count}  |  Passages: {sectionCount}"))
                 .Child(GuiBuilders.Button("storybuilder-create-timeline", "＋ Create timeline")
                     .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateTimeline))
                 .Child(GuiBuilders.Button("storybuilder-create-character", "＋ Create character")
@@ -45,7 +44,13 @@ public sealed class StoryBuilderAuthoringSurface
                 .Child(GuiBuilders.Button("storybuilder-create-scene", "＋ Create scene")
                     .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateScene))
                 .Child(GuiBuilders.Button("storybuilder-create-manuscript", "＋ Create manuscript")
-                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateManuscript));
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateManuscript))
+                .Child(GuiBuilders.Button("storybuilder-create-event", "＋ Create timeline event")
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateEvent))
+                .Child(GuiBuilders.Button("storybuilder-create-passage", "＋ Create manuscript passage")
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateManuscriptSection))
+                .Child(GuiBuilders.Button("storybuilder-link-event-passage", "Link latest event to latest passage")
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.LinkLatestEventToLatestSection));
 
             return root.Build();
         }
