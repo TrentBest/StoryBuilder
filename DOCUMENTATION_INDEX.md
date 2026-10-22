@@ -7,6 +7,7 @@
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
 | Add an approximate Plot Twist to a timeline | Timeline planning point model [UML](docs/UML/TimelinePlanningPointUML.md) and the WebDemo Timelines page |
 | Constrain narration to an observer's knowledge | Observer knowledge ledger and evaluator [UML](docs/UML/ObserverKnowledgeRecordUML.md) |
+| Understand the Narrator's cooperating FSMs | [NarratorAgent](src/StoryBuilder.FSM/NarratorAgent.md), [Narrator UML](docs/UML/NarratorAgentUML.md) |
 | Link key events to the actual book | WebDemo Timelines and Book Preview; manuscript event references are stored by stable event ID |
 | View and author a real manuscript product | WebDemo Book Preview at /book; manuscript model [UML](docs/UML/ManuscriptEditionUML.md) |
 | Understand book-first composition, provisional Plot Twist planning, observer constraints, and multi-FSM Narrator | [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md), [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |

@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 builder.Services.AddSingleton<StoryBuilderAuthoringBundle>();
 builder.Services.AddScoped<StoryLifecycleRegistry>();
+builder.Services.AddScoped<NarratorAgent>(services => new NarratorAgent(services.GetRequiredService<StoryBuilderSession>()));
 builder.Services.AddScoped<StoryBuilderPersistenceCoordinator>();
 builder.Services.AddScoped<StoryBuilderSession>(services =>
     services.GetRequiredService<StoryBuilderAuthoringBundle>().CreateSession("StoryBuilder Web Demo"));
