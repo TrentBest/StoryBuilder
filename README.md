@@ -66,6 +66,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 - [Phone Review Guide](docs/PHONE_REVIEW.md) — concise readiness, evidence, and next steps for reviewing this work on a phone.
 - [Documentation Index](DOCUMENTATION_INDEX.md) — choose a path through the repository.
+- [Story Domain Contract](docs/STORY_DOMAIN_CONTRACT.md) — implemented record meanings, canon and observer-knowledge rules, event-to-prose links, persistence boundaries, and Alpha limitations.
 - [Architecture](docs/ARCHITECTURE.md) — package ownership and the Workshop integration plan.
 - [WebDemo Guide](samples/StoryBuilder.WebDemo/README.md) — how to run and explore the interactive prototype.
 - [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) — low-friction, visual-first story creation; target output discovery; and the digital publication boundary.
