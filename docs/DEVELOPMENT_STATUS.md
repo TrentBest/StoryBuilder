@@ -15,7 +15,7 @@ The `development` branch is the active release candidate; no readiness percentag
 - World Archive for historical claims, optional source provenance, and canon status.
 - Campaign Room for participant choices and lifecycle review.
 - Living Map: pinned GUI.SVG source renders live character cards, review status, traits, workspace counts, and vocabulary; tests verify changes from real domain data.
-- Timeline map: root/branch creation plus GUI.SVG markers for provisional planning points and world events assigned to each timeline. A new portrayal rail maps linked events to manuscript/book sections; chronology remains approximate/unresolved until a richer temporal model is implemented.
+- Timeline map: root/branch creation plus GUI.SVG markers for provisional planning points and world events assigned to each timeline. Planning points now support normalized alternative outcomes and explicit scene/event impact links through the core API; events can be edited and linked through reciprocal cause/consequence operations. A portrayal rail maps linked events to manuscript/book sections; chronology remains approximate/unresolved until a richer temporal model is implemented.
 - VocabularyIndex with explicit synonym mapping, surface-form preservation, attribution, and re-indexing.
 - StoryBuilderSession coordinates workspace edits and creates canonical timeline definitions and branch references.
 - StoryWorkspace records for Experience, timelines, planning points, timeline-linked world events, manuscripts, event-to-section and event-to-scene-beat portrayal references, observer-knowledge records, sources, claims, campaigns, participant actions, and continuity issues.
@@ -67,9 +67,9 @@ The `development` branch is the active release candidate; no readiness percentag
 
 ## Not yet implemented
 
-- Book Preview supports manuscript metadata, ordered sections, and authored text. File export and end-user navigation between manuscript sections and scene/beat records remain incomplete. Immutable Markdown publication snapshots, SHA-256 integrity checks, and corrected-edition lineage are implemented; the new format-11 increment is awaiting CI.
-- Richer Plot Twist brainstorming, alternatives editing, impact links, and promotion to events only by explicit author decision; the current increment creates a stable provisional point with approximate placement.
-- Full reader disclosure policy, renderer integration, full causal graph editing, synchronized timeline comparison, and unrevealed-event handling remain incomplete.
+- Book Preview supports manuscript metadata, ordered sections, authored text, scene/event links, and deterministic Markdown. File export and end-user navigation between manuscript sections and scene/beat records remain incomplete. Immutable Markdown publication snapshots include SHA-256 integrity, section/scene/event provenance, and corrected-edition lineage; the format-11 persistence increment is in CI.
+- Explicit promotion of a planning point into a canonical world event, with durable identity linkage and author-confirmed semantics. Planning point alternatives and scene/event impact links are implemented in the core API, but remain absent from a dedicated authoring screen.
+- Full reader disclosure policy, Renderer integration, causal graph editing UI, synchronized timeline comparison, and unrevealed-event handling remain incomplete; reciprocal causal graph edits and continuity diagnostics exist in the core API.
 - Keyboard timeline console, scene/beat navigation, and observer-aware recounting.
 - LLM-backed drafting provider, Renderer adapter, and broader continuity/composition/package FSM responsibilities beyond the initial five machines.
 
@@ -80,9 +80,11 @@ The `development` branch is the active release candidate; no readiness percentag
 - Gestures animation authoring/preview, optional Visualize/Renderer provider discovery, and Physics-backed simulation.
 - Multi-user collaboration and concurrent editing.
 
-## Readiness rubric
+## Release evidence and open gates
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, five cooperating FSM_API Narrator machines, the observer-safe projection, deterministic digital book output, repeated package-consumption test, and the binary package compiler/reader with integrity tests. AnyApp now has an opt-in repository-source StoryBuilder host path with command dispatch and host-local binary save/restore. AnyApp current-development workflow [39850248777](https://github.com/TrentBest/AnyApp/actions/runs/39850248777) passed on commit `f780889a4c47a561d59b4f22e4d740edf4e6bacb`, including the isolated persistence tests for stable record IDs and manuscript-section event-link preservation across store restore. A native process restart/reopen smoke test remains unproven. Renderer integration and Workshop-host integration remain incomplete. The numbered book portrayal rail, manifest dependency closure, scene-beat event-link persistence, scene-beat rail, and Stage controls are verified in CI. This is a planning estimate, not a test or quality score.
+- The latest fully green baseline is [CI run 39868360260](https://github.com/TrentBest/StoryBuilder/actions/runs/39868360260). Subsequent green runs verify publication persistence/content integrity ([39870709137](https://github.com/TrentBest/StoryBuilder/actions/runs/39870709137)), planning alternatives/impact links ([39870963545](https://github.com/TrentBest/StoryBuilder/actions/runs/39870963545)), and causal event editing ([39871029009](https://github.com/TrentBest/StoryBuilder/actions/runs/39871029009)). Newer scene-provenance and publication round-trip changes are still running through CI; do not call them verified until their own runs finish.
+- The native AnyApp process-restart probe passed in [workflow 39863022603](https://github.com/TrentBest/AnyApp/actions/runs/39863022603). The StoryBuilder surface is not yet selected/bound and refreshed by the desktop host, and real-host composition-package consumption is still unverified.
+- No package publication, GitHub release, branch deletion, force-push, or deployment has occurred.
 
 ## Immediate next steps
 
