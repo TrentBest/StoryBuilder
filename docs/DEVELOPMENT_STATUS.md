@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 68% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, a four-FSM Narrator agent, and an accepted-knowledge projection for downstream portrayal. Scene beats can reference canonical world-event IDs; Stage exposes event-link controls and the timeline renderer draws a separate event-to-scene-beat rail. The persistence, renderer, and Stage increment passed CI. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 69% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, a four-FSM Narrator agent, and an accepted-knowledge projection for downstream portrayal. BookProductRenderer now produces deterministic Markdown book output from the canonical manuscript; repeated package consumption preserves the same output and arbitration-record identity. Scene beats can reference canonical world-event IDs; Stage exposes event-link controls and the timeline renderer draws a separate event-to-scene-beat rail. The persistence, renderer, and Stage increment passed CI. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -27,6 +27,7 @@
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
+- BookProductRenderer emits a deterministic Markdown digital-book artifact with ordered sections, normalized line endings, and stable referenced-event metadata. The Book Preview exposes this output directly.
 - Runnable console quickstart and interactive Blazor WebDemo.
 - GUI.SVG source pinned as a submodule; CI builds source rather than relying on an unpublished package.
 - Companion Markdown pages and focused UML/use-case diagrams for maintained types.
@@ -57,6 +58,7 @@
 - [GUI.SVG observer-lens view workflow run 39712919016](https://github.com/TrentBest/StoryBuilder/actions/runs/39712919016) succeeded on commit 5ecbb45f5b1533f4266d66e2494775453c7e2cdb.
 - [Scene-beat event-link persistence workflow run 39713533768](https://github.com/TrentBest/StoryBuilder/actions/runs/39713533768) succeeded on commit d001104fcbfd7248e8f28566c5648366018dec30.
 - [Scene-beat portrayal rail and Stage controls workflow run 39713997378](https://github.com/TrentBest/StoryBuilder/actions/runs/39713997378) succeeded on commit 17d8b58dea20ad1efc6d6214d06ec8fab4542923.
+- [Deterministic book artifact and repeated package-consumption workflow run 39714658993](https://github.com/TrentBest/StoryBuilder/actions/runs/39714658993) succeeded on commit a507f4bc8c8201c76a147d101072cebdb513db2b.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
@@ -76,7 +78,7 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, the observer-safe projection, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered book portrayal rail, manifest dependency closure, scene-beat event-link persistence, scene-beat rail, and Stage controls are verified in CI. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, the observer-safe projection, deterministic digital book output, repeated package-consumption test, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered book portrayal rail, manifest dependency closure, scene-beat event-link persistence, scene-beat rail, and Stage controls are verified in CI. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
