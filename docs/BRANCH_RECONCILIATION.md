@@ -15,7 +15,7 @@ A previous snapshot in this ledger listed `main` at `9fabe16bcf7a50f3fbbdd9d6f4e
 
 ## Reconciliation plan
 
-1. **Do not merge PR #1 as-is.** The latest live compare (22 October 2026) reports `development` as **432 commits ahead of `master` and 13 commits behind**. The histories have diverged.
+1. **Do not merge PR #1 as-is.** The live compare at the 22 October 2026 20:26 UTC review reports `development` as **442 commits ahead of `master` and 13 commits behind**. This is a dated snapshot; re-check the compare before any merge decision. The histories have diverged.
 2. The 13 commits on `master` are not merely administrative drift. They add a host-neutral `StoryBuilder.Core` project, stable-ID story project/timeline model, atomic local save/reopen, Core tests, a dedicated pinned-action CI workflow, and updated integration/deployment documentation. These must be inspected and reconciled with the richer `development` domain/adapters/workbench rather than overwritten or silently discarded.
 3. Require fresh successful checks for the final reconciled head. Historical successful runs prove only the commits they tested.
 4. Review the resolved diff and merge only after the owner authorizes reconciliation and current checks are green.
