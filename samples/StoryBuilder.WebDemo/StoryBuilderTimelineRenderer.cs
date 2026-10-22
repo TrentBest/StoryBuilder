@@ -34,7 +34,8 @@ public sealed class StoryBuilderTimelineRenderer
             Depth(timeline, []);
 
         var maxDepth = depthById.Values.DefaultIfEmpty(0).Max();
-        var width = Math.Max(100, (maxDepth + 1) * 32 + 8);
+        var maxPlanningPoints = timelines.Select(timeline => session.Workspace.PlanningPoints.Count(point => point.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
+        var width = Math.Max(100, (maxDepth + 1) * 32 + 8 + maxPlanningPoints * 17);
         var height = Math.Max(36, timelines.Count * 15 + 16);
         var root = GuiBuilder.Create("svg-scene", "storybuilder-timeline-map")
             .Text("StoryBuilder timeline constellation")
@@ -95,6 +96,23 @@ public sealed class StoryBuilderTimelineRenderer
                 .Property("x", (x + 1).ToString(CultureInfo.InvariantCulture))
                 .Property("y", (y + 3.4).ToString(CultureInfo.InvariantCulture))
                 .Property("font-size", "1.5").Property("fill", "#edf0f5"));
+
+            var points = session.Workspace.PlanningPoints.Where(point => point.TimelineId == timeline.Id).ToList();
+            for (var index = 0; index < points.Count; index++)
+            {
+                var point = points[index];
+                var pointX = x + 28 + index * 17;
+                root.Child("svg-rect", $"planning-point-card-{point.Id:N}", node => node
+                    .Property("x", pointX.ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (y + 0.5).ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "15.5").Property("height", "4.5").Property("rx", "0.7")
+                    .Property("fill", "#3b3020").Property("stroke", "#e6bd72").Property("stroke-width", "0.25"));
+                root.Child("svg-text", $"planning-point-label-{point.Id:N}", node => node
+                    .Text(Shorten(point.Label, 12))
+                    .Property("x", (pointX + 0.7).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (y + 3.2).ToString(CultureInfo.InvariantCulture))
+                    .Property("font-size", "1.35").Property("fill", "#ffe0a1"));
+            }
         }
 
         return renderer.Render(root.Build(), 1000, (int)(height * 10));

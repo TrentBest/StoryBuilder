@@ -92,6 +92,32 @@
             {
                 <p>Parent: @(Session.Workspace.Timelines.FirstOrDefault(item => item.Id == parentId)?.Name ?? "Missing parent record")</p>
             }
+            <hr />
+            <div class="eyebrow">Planning points · uncertainty is allowed</div>
+            <div class="field">
+                <label for="planning-point-label">Point label</label>
+                <input id="planning-point-label" @bind="planningPointLabel" placeholder="Plot Twist" />
+            </div>
+            <div class="field">
+                <label for="planning-point-placement">Approximate position or note</label>
+                <input id="planning-point-placement" @bind="planningPointPlacement" placeholder="Near the midpoint; after the betrayal" />
+            </div>
+            <button @onclick="AddPlanningPoint">Add planning point</button>
+            @if (Session.Workspace.PlanningPoints.Any(point => point.TimelineId == selectedTimeline.Id))
+            {
+                <div class="list">
+                    @foreach (var point in Session.Workspace.PlanningPoints.Where(point => point.TimelineId == selectedTimeline.Id))
+                    {
+                        <div class="list-item">
+                            <strong>@point.Label</strong>
+                            <span class="chip">@point.Status</span>
+                            <span>@(string.IsNullOrWhiteSpace(point.ApproximatePlacement) ? "Placement unresolved" : point.ApproximatePlacement)</span>
+                            <small class="muted">Stable ID: @point.Id</small>
+                        </div>
+                    }
+                </div>
+            }
+            <p class="muted">A planning point can remain a placeholder. It is not a world event or accepted canon until the author explicitly resolves it.</p>
         </div>
     }
 </section>
@@ -103,6 +129,8 @@
     private string timelineDescription = string.Empty;
     private string parentTimelineId = string.Empty;
     private string message = string.Empty;
+    private string planningPointLabel = "Plot Twist";
+    private string planningPointPlacement = string.Empty;
     private TimelineDefinition? selectedTimeline;
 
     protected override void OnInitialized()
@@ -131,6 +159,19 @@
     }
 
     private void SelectTimeline(TimelineDefinition timeline) => selectedTimeline = timeline;
+
+    private void AddPlanningPoint()
+    {
+        if (selectedTimeline is null)
+        {
+            message = "Select a timeline before adding a planning point.";
+            return;
+        }
+        Session.CreatePlanningPoint(selectedTimeline.Id, planningPointLabel, planningPointPlacement);
+        message = $"Added provisional point '{planningPointLabel}' without requiring its meaning to be known.";
+        planningPointLabel = "Plot Twist";
+        planningPointPlacement = string.Empty;
+    }
 
     private void OnSessionChanged() => _ = InvokeAsync(() =>
     {

@@ -70,6 +70,7 @@ public sealed class StoryWorkspacePersistenceTests
         session.Workspace.AddTimeline(originalTimeline);
         session.Workspace.AddTimeline(branchTimeline);
 
+        var planningPoint = session.CreatePlanningPoint(originalTimeline.Id, "Plot Twist", "Near the midpoint", "Reveal a hidden relationship later.");
         var manuscript = session.CreateManuscript("The Lost Cartographer", "A book in progress", "T. Best");
         var chapter = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
         session.UpdateManuscriptSection(manuscript.Id, chapter.Sections[0].Id, "The North Gate", "Mara placed her hand on the latch.");
@@ -92,6 +93,13 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal("The Lost Cartographer", restoredManuscript.Title);
         Assert.Equal("T. Best", restoredManuscript.Author);
         Assert.Equal("Mara placed her hand on the latch.", Assert.Single(restoredManuscript.Sections).Body);
+        var restoredPoint = Assert.Single(restoredSession.Workspace.PlanningPoints);
+        Assert.Equal(planningPoint.Id, restoredPoint.Id);
+        Assert.Equal(originalTimeline.Id, restoredPoint.TimelineId);
+        Assert.Equal("Plot Twist", restoredPoint.Label);
+        Assert.Equal("Near the midpoint", restoredPoint.ApproximatePlacement);
+        Assert.Equal(TimelinePlanningStatus.Placeholder, restoredPoint.Status);
+        Assert.Equal(TimelinePlacementKind.Approximate, restoredPoint.PlacementKind);
         Assert.Equal(2, restoredSession.Workspace.Timelines.Count);
         Assert.Equal(originalTimeline.Id, restoredSession.Workspace.Timelines[0].Id);
         Assert.Equal(branchTimeline.Id, restoredSession.Workspace.Timelines[1].Id);

@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 56% — working local authoring prototype with versioned binary browser persistence, living GUI.SVG views, and a verified timeline Process Group foundation. The GUI.SVG timeline map is CI-green. The book product model and preview are now being implemented. Not release-ready.
+**Readiness estimate:** 56% — working local authoring prototype with versioned binary browser persistence, living GUI.SVG views, and a verified timeline Process Group foundation. The GUI.SVG timeline map is CI-green. The persisted book product model and live preview are CI-green; provisional timeline planning points are being added. Not release-ready.
 
 ## Implemented in development source
 
@@ -17,10 +17,10 @@
 - Timeline map: root/branch creation and GUI.SVG projection of timeline definitions and declared parent relationships. It does not yet imply event causality, divergence placement, world-time scale, or observer knowledge.
 - VocabularyIndex with explicit synonym mapping, surface-word preservation, attribution, and re-indexing.
 - StoryBuilderSession coordinates workspace edits and creates canonical timeline definitions and branch references.
-- StoryWorkspace records for Experience, timelines, manuscripts, design decisions, sources, claims, events, campaigns, participant actions, and continuity issues.
+- StoryWorkspace records for Experience, timelines, planning points, manuscripts, design decisions, sources, claims, events, campaigns, participant actions, and continuity issues.
 - Host-neutral IStoryProcessGroup and StoryProcessGroupDriver; each inserted group is updated once per driver Update.
 - Optional FSM_API-backed TimelineProcessGroup with inspectable entry, driver-update, runtime-tick, and exit observations.
-- Timeline definitions and branch lineage persisted in binary workspace format version 3; readers retain compatibility with versions 1 and 2.
+- Timeline definitions and branch lineage persisted in binary workspace format version 3; manuscript records are added in version 4, and version 5 adds provisional planning points. Readers retain compatibility with versions 1 through 4.
 - Optional StoryBuilder.FSM lifecycle adapter and MicroBundleDomain bundle.
 - FSM_Serialization-backed bounded binary workspace persistence, browser-local autosave, and round-trip/error tests.
 - Automated composition test loads StoryBuilderAuthoringBundle through FSM_COS.
@@ -44,8 +44,8 @@
 
 ## Not yet implemented
 
-- Manuscript/book composition model and Book Preview page are in progress; the first slice supports manuscript metadata, ordered sections, and actual authored text. Scene/event links and export remain incomplete.
-- Provisional planning points such as Plot Twist, with approximate position, alternatives, impact links, and promotion to events only by explicit author decision.
+- Manuscript/book composition model and Book Preview page are implemented and verified by CI; the first slice supports manuscript metadata, ordered sections, and actual authored text. Scene/event links and export remain incomplete.
+- Richer Plot Twist brainstorming, alternatives editing, impact links, and promotion to events only by explicit author decision; the current increment creates a stable provisional point with approximate placement.
 - Canonical event chronology, causal graph editing, synchronized timeline comparison, observer knowledge, and unrevealed events.
 - Keyboard timeline console, event-to-book relationship rails, scene-to-event navigation, and observer-aware recounting.
 - Narrator first-session workflow orchestrated by multiple focused FSM_API state machines.
@@ -59,11 +59,11 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Local authoring, binary persistence, living GUI.SVG views, the timeline Process Group foundation, and CI are verified. Provisional plot planning, observer constraints, multi-FSM Narrator, package compiler/consumer, and Workshop-host integration remain absent. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Local authoring, binary persistence, living GUI.SVG views, the timeline Process Group foundation, and CI are verified. Observer constraints, multi-FSM Narrator, package compiler/consumer, and Workshop-host integration remain absent. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Verify the Book Preview vertical slice and keep its persisted manuscript records aligned with the binary contract.
+1. Verify the provisional planning-point timeline increment and binary version 5 compatibility.
 2. Add first-class provisional timeline planning points so Plot Twist can exist before its meaning is known.
 3. Connect events to scene beats and manuscript passages through stable IDs; distinguish chronology, causality, portrayal, and disclosure in GUI.SVG.
 4. Implement observer knowledge/disclosure contracts and tests that prevent unsupported narration.

@@ -54,6 +54,43 @@ public sealed class StoryBuilderSession
         return concept;
     }
 
+    /// <summary>Creates an intentionally incomplete planning point on an existing timeline.</summary>
+    public TimelinePlanningPoint CreatePlanningPoint(
+        Guid timelineId,
+        string? label = null,
+        string? approximatePlacement = null,
+        string? intent = null)
+    {
+        if (!Workspace.Timelines.Any(timeline => timeline.Id == timelineId))
+            throw new KeyNotFoundException($"Timeline '{timelineId}' does not exist in this workspace.");
+        var point = new TimelinePlanningPoint
+        {
+            TimelineId = timelineId,
+            Label = string.IsNullOrWhiteSpace(label) ? "Plot Twist" : label.Trim(),
+            ApproximatePlacement = NormalizeOptional(approximatePlacement) ?? string.Empty,
+            Intent = NormalizeOptional(intent) ?? string.Empty,
+            PlacementKind = string.IsNullOrWhiteSpace(approximatePlacement)
+                ? TimelinePlacementKind.Unresolved
+                : TimelinePlacementKind.Approximate
+        };
+        Workspace.AddPlanningPoint(point);
+        NotifyChanged();
+        return point;
+    }
+
+    public TimelinePlanningPoint UpdatePlanningPoint(TimelinePlanningPoint point)
+    {
+        ArgumentNullException.ThrowIfNull(point);
+        var updated = point with
+        {
+            Label = string.IsNullOrWhiteSpace(point.Label) ? "Untitled planning point" : point.Label.Trim(),
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        Workspace.ReplacePlanningPoint(updated);
+        NotifyChanged();
+        return updated;
+    }
+
     /// <summary>Creates an editable manuscript product whose sections can be composed incrementally.</summary>
     public ManuscriptEdition CreateManuscript(string? title = null, string? subtitle = null, string? author = null)
     {

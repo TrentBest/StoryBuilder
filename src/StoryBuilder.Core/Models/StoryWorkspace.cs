@@ -116,6 +116,7 @@ public sealed record StoryPremise
 public sealed class StoryWorkspace
 {
     private readonly List<TimelineDefinition> _timelines = [];
+    private readonly List<TimelinePlanningPoint> _planningPoints = [];
     private readonly List<ManuscriptEdition> _manuscripts = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
@@ -131,6 +132,7 @@ public sealed class StoryWorkspace
     public string Name { get; set; } = "StoryBuilder";
     public ExperienceDefinition Experience { get; set; } = new();
     public IReadOnlyList<TimelineDefinition> Timelines => _timelines.AsReadOnly();
+    public IReadOnlyList<TimelinePlanningPoint> PlanningPoints => _planningPoints.AsReadOnly();
     public IReadOnlyList<ManuscriptEdition> Manuscripts => _manuscripts.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
@@ -149,6 +151,23 @@ public sealed class StoryWorkspace
         if (timeline.ParentTimelineId is Guid parentId && !_timelines.Any(x => x.Id == parentId))
             throw new KeyNotFoundException($"Parent timeline '{parentId}' must exist in this workspace before its branch is added.");
         _timelines.Add(timeline);
+    }
+
+    public void AddPlanningPoint(TimelinePlanningPoint point)
+    {
+        ArgumentNullException.ThrowIfNull(point);
+        EnsureUnique(_planningPoints.Select(x => x.Id), point.Id, nameof(point));
+        if (!_timelines.Any(timeline => timeline.Id == point.TimelineId))
+            throw new KeyNotFoundException($"Timeline '{point.TimelineId}' must exist before a planning point can be added.");
+        _planningPoints.Add(point);
+    }
+
+    public void ReplacePlanningPoint(TimelinePlanningPoint point)
+    {
+        ArgumentNullException.ThrowIfNull(point);
+        if (!_timelines.Any(timeline => timeline.Id == point.TimelineId))
+            throw new KeyNotFoundException($"Timeline '{point.TimelineId}' must exist before a planning point can be updated.");
+        ReplaceById(_planningPoints, point.Id, point, nameof(point));
     }
 
     public void AddManuscript(ManuscriptEdition manuscript)
@@ -264,6 +283,7 @@ public sealed class StoryWorkspace
     {
         StoryPremise premise => premise.Id,
         ManuscriptEdition manuscript => manuscript.Id,
+        TimelinePlanningPoint point => point.Id,
         CharacterProfile character => character.Id,
         SceneRecord scene => scene.Id,
         ParticipantAction action => action.Id,

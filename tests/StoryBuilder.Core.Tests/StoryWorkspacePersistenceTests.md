@@ -13,3 +13,6 @@ The document is versioned and bounded. It uses the FSM_Serialization byte-stream
 ## Verification
 
 Run the test project from the repository root using the Development guide.
+
+
+The round-trip case also verifies that manuscript metadata, authored section text, and a provisional timeline planning point preserve their stable identities and approximate placement.
