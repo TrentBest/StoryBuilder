@@ -338,7 +338,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var previousEditionId = BinaryCodec.ReadNullableGuid(stream);
         var correctionNotes = BinaryCodec.ReadString(stream);
         var sectionIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
-        var sceneIds = version >= 12 ? Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()) : Array.Empty<Guid>();
+        IReadOnlyList<Guid> sceneIds = version >= 12 ? Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()) : Array.Empty<Guid>();
         var eventIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
         return new PublishedBookEdition
         {
