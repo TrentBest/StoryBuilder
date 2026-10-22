@@ -149,11 +149,36 @@ public sealed class StoryBuilderSession
         Vocabulary.RecordText(character.Description, VocabularyCategory.Other, character.Id, character.Name,
             nameof(CharacterProfile.Description), context: character.Description, attribution: "Author",
             status: character.Status);
+        Vocabulary.RecordText(character.Pronouns, VocabularyCategory.Other, character.Id, character.Name,
+            nameof(CharacterProfile.Pronouns), context: character.Pronouns, attribution: "Author", status: character.Status);
+        Vocabulary.RecordText(character.Species, VocabularyCategory.Other, character.Id, character.Name,
+            nameof(CharacterProfile.Species), context: character.Species, attribution: "Author", status: character.Status);
+
+        foreach (var note in character.Notes)
+        {
+            Vocabulary.RecordText(note.Key, VocabularyCategory.Other, character.Id, character.Name,
+                $"Notes.{note.Key}.Key", context: note.Value, attribution: "Author", status: character.Status);
+            Vocabulary.RecordText(note.Value, VocabularyCategory.Other, character.Id, character.Name,
+                $"Notes.{note.Key}", context: note.Value, attribution: "Author", status: character.Status);
+        }
+
+        foreach (var relationship in character.Relationships)
+        {
+            Vocabulary.RecordText(relationship.Label, VocabularyCategory.Other, character.Id, character.Name,
+                nameof(CharacterProfile.Relationships), context: relationship.Notes, attribution: "Author",
+                status: relationship.Status);
+            Vocabulary.RecordText(relationship.Notes, VocabularyCategory.Other, character.Id, character.Name,
+                nameof(CharacterProfile.Relationships), context: relationship.Label, attribution: "Author",
+                status: relationship.Status);
+        }
 
         foreach (var trait in character.Traits)
         {
             Vocabulary.RecordText(trait.Term, VocabularyCategory.Adjective, character.Id, character.Name,
                 nameof(CharacterProfile.Traits), context: trait.Notes ?? trait.Term, attribution: trait.Attribution,
+                status: trait.Status);
+            Vocabulary.RecordText(trait.Notes, VocabularyCategory.Other, character.Id, character.Name,
+                nameof(CharacterProfile.Traits), context: trait.Term, attribution: trait.Attribution,
                 status: trait.Status);
         }
     }
@@ -169,6 +194,7 @@ public sealed class StoryBuilderSession
 
         foreach (var beat in scene.Beats.OrderBy(b => b.Sequence))
         {
+            IndexBeatText(scene, beat, beat.ActorLabel, nameof(SceneBeat.ActorLabel), VocabularyCategory.Other);
             IndexBeatText(scene, beat, beat.Action, nameof(SceneBeat.Action), VocabularyCategory.Other);
             IndexBeatText(scene, beat, beat.Reaction, nameof(SceneBeat.Reaction), VocabularyCategory.Other);
             IndexBeatText(scene, beat, beat.Dialogue, nameof(SceneBeat.Dialogue), VocabularyCategory.Other);
