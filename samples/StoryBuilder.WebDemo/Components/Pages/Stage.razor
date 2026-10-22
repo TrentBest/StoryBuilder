@@ -47,7 +47,7 @@
                     <button class="list-item @(currentScene?.Id == scene.Id ? "selected" : "")" @onclick="() => SelectScene(scene)">
                         <strong>@scene.Title</strong>
                         <span class="chip">@scene.CaptureMode</span>
-                        <p>@scene.Beats.Count beat(s) · @(scene.Location ?? "Location unknown")</p>
+                        <span>@scene.Beats.Count beat(s) · @(scene.Location ?? "Location unknown")</span>
                     </button>
                 }
             </div>
