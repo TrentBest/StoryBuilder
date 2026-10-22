@@ -1,0 +1,62 @@
+@page "/continuity"
+@inject StoryBuilderSession Session
+
+<PageTitle>Continuity Review · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Author tools · Continuity review</div>
+    <h1>Find the seams before they reach the page.</h1>
+    <p class="lede">Review causal links and timeline branches for structural contradictions. Findings are suggestions to inspect, not automatic edits or verdicts about your story.</p>
+</div>
+
+@{
+    var findings = StoryContinuityAnalyzer.Analyze(Session.Workspace);
+}
+
+<section class="panel stack" aria-label="Continuity review summary">
+    <div class="row wrap">
+        <span class="chip">@Session.Workspace.Events.Count world event(s)</span>
+        <span class="chip">@Session.Workspace.Timelines.Count timeline(s)</span>
+        <span class="chip">@findings.Count finding(s)</span>
+    </div>
+    @if (findings.Count == 0)
+    {
+        <h2>No structural continuity findings</h2>
+        <p>Your current event-causality and timeline-branch records passed these checks. This is not a proof that dates, prose, motives, or character knowledge are consistent.</p>
+    }
+    else
+    {
+        <h2>Review these records</h2>
+        <p class="muted">Nothing is changed when you open this page. Correct the underlying records in their authoring pages, then return to run the review again.</p>
+        <div class="list">
+            @foreach (var finding in findings)
+            {
+                var storyEvent = Session.Workspace.Events.FirstOrDefault(item => item.Id == finding.PrimaryRecordId);
+                var timeline = Session.Workspace.Timelines.FirstOrDefault(item => item.Id == finding.PrimaryRecordId);
+                <div class="list-item">
+                    <div class="row wrap">
+                        <strong>@(storyEvent?.Title ?? timeline?.Name ?? "Record requiring review")</strong>
+                        <span class="chip">@finding.Code</span>
+                    </div>
+                    <p>@finding.Message</p>
+                    <p class="muted">Record ID: <code>@finding.PrimaryRecordId</code></p>
+                    @if (finding.RelatedRecordIds.Count > 1)
+                    {
+                        <p class="muted">Related records: @string.Join(", ", finding.RelatedRecordIds)</p>
+                    }
+                </div>
+            }
+        </div>
+    }
+</section>
+
+<section class="panel stack" style="margin-top:1rem">
+    <h2>What this review checks</h2>
+    <ul>
+        <li>An event listing itself as a cause.</li>
+        <li>Cause and consequence links that do not agree in both records.</li>
+        <li>Cycles in the event-causality graph.</li>
+        <li>Cycles in timeline parent links, including malformed data that bypassed normal authoring validation.</li>
+    </ul>
+    <p class="muted">It does not infer calendar dates from descriptions, judge whether a character could know something, or rewrite canon. Review event links in the World Archive and timeline structure in Timelines.</p>
+</section>
