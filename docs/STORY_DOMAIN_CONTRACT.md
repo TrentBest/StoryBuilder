@@ -56,6 +56,12 @@ The current Alpha scope is a local, book-first authoring prototype: create chara
 
 The Alpha does not promise cloud synchronization, simultaneous collaboration, LLM-backed drafting, immutable publication editions, complete Renderer integration, or hosted Workshop WebPage deployment. These are limitations of the current release, not hidden capabilities.
 
+## Places and scene location identity
+
+`PlaceRecord` is the canonical, stable identity for a named place. A place can be classified by `Kind` and contained by another place through `ParentPlaceId`. Create the parent before its child. A `SceneRecord` may keep its original free-form `Location` note and independently set `PlaceId` to the canonical place. Use `StoryBuilderSession.CreatePlace` to create a place, `AssignSceneToPlace` to link a scene, and `UpdatePlace` to revise the record. The workspace validator reports a scene link or parent link that points to a missing place.
+
+Place records and scene place IDs are stored in binary workspace format 10. Readers for formats 1–9 remain supported; older workspaces restore without canonical place records and keep their existing free-form scene location text.
+
 ## Practical rule
 
 When reading or extending StoryBuilder, ask three separate questions:
