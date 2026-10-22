@@ -20,7 +20,7 @@ public sealed class StoryBuilderTimelineRendererTests
         var svg = new StoryBuilderTimelineRenderer().Render(session);
 
         Assert.Contains("BOOK PORTRAYAL RAIL", svg, StringComparison.Ordinal);
-        Assert.Contains("The reveal", svg, StringComparison.Ordinal);
+        Assert.Contains("E1: The", svg, StringComparison.Ordinal);
         Assert.Contains("The Lost Cartographer: The North Gate", svg, StringComparison.Ordinal);
     }
 }

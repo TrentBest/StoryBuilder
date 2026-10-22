@@ -84,6 +84,7 @@ public sealed class StoryBuilderTimelineRenderer
             .ToDictionary(item => item.Id, item => item.Y);
         var eventXById = new Dictionary<Guid, double>();
         var eventYById = new Dictionary<Guid, double>();
+        var eventNumberById = new Dictionary<Guid, int>();
 
         foreach (var timeline in timelines)
         {
@@ -143,13 +144,14 @@ public sealed class StoryBuilderTimelineRenderer
                 var eventX = x + 28 + (points.Count + index) * 17;
                 eventXById[storyEvent.Id] = eventX;
                 eventYById[storyEvent.Id] = y;
+                eventNumberById[storyEvent.Id] = index + 1;
                 root.Child("svg-rect", $"world-event-card-{storyEvent.Id:N}", node => node
                     .Property("x", eventX.ToString(CultureInfo.InvariantCulture))
                     .Property("y", (y + 0.5).ToString(CultureInfo.InvariantCulture))
                     .Property("width", "15.5").Property("height", "4.5").Property("rx", "0.7")
                     .Property("fill", "#202f43").Property("stroke", "#8bb7e8").Property("stroke-width", "0.25"));
                 root.Child("svg-text", $"world-event-label-{storyEvent.Id:N}", node => node
-                    .Text(Shorten(storyEvent.Title, 12))
+                    .Text(Shorten($"E{index + 1}: {storyEvent.Title}", 12))
                     .Property("x", (eventX + 0.7).ToString(CultureInfo.InvariantCulture))
                     .Property("y", (y + 3.2).ToString(CultureInfo.InvariantCulture))
                     .Property("font-size", "1.35").Property("fill", "#cfe4ff"));
@@ -171,6 +173,9 @@ public sealed class StoryBuilderTimelineRenderer
                 var rowY = firstRowY + index * 8;
                 var storyEvent = workspace.Events.First(item => item.Id == link.EventId);
                 var eventX = eventXById.GetValueOrDefault(link.EventId, 4);
+                var eventLabel = eventNumberById.TryGetValue(link.EventId, out var eventNumber)
+                    ? $"E{eventNumber}: {storyEvent.Title}"
+                    : $"E?: {storyEvent.Title}";
                 if (eventYById.TryGetValue(link.EventId, out var eventY))
                 {
                     root.Child("svg-rect", $"portrayal-vertical-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
@@ -186,7 +191,7 @@ public sealed class StoryBuilderTimelineRenderer
                     .Property("width", "15.5").Property("height", "5").Property("rx", "0.6")
                     .Property("fill", "#202f43").Property("stroke", "#8bb7e8").Property("stroke-width", "0.25"));
                 root.Child("svg-text", $"portrayal-event-label-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
-                    .Text(Shorten(storyEvent.Title, 12))
+                    .Text(Shorten(eventLabel, 12))
                     .Property("x", (eventX + 0.6).ToString(CultureInfo.InvariantCulture))
                     .Property("y", (rowY + 3.2).ToString(CultureInfo.InvariantCulture))
                     .Property("font-size", "1.25").Property("fill", "#cfe4ff"));
