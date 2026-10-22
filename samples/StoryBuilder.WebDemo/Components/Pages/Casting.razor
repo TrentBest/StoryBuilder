@@ -354,7 +354,7 @@
         if (string.IsNullOrWhiteSpace(canonicalTerm) || string.IsNullOrWhiteSpace(synonymTerm))
             return;
 
-        Session.Vocabulary.AddSynonym(canonicalTerm, synonymTerm);
+        Session.AddSynonym(canonicalTerm, synonymTerm);
         synonymMessage = $"Connected “{synonymTerm.Trim()}” to the concept “{canonicalTerm.Trim()}”. Existing occurrences are re-indexed.";
         canonicalTerm = string.Empty;
         synonymTerm = string.Empty;
