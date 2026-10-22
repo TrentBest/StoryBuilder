@@ -132,7 +132,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var sources = BinaryCodec.ReadList(stream, ReadSource);
         var issues = BinaryCodec.ReadList(stream, ReadContinuityIssue);
         var legacyProjectSourceJson = version >= 9 ? BinaryCodec.ReadString(stream) : null;
-        var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, ReadPublishedEdition) : [];
+        var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, item => ReadPublishedEdition(item, version)) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -324,23 +324,40 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteGuidList(stream, value.EventIds);
     }
 
-    private static PublishedBookEdition ReadPublishedEdition(IBinaryStream stream) => new()
+    private static PublishedBookEdition ReadPublishedEdition(IBinaryStream stream, int version)
     {
-        Id = BinaryCodec.ReadGuid(stream),
-        ManuscriptId = BinaryCodec.ReadGuid(stream),
-        Title = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Title)),
-        Subtitle = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Subtitle)),
-        Author = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Author)),
-        Markdown = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Markdown)),
-        ContentSha256 = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.ContentSha256)),
-        PublishedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
-        SourceUpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
-        PreviousEditionId = BinaryCodec.ReadNullableGuid(stream),
-        CorrectionNotes = BinaryCodec.ReadString(stream),
-        SectionIds = BinaryCodec.ReadGuidList(stream),
-        SceneIds = BinaryCodec.ReadGuidList(stream),
-        EventIds = BinaryCodec.ReadGuidList(stream)
-    };
+        var id = BinaryCodec.ReadGuid(stream);
+        var manuscriptId = BinaryCodec.ReadGuid(stream);
+        var title = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Title));
+        var subtitle = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Subtitle));
+        var author = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Author));
+        var markdown = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Markdown));
+        var contentSha256 = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.ContentSha256));
+        var publishedAtUtc = BinaryCodec.ReadDateTimeOffset(stream);
+        var sourceUpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream);
+        var previousEditionId = BinaryCodec.ReadNullableGuid(stream);
+        var correctionNotes = BinaryCodec.ReadString(stream);
+        var sectionIds = BinaryCodec.ReadGuidList(stream);
+        var sceneIds = version >= 12 ? BinaryCodec.ReadGuidList(stream) : [];
+        var eventIds = BinaryCodec.ReadGuidList(stream);
+        return new PublishedBookEdition
+        {
+            Id = id,
+            ManuscriptId = manuscriptId,
+            Title = title,
+            Subtitle = subtitle,
+            Author = author,
+            Markdown = markdown,
+            ContentSha256 = contentSha256,
+            PublishedAtUtc = publishedAtUtc,
+            SourceUpdatedAtUtc = sourceUpdatedAtUtc,
+            PreviousEditionId = previousEditionId,
+            CorrectionNotes = correctionNotes,
+            SectionIds = sectionIds,
+            SceneIds = sceneIds,
+            EventIds = eventIds
+        };
+    }
 
     private static void WritePremise(IBinaryStream stream, StoryPremise value)
     {
