@@ -21,6 +21,16 @@
             <input id="new-name" @bind="draftName" placeholder="A name, or leave it blank" />
         </div>
         <div class="field">
+            <label for="draft-narrative-role">Story-function grouping</label>
+            <select id="draft-narrative-role" @bind="draftNarrativeRole">
+                @foreach (var role in Enum.GetValues<CharacterNarrativeRole>())
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+            <span class="muted">Hero, Neutral, and Antagonist describe story function, not moral worth. Undecided is a valid choice.</span>
+        </div>
+        <div class="field">
             <label for="template">Starting pattern</label>
             <select id="template" @bind="draftTemplate">
                 @foreach (var template in Session.CharacterBuilder.GetTemplates())
@@ -57,6 +67,16 @@
             </div>
             <span class="chip">@Session.Workspace.Characters.Count records</span>
         </div>
+        <div class="field">
+            <label for="role-filter">Browse by story function</label>
+            <select id="role-filter" @bind="roleFilter">
+                <option value="All">All roles</option>
+                @foreach (var role in Enum.GetValues<CharacterNarrativeRole>())
+                {
+                    <option value="@role.ToString()">@role</option>
+                }
+            </select>
+        </div>
         @if (Session.Workspace.Characters.Count == 0)
         {
             <div class="empty">The room is waiting. Create a draft to begin.</div>
@@ -64,7 +84,7 @@
         else
         {
             <div class="list">
-                @foreach (var character in Session.Workspace.Characters)
+                @foreach (var character in VisibleCharacters)
                 {
                     <button class="list-item @(selectedCharacter?.Id == character.Id ? "selected" : "")" @onclick="() => SelectCharacter(character)">
                         <strong>@character.Name</strong>
@@ -184,6 +204,66 @@
             }
         </div>
     </section>
+
+    <section class="mirror-grid" style="margin-top:1rem">
+        <article class="panel stack mirror-panel">
+            <div class="eyebrow">Mirror 01 · Profile now</div>
+            <h3>@selectedCharacter.Name</h3>
+            <span class="chip">@selectedCharacter.NarrativeRole · @selectedCharacter.Role</span>
+            <p>@selectedCharacter.Description</p>
+            <div class="row wrap">
+                @foreach (var trait in selectedCharacter.Traits)
+                {
+                    <span class="chip">@trait.Term</span>
+                }
+            </div>
+        </article>
+        <article class="panel stack mirror-panel">
+            <div class="eyebrow">Mirror 02 · Proposed revision</div>
+            <h3>@(string.IsNullOrWhiteSpace(editName) ? "Unnamed character" : editName)</h3>
+            <span class="chip">@editNarrativeRole · @editRole</span>
+            <p>@editDescription</p>
+            @if (editName != selectedCharacter.Name || editRole != selectedCharacter.Role || editDescription != selectedCharacter.Description || editNarrativeRole != selectedCharacter.NarrativeRole)
+            {
+                <span class="chip">Changes pending — save edits to apply</span>
+            }
+            else
+            {
+                <span class="chip">Matches current profile</span>
+            }
+        </article>
+        <article class="panel stack mirror-panel">
+            <div class="eyebrow">Mirror 03 · Context and usage</div>
+            <h3>Where the words appear</h3>
+            @{
+                var nameUsage = Session.Vocabulary.Search(selectedCharacter.Name).FirstOrDefault();
+            }
+            @if (nameUsage is not null)
+            {
+                <p><strong>@selectedCharacter.Name</strong> · @nameUsage.OccurrenceCount use(s) across @nameUsage.DistinctTargetCount target(s)</p>
+                @foreach (var occurrence in nameUsage.Occurrences.Take(3))
+                {
+                    <p class="muted">@occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution</p>
+                    @if (!string.IsNullOrWhiteSpace(occurrence.Context))
+                    {
+                        <p>@occurrence.Context</p>
+                    }
+                }
+            }
+            @foreach (var trait in selectedCharacter.Traits.Take(3))
+            {
+                var usage = Session.Vocabulary.Search(trait.Term).FirstOrDefault();
+                <p><strong>@trait.Term</strong> · @(usage?.OccurrenceCount ?? 0) use(s)</p>
+                @if (usage is not null)
+                {
+                    @foreach (var occurrence in usage.Occurrences.Take(2))
+                    {
+                        <p class="muted">@occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution</p>
+                    }
+                }
+            }
+        </article>
+    </section>
 }
 
 <section class="panel stack" style="margin-top:1rem">
@@ -247,9 +327,12 @@
 @code {
     private string draftName = string.Empty;
     private string draftTemplate = "Unspecified";
+    private CharacterNarrativeRole draftNarrativeRole = CharacterNarrativeRole.Undecided;
+    private string roleFilter = "All";
     private CharacterProfile? selectedCharacter;
     private string editName = string.Empty;
     private string editRole = string.Empty;
+    private CharacterNarrativeRole editNarrativeRole = CharacterNarrativeRole.Undecided;
     private string editDescription = string.Empty;
     private string traitText = string.Empty;
     private string traitAttribution = "Author";
@@ -261,11 +344,19 @@
     private bool hasSearched;
     private IReadOnlyList<VocabularyUsage> searchResults = Array.Empty<VocabularyUsage>();
 
+    private IEnumerable<CharacterProfile> VisibleCharacters =>
+        roleFilter == "All"
+            ? Session.Workspace.Characters
+            : Enum.TryParse<CharacterNarrativeRole>(roleFilter, out var role)
+                ? Session.Workspace.Characters.Where(character => character.NarrativeRole == role)
+                : Session.Workspace.Characters;
+
     private static string ShortId(Guid id) => id.ToString("N")[..8];
 
     private void CreateCharacter()
     {
-        selectedCharacter = Session.CreateCharacter(draftName, draftTemplate);
+        var created = Session.CreateCharacter(draftName, draftTemplate);
+        selectedCharacter = Session.UpdateCharacter(created with { NarrativeRole = draftNarrativeRole });
         _ = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
         draftName = string.Empty;
         LoadSelectedFields();
@@ -282,6 +373,7 @@
     {
         editName = selectedCharacter?.Name ?? string.Empty;
         editRole = selectedCharacter?.Role ?? string.Empty;
+        editNarrativeRole = selectedCharacter?.NarrativeRole ?? CharacterNarrativeRole.Undecided;
         editDescription = selectedCharacter?.Description ?? string.Empty;
     }
 
@@ -294,6 +386,7 @@
         {
             Name = string.IsNullOrWhiteSpace(editName) ? "Unnamed character" : editName.Trim(),
             Role = string.IsNullOrWhiteSpace(editRole) ? "Unspecified" : editRole.Trim(),
+            NarrativeRole = editNarrativeRole,
             Description = editDescription.Trim(),
             UpdatedAtUtc = DateTimeOffset.UtcNow
         });
