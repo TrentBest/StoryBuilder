@@ -1,0 +1,144 @@
+@page "/timelines"
+@implements IDisposable
+@inject StoryBuilderSession Session
+
+<PageTitle>Timelines · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Door 07 · Living History</div>
+    <h1>See the shape of time.</h1>
+    <p class="lede">Create named timelines and branch histories without overwriting their source. GUI.SVG draws this map from the saved StoryBuilder timeline definitions; the domain records remain authoritative.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">Timeline authoring</div>
+        <h2>Start a history or branch one</h2>
+        <div class="field">
+            <label for="timeline-name">Timeline name</label>
+            <input id="timeline-name" @bind="timelineName" placeholder="The original history" />
+        </div>
+        <div class="field">
+            <label for="timeline-description">Description (optional)</label>
+            <textarea id="timeline-description" @bind="timelineDescription" placeholder="What distinguishes this history?"></textarea>
+        </div>
+        <div class="field">
+            <label for="timeline-parent">Branch from</label>
+            <select id="timeline-parent" @bind="parentTimelineId">
+                <option value="">New root timeline</option>
+                @foreach (var timeline in Session.Workspace.Timelines)
+                {
+                    <option value="@timeline.Id">@timeline.Name</option>
+                }
+            </select>
+        </div>
+        <button @onclick="CreateTimeline">Create timeline</button>
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <p class="muted" role="status">@message</p>
+        }
+        <p class="muted">A branch records its parent identity. This first view does not yet edit divergence events, world time, character knowledge, or manuscript reveal order.</p>
+    </section>
+
+    <section class="panel stack">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Semantic model → SVG manifestation</div>
+                <h2>Timeline constellation</h2>
+            </div>
+            <span class="chip">@Session.Workspace.Timelines.Count timeline(s)</span>
+        </div>
+        <div class="living-svg" role="img" aria-label="GUI.SVG diagram of timeline definitions and parent-child branches">
+            @((MarkupString)svgMarkup)
+        </div>
+        <p class="muted">Lines show declared parent relationships, not causality or a measured time axis. Select a timeline below to inspect its identity and lineage.</p>
+    </section>
+</div>
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="eyebrow">Canonical records</div>
+    <h2>Timeline index</h2>
+    @if (Session.Workspace.Timelines.Count == 0)
+    {
+        <div class="empty">No timelines yet. Create a root history to begin.</div>
+    }
+    else
+    {
+        <div class="list">
+            @foreach (var timeline in Session.Workspace.Timelines)
+            {
+                var parent = Session.Workspace.Timelines.FirstOrDefault(item => item.Id == timeline.ParentTimelineId);
+                <button class="list-item @(selectedTimeline?.Id == timeline.Id ? "selected" : "")" @onclick="() => SelectTimeline(timeline)">
+                    <strong>@timeline.Name</strong>
+                    <span class="chip">@(timeline.IsBranch ? "Branch" : "Root")</span>
+                    <span>@(parent is null ? "Root history" : $"Branches from {parent.Name}")</span>
+                    @if (!string.IsNullOrWhiteSpace(timeline.Description))
+                    {
+                        <span>@timeline.Description</span>
+                    }
+                    <small class="muted">ID: @timeline.Id</small>
+                </button>
+            }
+        </div>
+    }
+    @if (selectedTimeline is not null)
+    {
+        <div class="panel stack">
+            <div class="eyebrow">Selected timeline</div>
+            <h3>@selectedTimeline.Name</h3>
+            <p>@(string.IsNullOrWhiteSpace(selectedTimeline.Description) ? "No description recorded." : selectedTimeline.Description)</p>
+            <p class="muted">Created @selectedTimeline.CreatedAtUtc.ToString("u") · Stable ID @selectedTimeline.Id</p>
+            @if (selectedTimeline.ParentTimelineId is Guid parentId)
+            {
+                <p>Parent: @(Session.Workspace.Timelines.FirstOrDefault(item => item.Id == parentId)?.Name ?? "Missing parent record")</p>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private readonly StoryBuilderTimelineRenderer renderer = new();
+    private string svgMarkup = string.Empty;
+    private string timelineName = "Original history";
+    private string timelineDescription = string.Empty;
+    private string parentTimelineId = string.Empty;
+    private string message = string.Empty;
+    private TimelineDefinition? selectedTimeline;
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += OnSessionChanged;
+        RefreshSvg();
+    }
+
+    private void CreateTimeline()
+    {
+        Guid? parentId = Guid.TryParse(parentTimelineId, out var parsed) ? parsed : null;
+        try
+        {
+            selectedTimeline = Session.CreateTimeline(timelineName, timelineDescription, parentId);
+            message = selectedTimeline.IsBranch
+                ? $"Created branch '{selectedTimeline.Name}'. The parent timeline is preserved."
+                : $"Created root timeline '{selectedTimeline.Name}'.";
+            timelineName = "Untitled timeline";
+            timelineDescription = string.Empty;
+            parentTimelineId = string.Empty;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            message = ex.Message;
+        }
+    }
+
+    private void SelectTimeline(TimelineDefinition timeline) => selectedTimeline = timeline;
+
+    private void OnSessionChanged() => _ = InvokeAsync(() =>
+    {
+        RefreshSvg();
+        StateHasChanged();
+    });
+
+    private void RefreshSvg() => svgMarkup = renderer.Render(Session);
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}

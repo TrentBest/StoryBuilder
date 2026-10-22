@@ -1,6 +1,6 @@
 # StoryBuilder Gallery
 
-StoryBuilder is the tooling that captures the creation of an Experience and composes its characters, world history, scenes, and campaigns. The first local web workbench now exercises real domain behavior; integration with the Workshop's WebPage and living GUI.SVG views remains future work.
+StoryBuilder is the tooling that captures the creation of an Experience and composes its characters, world history, scenes, and campaigns. The local web workbench exercises real domain behavior and uses GUI.SVG for living workspace and timeline views. Integration with the Workshop's WebPage host remains future work.
 
 ## Recipe 1: enter the workbench
 
@@ -17,7 +17,8 @@ Open http://localhost:5080.
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder beats; copy an editable narration draft.
 - **World Archive:** record a historical claim and optionally attach a source record.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
-- **Living Map:** see GUI.SVG render the current characters, statuses, traits, and most-used vocabulary from StoryBuilderSession. The view updates when workspace records change.
+- **Living Map:** see GUI.SVG render current characters, statuses, traits, and most-used vocabulary from StoryBuilderSession. The view updates when workspace records change.
+- **Timelines:** create root histories and named child branches. GUI.SVG draws the declared parent relationships from the canonical timeline definitions; connectors are not yet event-causality or world-time lines.
 
 This is an interactive local Blazor host using a session created through StoryBuilderAuthoringBundle. It uses the source-pinned GUI.SVG project to render a living workspace view and autosaves a versioned binary workspace in browser localStorage, restoring it after refresh. Storage is local to this browser; there is no cloud sync, account sharing, or WebPage deployment yet.
 
@@ -31,4 +32,4 @@ This console sample creates an editable character, automatically indexes its tra
 
 ## Next living proof
 
-The next end-to-end Experience should show the same character and vocabulary state through GUI.SVG, generated from the actual StoryBuilderSession rather than a static mockup. After that, integrate the StoryBuilder MicroBundle into the Workshop host, add export/backup and schema migration, then extend The Stage with pose visualization and optional physics data. The timeline/gesture/multiverse design contract is in [Timelines, Gestures, and Multiverse History](TIMELINES_GESTURES_MULTIVERSE.md); it describes intended behavior, not shipped functionality.
+Extend the GUI.SVG projections from timeline definitions to canonical event identities, explicit divergence points, scene-to-event links, and observer-aware disclosure—only as each relationship becomes real domain data. The current timeline view shows declared parent/branch relationships, not temporal simulation. After that, integrate the StoryBuilder MicroBundle into the Workshop host, add export/backup and schema migration, then extend The Stage with gesture/pose visualization and optional physics data. The broader design contract is in [Timelines, Gestures, and Multiverse History](TIMELINES_GESTURES_MULTIVERSE.md); it describes intended behavior, not shipped functionality.

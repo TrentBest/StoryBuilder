@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 56% — working local authoring prototype with binary browser persistence and a live GUI.SVG view; first executable timeline Process Group foundation committed, but its CI verification is pending. Not release-ready.
+**Readiness estimate:** 56% — working local authoring prototype with binary browser persistence and a live GUI.SVG view; first executable timeline Process Group foundation verified by CI; a new GUI.SVG timeline map is now being added and awaits its own CI run. Not release-ready.
 
 ## Implemented in development source
 
@@ -14,6 +14,7 @@
 - Interactive **World Archive** page: record historical claims with optional source provenance and explicit canon status.
 - **Campaign Room:** create campaigns, record participant choices, and accept/reject/reopen/deprecate them through the FSM_API lifecycle.
 - **Living Map:** the pinned GUI.SVG source project renders a live SVG manifestation of current character cards, review status, traits, workspace counts, and most-used vocabulary. Automated tests verify that the rendered output changes with real domain data.
+- **Timeline map (new, CI pending):** the WebDemo adds root/branch creation and a GUI.SVG projection of timeline definitions and declared parent relationships. It deliberately does not imply event causality, divergence placement, world-time scale, or observer knowledge.
 - VocabularyIndex with explicit synonym mapping, surface-word preservation, counts, attribution, text tokenization, and re-indexing of existing occurrences when synonym mappings change.
 - StoryBuilderSession coordinates workspace edits and refreshes indexed names, roles, descriptions, traits, relationships, notes, scene metadata, beat text, claims, events, sources, campaigns, participant actions, and continuity notes; it now also creates canonical timeline definitions and branch references.
 - StoryWorkspace records for the Experience definition, timeline definitions, design decisions, sources, historical claims, events, campaigns, participant actions, and continuity issues.
@@ -34,7 +35,8 @@
 ## Verification evidence
 
 - [Workflow run 39702171854](https://github.com/TrentBest/StoryBuilder/actions/runs/39702171854) succeeded for the domain core, FSM_API adapter, MicroBundle adapter, binary persistence adapter, console quickstart, interactive WebDemo, and tests including GUI.SVG rendering and browser-local persistence. That run used commit `ffa4dd67de94d09bea2d517458ac6cdcdcd6cabc`; it is a verified baseline, not verification of the new timeline code.
-- The timeline foundation adds new build and test paths. Check the [latest development workflow runs](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml?query=branch%3Adevelopment) before treating this source as verified. At this status edit, the new commits' workflow runs have been queued; no pass/fail claim is made.
+- [Timeline foundation workflow run 39705563323](https://github.com/TrentBest/StoryBuilder/actions/runs/39705563323) succeeded on `abe19472f935508aa1a6b62f8f3eb13143341cbe`, verifying the timeline Process Group, session-level creation/branch API, binary persistence, MicroBundle declaration, and tests.
+- The new GUI.SVG timeline map and page are committed after that verified head; their CI run is pending. Check the [latest development workflow runs](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml?query=branch%3Adevelopment) before treating the new UI as verified.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
@@ -44,7 +46,7 @@
 - Confirmed versus likely versus unresolved character-reference counts; ambiguous pronouns are not automatically resolved.
 - Cloud/server storage, explicit import/export, backup, and migration from future binary schema versions.
 - Integration into the Workshop's WebPage host.
-- Broader source-derived GUI.SVG views for chronology, relationships, and scene continuity beyond the current living map.
+- Broader source-derived GUI.SVG views for chronology, relationships, and scene continuity. The new timeline map currently shows only timeline definitions and declared parent/branch relationships.
 - Browser-level automated tests for user interactions and accessibility.
 - Physics-backed fight simulation or a visual pose/claymation timeline.
 - Full canonical event timelines with world time distinct from reader order, causal graph editing, synchronized timeline comparison, observer knowledge, and explicit unrevealed events. The first Process Group execution seam exists, but it is not yet a temporal simulation.
@@ -58,11 +60,11 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation work together; the MicroBundle contract is tested through FSM_COS. The new timeline vertical slice establishes canonical timeline identities, driver composition, an FSM_API runtime adapter, and binary persistence, but its new tests still need a passing CI result. The Narrator-first workflow, Casting Studio's revision/reference observability, timeline console and recounting model, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation work together; the MicroBundle contract is tested through FSM_COS. The timeline vertical slice establishes canonical timeline identities, driver composition, an FSM_API runtime adapter, and binary persistence; its CI passed. The newly added GUI.SVG timeline page is awaiting CI. The Narrator-first workflow, Casting Studio's revision/reference observability, timeline console and recounting model, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. **Verify the timeline vertical slice:** get a green workflow for the current branch head; resolve any compile, runtime, or persistence regressions before expanding the feature.
+1. **Verify the GUI.SVG timeline view:** get a green workflow for the current branch head; resolve any compile, rendering, or accessibility regressions before expanding the feature.
 2. Build the keyboard-invoked timeline console over actual Process Group and domain records, with a visible accessible control as a fallback.
 3. Add canonical event and causal identities plus bidirectional links between timeline events and book/chapter/scene/passage recountings, with colored relationship indicators and stable event IDs.
 4. Add exact-repeat references and observer-constrained new recountings; flag knowledge violations and contradictions rather than silently rewriting canon.
