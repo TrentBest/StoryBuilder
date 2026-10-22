@@ -92,6 +92,44 @@ public sealed class VocabularyIndex
         }
     }
 
+    /// <summary>Records each whitespace-delimited word in text while retaining the original token and source context.</summary>
+    public IReadOnlyList<WordOccurrence> RecordText(
+        string? text,
+        VocabularyCategory category,
+        Guid targetId,
+        string targetLabel,
+        string field,
+        string? context = null,
+        string attribution = "Author",
+        string? sourceId = null,
+        CanonStatus status = CanonStatus.Draft)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return Array.Empty<WordOccurrence>();
+
+        var occurrences = new List<WordOccurrence>();
+        foreach (var rawToken in text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var token = new string(rawToken
+                .Where(c => char.IsLetterOrDigit(c) || c is '\\'' or '’' or '-')
+                .ToArray());
+            if (token.Length == 0)
+                continue;
+
+            occurrences.Add(Record(token, category, targetId, targetLabel, field, context ?? text,
+                attribution, sourceId, status));
+        }
+
+        return occurrences;
+    }
+
+    /// <summary>Removes indexed occurrences for one target before that record is re-indexed after editing.</summary>
+    public int RemoveTarget(Guid targetId)
+    {
+        lock (_gate)
+            return _occurrences.RemoveAll(o => o.TargetId == targetId);
+    }
+
     public IReadOnlyList<VocabularyUsage> Search(string query)
     {
         ValidateTerm(query, nameof(query));
