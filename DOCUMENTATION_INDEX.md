@@ -10,13 +10,13 @@
 | Constrain narration to an observer's knowledge | Observer knowledge ledger and evaluator [UML](docs/UML/ObserverKnowledgeRecordUML.md) |
 | Inspect or accept an observer's knowledge | [Observer Lens](samples/StoryBuilder.WebDemo/ObserverLens.md), route /observers |
 | Understand the Narrator's cooperating FSMs | [NarratorAgent](src/StoryBuilder.FSM/NarratorAgent.md), [Narrator UML](docs/UML/NarratorAgentUML.md) |
-| Link key events to the actual book | WebDemo Timelines and Book Preview; manuscript event references are stored by stable event ID |
+| Link key events to the actual book | The GUI.SVG portrayal rail on `/timelines` and event links on `/book`; manuscript sections reference events by stable ID |
 | View and author a real manuscript product | WebDemo Book Preview at /book; manuscript model [UML](docs/UML/ManuscriptEditionUML.md) |
 | Understand book-first composition, provisional Plot Twist planning, observer constraints, and multi-FSM Narrator | [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md), [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Understand publication output versus physical printing | [Narrator Experience — Publication Boundary](docs/NARRATOR_EXPERIENCE.md#publication-boundary) |
 | Explore the casting-room concept | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) |
 | Understand the timeline Process Group foundation | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [TimelineProcessGroup UML](docs/UML/TimelineProcessGroupUML.md), [Timeline tests](tests/StoryBuilder.Core.Tests/TimelineProcessGroupTests.cs) |
-| Design timeline console, event-to-book links, and immutable editions | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md) |
+| Design timeline console, scene/beat event links, and immutable editions | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md) |
 | Design plural timelines, time-travel branches, gestures, and multiverse history | [Timelines, Gestures, and Multiverse History](docs/TIMELINES_GESTURES_MULTIVERSE.md) |
 | Inspect character words, context, and pronoun references | [Character Casting Studio — Word and Reference Observability](docs/CHARACTER_CASTING_STUDIO.md#word-and-reference-observability) |
 | Run the authoring workbench | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md) |

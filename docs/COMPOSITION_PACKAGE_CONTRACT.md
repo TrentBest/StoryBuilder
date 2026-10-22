@@ -4,7 +4,7 @@
 
 Workshop arbitration must produce a reusable composition package that AnyApp can consume without repeating the expensive decisions that produced it. StoryBuilder's first demanding proof is a real book that can also be inspected through timeline, composition, continuity, and observer views.
 
-The manifest/configuration contracts, validator, binary artifact compiler, and reader are now implemented in source. The latest binary artifact increment is awaiting CI verification; this document distinguishes those implementation steps from production deployment and integration into the actual AnyApp host, which are not yet complete.
+The manifest/configuration contracts, validator, binary artifact compiler, and reader are implemented and passed CI. Actual integration with the AnyApp host, provider activation, deployment packaging, and the complete repeated-consumption proof remain future work.
 
 ## Three responsibilities
 
@@ -32,7 +32,7 @@ Workshop arbitration is the honing step. It resolves choices and records the res
 - `CompositionPackageCompiler` serializes workspace content through the existing FSM_Serialization-backed workspace document and emits three separate binary payloads: manifest, configuration, and content. The manifest hashes the exact configuration and content bytes.
 - `CompositionPackageReader` validates the manifest, configuration, payload hashes, and host capability availability before restoring content. Failed validation returns diagnostics and no session.
 - The manifest and configuration have explicit binary format versions and magic identifiers; settings are typed textual values under an explicit value-type identifier. No JSON or general-purpose object-graph serializer is introduced.
-- The binary artifact compiler/reader increment is awaiting CI verification. Actual AnyApp integration, provider activation, and end-to-end repeated-consumption proof remain future work.
+- CI passed for contract validation, binary compilation/reading, round-trip book restoration, tamper rejection, and missing-required-bundle rejection. AnyApp host integration and deterministic repeated-consumption proof remain future work.
 
 These contracts are host-neutral and do not introduce a StoryBuilder.Core dependency on FSM_COS, AnyApp, GUI.SVG, or Renderer.
 

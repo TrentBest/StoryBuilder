@@ -6,7 +6,7 @@ using TheSingularityWorkshop.Workshop.Gui.Svg;
 
 namespace StoryBuilder.WebDemo;
 
-/// <summary>Builds a GUI.SVG view of timeline identities and declared parent/branch relationships.</summary>
+/// <summary>Builds a GUI.SVG view of timeline identities, planning points, events, and their book portrayals.</summary>
 public sealed class StoryBuilderTimelineRenderer
 {
     private readonly SvgGuiRenderer renderer = new();
@@ -14,7 +14,22 @@ public sealed class StoryBuilderTimelineRenderer
     public string Render(StoryBuilderSession session)
     {
         ArgumentNullException.ThrowIfNull(session);
-        var timelines = session.Workspace.Timelines;
+        var workspace = session.Workspace;
+        var timelines = workspace.Timelines;
+        var portrayalLinks = workspace.Manuscripts
+            .OrderBy(manuscript => manuscript.Title, StringComparer.Ordinal)
+            .SelectMany(manuscript => manuscript.Sections
+                .OrderBy(section => section.Sequence)
+                .SelectMany(section => section.EventIds.Select(eventId => new
+                {
+                    EventId = eventId,
+                    ManuscriptId = manuscript.Id,
+                    ManuscriptTitle = manuscript.Title,
+                    Section = section
+                })))
+            .Where(link => workspace.Events.Any(storyEvent => storyEvent.Id == link.EventId))
+            .ToList();
+
         var depthById = new Dictionary<Guid, int>();
         int Depth(TimelineDefinition timeline, HashSet<Guid> visiting)
         {
@@ -34,16 +49,19 @@ public sealed class StoryBuilderTimelineRenderer
             Depth(timeline, []);
 
         var maxDepth = depthById.Values.DefaultIfEmpty(0).Max();
-        var maxPlanningPoints = timelines.Select(timeline => session.Workspace.PlanningPoints.Count(point => point.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
-        var maxEvents = timelines.Select(timeline => session.Workspace.Events.Count(item => item.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
+        var maxPlanningPoints = timelines.Select(timeline => workspace.PlanningPoints.Count(point => point.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
+        var maxEvents = timelines.Select(timeline => workspace.Events.Count(item => item.TimelineId == timeline.Id)).DefaultIfEmpty(0).Max();
         var maxMarkers = maxPlanningPoints + maxEvents;
         var width = Math.Max(100, (maxDepth + 1) * 32 + 8 + maxMarkers * 17);
-        var height = Math.Max(36, timelines.Count * 15 + 16);
+        if (portrayalLinks.Count > 0)
+            width += 64;
+        var railHeight = portrayalLinks.Count == 0 ? 0 : 15 + portrayalLinks.Count * 8;
+        var height = Math.Max(36, timelines.Count * 15 + 16 + railHeight);
         var root = GuiBuilder.Create("svg-scene", "storybuilder-timeline-map")
-            .Text("StoryBuilder timeline constellation")
+            .Text("StoryBuilder timeline constellation and book portrayal links")
             .Property("viewBox", $"0 0 {width} {height}")
-            .Property("aria-label", "Timeline definitions and parent branch relationships")
-            .Property("description", "A domain-derived view. Connectors represent declared parent timeline identities, not measured time or causality.");
+            .Property("aria-label", "Timeline definitions, planning points, world events, and event-to-book-section portrayal links")
+            .Property("description", "Parent connectors show timeline lineage. The portrayal rail connects a world event to manuscript sections that recount it; neither relationship implies measured world time.");
 
         root.Child("svg-rect", "timeline-background", node => node
             .Property("x", "0").Property("y", "0").Property("width", width.ToString(CultureInfo.InvariantCulture))
@@ -64,6 +82,8 @@ public sealed class StoryBuilderTimelineRenderer
 
         var rowById = timelines.Select((timeline, index) => (timeline.Id, Y: 13 + index * 15))
             .ToDictionary(item => item.Id, item => item.Y);
+        var eventXById = new Dictionary<Guid, double>();
+        var eventYById = new Dictionary<Guid, double>();
 
         foreach (var timeline in timelines)
         {
@@ -99,7 +119,7 @@ public sealed class StoryBuilderTimelineRenderer
                 .Property("y", (y + 3.4).ToString(CultureInfo.InvariantCulture))
                 .Property("font-size", "1.5").Property("fill", "#edf0f5"));
 
-            var points = session.Workspace.PlanningPoints.Where(point => point.TimelineId == timeline.Id).ToList();
+            var points = workspace.PlanningPoints.Where(point => point.TimelineId == timeline.Id).ToList();
             for (var index = 0; index < points.Count; index++)
             {
                 var point = points[index];
@@ -116,11 +136,13 @@ public sealed class StoryBuilderTimelineRenderer
                     .Property("font-size", "1.35").Property("fill", "#ffe0a1"));
             }
 
-            var events = session.Workspace.Events.Where(item => item.TimelineId == timeline.Id).ToList();
+            var events = workspace.Events.Where(item => item.TimelineId == timeline.Id).ToList();
             for (var index = 0; index < events.Count; index++)
             {
                 var storyEvent = events[index];
                 var eventX = x + 28 + (points.Count + index) * 17;
+                eventXById[storyEvent.Id] = eventX;
+                eventYById[storyEvent.Id] = y;
                 root.Child("svg-rect", $"world-event-card-{storyEvent.Id:N}", node => node
                     .Property("x", eventX.ToString(CultureInfo.InvariantCulture))
                     .Property("y", (y + 0.5).ToString(CultureInfo.InvariantCulture))
@@ -131,6 +153,58 @@ public sealed class StoryBuilderTimelineRenderer
                     .Property("x", (eventX + 0.7).ToString(CultureInfo.InvariantCulture))
                     .Property("y", (y + 3.2).ToString(CultureInfo.InvariantCulture))
                     .Property("font-size", "1.35").Property("fill", "#cfe4ff"));
+            }
+        }
+
+        if (portrayalLinks.Count > 0)
+        {
+            var titleY = 13 + timelines.Count * 15;
+            var firstRowY = titleY + 4;
+            root.Child("svg-text", "book-portrayal-rail-title", node => node
+                .Text("BOOK PORTRAYAL RAIL · WORLD EVENT → MANUSCRIPT SECTION")
+                .Property("x", "4").Property("y", titleY.ToString(CultureInfo.InvariantCulture))
+                .Property("font-size", "2").Property("font-weight", "700").Property("fill", "#b7c9df"));
+
+            for (var index = 0; index < portrayalLinks.Count; index++)
+            {
+                var link = portrayalLinks[index];
+                var rowY = firstRowY + index * 8;
+                var storyEvent = workspace.Events.First(item => item.Id == link.EventId);
+                var eventX = eventXById.GetValueOrDefault(link.EventId, 4);
+                if (eventYById.TryGetValue(link.EventId, out var eventY))
+                {
+                    root.Child("svg-rect", $"portrayal-vertical-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
+                        .Property("x", (eventX + 7.7).ToString(CultureInfo.InvariantCulture))
+                        .Property("y", (eventY + 5).ToString(CultureInfo.InvariantCulture))
+                        .Property("width", "0.2")
+                        .Property("height", Math.Max(0.2, rowY + 2.5 - (eventY + 5)).ToString(CultureInfo.InvariantCulture))
+                        .Property("fill", "#7c9bba"));
+                }
+                root.Child("svg-rect", $"portrayal-event-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
+                    .Property("x", eventX.ToString(CultureInfo.InvariantCulture))
+                    .Property("y", rowY.ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "15.5").Property("height", "5").Property("rx", "0.6")
+                    .Property("fill", "#202f43").Property("stroke", "#8bb7e8").Property("stroke-width", "0.25"));
+                root.Child("svg-text", $"portrayal-event-label-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
+                    .Text(Shorten(storyEvent.Title, 12))
+                    .Property("x", (eventX + 0.6).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (rowY + 3.2).ToString(CultureInfo.InvariantCulture))
+                    .Property("font-size", "1.25").Property("fill", "#cfe4ff"));
+                root.Child("svg-rect", $"portrayal-connector-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
+                    .Property("x", (eventX + 15.5).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (rowY + 2.4).ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "2").Property("height", "0.2").Property("fill", "#7c9bba"));
+                var sectionX = eventX + 17.5;
+                root.Child("svg-rect", $"portrayal-section-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
+                    .Property("x", sectionX.ToString(CultureInfo.InvariantCulture))
+                    .Property("y", rowY.ToString(CultureInfo.InvariantCulture))
+                    .Property("width", "44").Property("height", "5").Property("rx", "0.6")
+                    .Property("fill", "#263329").Property("stroke", "#a9d8c8").Property("stroke-width", "0.25"));
+                root.Child("svg-text", $"portrayal-section-label-{link.EventId:N}-{link.ManuscriptId:N}-{link.Section.Id:N}", node => node
+                    .Text(Shorten($"{link.ManuscriptTitle}: {link.Section.Title}", 40))
+                    .Property("x", (sectionX + 0.6).ToString(CultureInfo.InvariantCulture))
+                    .Property("y", (rowY + 3.2).ToString(CultureInfo.InvariantCulture))
+                    .Property("font-size", "1.25").Property("fill", "#d7f0e4"));
             }
         }
 

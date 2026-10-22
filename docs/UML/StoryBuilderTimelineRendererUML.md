@@ -7,10 +7,16 @@ classDiagram
     class StoryBuilderSession {
         +Workspace
         +CreateTimeline(name, description, parentTimelineId)
+        +CreatePlanningPoint(timelineId, label, approximatePlacement, intent)
+        +CreateTimelineEvent(timelineId, title, summary, approximatePlacement)
+        +LinkEventToManuscriptSection(manuscriptId, sectionId, eventId, linked)
         +Changed
     }
     class StoryWorkspace {
         +Timelines
+        +PlanningPoints
+        +Events
+        +Manuscripts
     }
     class TimelineDefinition {
         +Id
@@ -18,6 +24,24 @@ classDiagram
         +Description
         +ParentTimelineId
         +IsBranch
+    }
+    class StoryEvent {
+        +Id
+        +Title
+        +TimelineId
+        +InWorldDateOrPeriod
+    }
+    class ManuscriptEdition {
+        +Id
+        +Title
+        +Sections
+    }
+    class ManuscriptSection {
+        +Id
+        +Sequence
+        +Kind
+        +Title
+        +EventIds
     }
     class StoryBuilderTimelineRenderer {
         +Render(session) string
@@ -27,17 +51,25 @@ classDiagram
     }
     StoryBuilderSession --> StoryWorkspace : owns
     StoryWorkspace --> TimelineDefinition : stores
+    StoryWorkspace --> StoryEvent : stores
+    StoryWorkspace --> ManuscriptEdition : stores
+    ManuscriptEdition --> ManuscriptSection : contains
+    ManuscriptSection --> StoryEvent : portrays by stable ID
     StoryBuilderTimelineRenderer ..> StoryBuilderSession : reads
     StoryBuilderTimelineRenderer ..> SvgGuiRenderer : renders through GUI.SVG
     StoryBuilderTimelineRenderer ..> TimelineDefinition : projects
+    StoryBuilderTimelineRenderer ..> StoryEvent : marks
+    StoryBuilderTimelineRenderer ..> ManuscriptSection : draws portrayal rail
 ```
 
 ## Use cases
 
 - **Create a root:** the author creates a timeline with no parent and sees a root node.
 - **Branch a history:** the author selects an existing parent, creates a child timeline, and sees the declared relationship.
-- **Keep the model authoritative:** refresh or restore the workspace and rebuild the diagram from timeline records; SVG is not a persistence layer.
+- **Place an event:** the author adds a key event with approximate or unresolved placement; the event marker is drawn on its timeline.
+- **Link event to product:** a manuscript section references the event by stable ID and appears on the portrayal rail with the actual book and section titles.
+- **Keep the model authoritative:** refresh or restore the workspace and rebuild the diagram from canonical records; SVG is not a persistence layer.
 
 ## Scope boundary
 
-This view does not yet draw world events, divergence points, event causality, scene links, character knowledge, or manuscript order. Those need explicit domain relationships before the visualization can claim to show them.
+Parent connectors represent branch lineage. Portrayal connectors represent where a world event is recounted in manuscript order. Neither one implies causality or measured world chronology. Scene/beat-level links and observer-aware recountings remain future work.

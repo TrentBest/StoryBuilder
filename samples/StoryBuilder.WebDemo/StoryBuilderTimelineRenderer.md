@@ -1,18 +1,21 @@
 # Living timeline map
 
-**User moniker:** Living timeline map
+![The Singularity Workshop moniker](https://raw.githubusercontent.com/TrentBest/TheSingularityWorkshop.Visualize/development/docs/assets/moniker.svg)
 
-**Purpose:** Renders declared timeline parent/branch relationships from the real StoryBuilderSession through GUI.SVG. It is a projection, not a second story database.
+## Purpose
+
+Trent Best — Living timeline map for StoryBuilder. Renders canonical timeline definitions, provisional planning points, world events, and event-to-manuscript-section portrayals through GUI.SVG.
 
 ## UML class card
 
-- Input: StoryBuilderSession and StoryWorkspace.Timelines
-- Renderer: StoryBuilderTimelineRenderer
-- Output: SVG manifestation of timeline identity, labels, and declared parent relationships
+See [StoryBuilderTimelineRenderer UML](../../docs/UML/StoryBuilderTimelineRendererUML.md).
 
 ## Use cases
 
-- Inspect root timelines and their branches.
-- Create a timeline or branch and see the live projection update.
-- Navigate from the visual map back to domain records.
-- Extend the view later with distinct rails for chronology, causality, manuscript portrayal, and disclosure.
+- Create a root history and branch from an existing timeline.
+- Place an unresolved Plot Twist without promoting it to canon.
+- Add a key world event with approximate or unresolved world-time placement.
+- Link one event to one or more chapters, scenes, or passages in a manuscript.
+- Inspect the generated portrayal rail to see which sections recount each event.
+
+The parent connectors show branch lineage, not causality or measured chronology. The portrayal rail represents the distinct event-to-manuscript relationship. All labels are generated from the current workspace records.

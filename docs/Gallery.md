@@ -18,7 +18,7 @@ Open http://localhost:5080.
 - **World Archive:** record a historical claim and optionally attach a source record.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
 - **Living Map:** see GUI.SVG render current characters, statuses, traits, and most-used vocabulary from StoryBuilderSession. The view updates when workspace records change.
-- **Timelines:** create root histories and named child branches, add provisional Plot Twist points, and record world events with approximate or unresolved placement. GUI.SVG distinguishes planning points from actual events.
+- **Timelines:** create root histories and named child branches, add provisional Plot Twist points, and record world events with approximate or unresolved placement. GUI.SVG distinguishes planning points from actual events and now draws an event-to-book portrayal rail from the same canonical event IDs used by the manuscript.
 - **Book Preview:** create a working manuscript, add ordered chapters/scenes/passages, write actual text, and link sections to world-event identities.
 - **Observer Lens:** record how a character witnessed, heard about, inferred, believed, disputed, or forgot an event. Accept knowledge explicitly, then evaluate whether a claim is allowed, blocked, or unresolved at a chosen event anchor.
 
@@ -34,4 +34,4 @@ This console sample creates an editable character, automatically indexes its tra
 
 ## Next living proof
 
-Draw explicit GUI.SVG relationship rails from timeline event markers to manuscript sections, then add scene/beat-level event links and a visible observer lens to the actual Narrator drafting workflow. The current event placement is descriptive rather than a measured time axis; the evaluator fails closed when causal availability cannot be established. After that, implement manifest/configuration production for AnyApp, prove Workshop arbitration is captured in that artifact, and integrate into the Workshop WebPage host. The broader design contract is in [Timelines, Gestures, and Multiverse History](TIMELINES_GESTURES_MULTIVERSE.md); it describes intended behavior beyond the verified vertical slice.
+Add scene/beat-level event links so a timeline event can point into the exact scene beats that portray it. Then connect the Narrator FSM workflow to the user's Renderer package through a host-neutral portrayal request and explicit result contract. The current event placement remains descriptive rather than a measured time axis; the evaluator fails closed when causal availability cannot be established. The binary package compiler/reader has passed CI; next, integrate its validated artifacts with the actual AnyApp host without rerunning Workshop arbitration. The broader contract is in [Timelines, Gestures, and Multiverse History](TIMELINES_GESTURES_MULTIVERSE.md).
