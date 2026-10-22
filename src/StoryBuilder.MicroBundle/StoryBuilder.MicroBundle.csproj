@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../StoryBuilder.Core/StoryBuilder.Core.csproj" />
+    <ProjectReference Include="../../external/TheSingularityWorkshop.GUI/src/Core/TheSingularityWorkshop.GUI.Core.csproj" />
     <PackageReference Include="TheSingularityWorkshop.MicroBundleDomain" Version="1.0.1" />
   </ItemGroup>
 </Project>
