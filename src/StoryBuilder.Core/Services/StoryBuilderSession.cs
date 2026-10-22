@@ -4,7 +4,7 @@ namespace StoryBuilder.Core.Services;
 
 /// <summary>
 /// Coordinates common authoring operations so edits and the vocabulary index stay synchronized.
-/// This session is in-memory; the host is responsible for persistence.
+/// The session owns in-memory domain state; host adapters may persist it without coupling storage to the core.
 /// </summary>
 public sealed class StoryBuilderSession
 {
