@@ -68,6 +68,16 @@ public static class StoryWorkspaceValidator
         foreach (var point in workspace.PlanningPoints)
             Missing(nameof(TimelinePlanningPoint), point.Id, "timeline", point.TimelineId, timelines);
 
+        // Character relationships are domain links, not merely vocabulary text.
+        // Validate them against the workspace so imported/restored profiles cannot silently
+        // point at characters that do not exist.
+        foreach (var character in workspace.Characters)
+        {
+            foreach (var relationship in character.Relationships)
+                Missing(nameof(CharacterProfile), character.Id, "related character",
+                    relationship.TargetCharacterId, characters);
+        }
+
         foreach (var storyEvent in workspace.Events)
         {
             if (storyEvent.TimelineId is Guid timelineId)
