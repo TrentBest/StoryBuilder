@@ -151,10 +151,10 @@ public static class StoryWorkspaceValidator
 
             foreach (var beat in scene.Beats)
             {
-            if (beat.ActorId is Guid actorId)
-                Missing(nameof(SceneBeat), beat.Id, "actor character", actorId, characters);
-            foreach (var id in beat.EventIds)
-                Missing(nameof(SceneBeat), beat.Id, "event", id, events);
+                if (beat.ActorId is Guid actorId)
+                    Missing(nameof(SceneBeat), beat.Id, "actor character", actorId, characters);
+                foreach (var id in beat.EventIds)
+                    Missing(nameof(SceneBeat), beat.Id, "event", id, events);
             }
         }
 
