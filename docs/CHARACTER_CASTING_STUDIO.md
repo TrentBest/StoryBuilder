@@ -104,3 +104,10 @@ Do not present a static illustration as live character state. GUI.SVG may supply
 ## Status
 
 This is a design specification for the next Casting evolution. It does not claim that pronoun coreference, impact previews, or the three-sided mirror are fully implemented.
+
+
+## Implementation checkpoint — 2026-10-22
+
+The current Casting page implements stable character IDs, editable names/profession/descriptions, explicit trait attribution, Hero / Neutral / Antagonist / Undecided / Other story-function grouping, role filtering, FSM_API review controls, and a three-sided mirror showing the current profile, pending revision, and indexed word context. The live GUI.SVG map reflects narrative role and traits.
+
+The full studio remains a design target: filtering by story/series/timeline/scene, source-span navigation, change impact across every scene, image/reference attachments, costume/voice facets, and author-confirmed pronoun/alias references are not implemented yet. Ambiguous pronouns remain unresolved rather than being guessed.
