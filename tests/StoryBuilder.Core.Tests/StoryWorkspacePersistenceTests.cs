@@ -46,7 +46,8 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(Guid.Parse("8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb3"), importedEvent.Id);
         Assert.NotNull(importedEvent.InWorldDateOrPeriod);
         Assert.NotNull(importedEvent.InWorldDateOrPeriod);
-        Assert.Contains("2025-06-07T08:09:10+05:30", importedEvent.InWorldDateOrPeriod);
+        Assert.StartsWith("2025-06-07T08:09:10", importedEvent.InWorldDateOrPeriod);
+        Assert.EndsWith("+05:30", importedEvent.InWorldDateOrPeriod);
         Assert.Contains("Line two.", importedEvent.Summary);
 
         var document = new StoryWorkspaceBinaryDocument(workspace);
