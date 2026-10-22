@@ -36,6 +36,31 @@ public static class StoryWorkspaceValidator
                     $"'{ownerType}' record '{ownerId}' references missing {relationship} record '{targetId}'."));
         }
 
+        // IDs are the identity boundary used by every relationship in a workspace.
+        // A HashSet alone would silently collapse duplicate IDs and let ambiguous records persist.
+        void DuplicateIds<T>(IEnumerable<T> records, Func<T, Guid> getId, string recordType)
+        {
+            foreach (var duplicate in records.GroupBy(getId).Where(group => group.Count() > 1))
+                issues.Add(new WorkspaceIntegrityIssue(recordType, duplicate.Key, "duplicate identity",
+                    duplicate.Key, $"'{recordType}' contains {duplicate.Count()} records with duplicate ID '{duplicate.Key}'."));
+        }
+
+        DuplicateIds(workspace.Timelines, item => item.Id, nameof(TimelineDefinition));
+        DuplicateIds(workspace.PlanningPoints, item => item.Id, nameof(TimelinePlanningPoint));
+        DuplicateIds(workspace.Events, item => item.Id, nameof(StoryEvent));
+        DuplicateIds(workspace.Characters, item => item.Id, nameof(CharacterProfile));
+        DuplicateIds(workspace.Scenes, item => item.Id, nameof(SceneRecord));
+        DuplicateIds(workspace.Manuscripts, item => item.Id, nameof(ManuscriptEdition));
+        DuplicateIds(workspace.Premises, item => item.Id, nameof(StoryPremise));
+        DuplicateIds(workspace.Sources, item => item.Id, nameof(SourceRecord));
+        DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));
+        DuplicateIds(workspace.HistoricalClaims, item => item.Id, nameof(HistoricalClaim));
+        DuplicateIds(workspace.ObserverKnowledge, item => item.Id, nameof(ObserverKnowledgeRecord));
+        DuplicateIds(workspace.ParticipantActions, item => item.Id, nameof(ParticipantAction));
+        DuplicateIds(workspace.ContinuityIssues, item => item.Id, nameof(ContinuityIssue));
+        DuplicateIds(workspace.Manuscripts.SelectMany(item => item.Sections), item => item.Id, nameof(ManuscriptSection));
+        DuplicateIds(workspace.Scenes.SelectMany(item => item.Beats), item => item.Id, nameof(SceneBeat));
+
         foreach (var timeline in workspace.Timelines)
             if (timeline.ParentTimelineId is Guid parentId)
                 Missing(nameof(TimelineDefinition), timeline.Id, "parent timeline", parentId, timelines);
