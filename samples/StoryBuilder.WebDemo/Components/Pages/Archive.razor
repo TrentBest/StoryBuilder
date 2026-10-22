@@ -132,7 +132,7 @@
                 SourceType = sourceType,
                 Perspective = string.IsNullOrWhiteSpace(sourcePerspective) ? null : sourcePerspective.Trim()
             };
-            Session.Workspace.AddSource(source);
+            Session.AddSource(source);
             sourceIds.Add(source.Id);
         }
 
