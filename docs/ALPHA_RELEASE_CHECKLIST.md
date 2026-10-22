@@ -22,7 +22,7 @@
 
 The defensible first milestone is a local, book-first authoring prototype: create characters and scenes, record timeline events, place events in manuscript passages, inspect the deterministic Markdown book output, and preserve a versioned binary workspace. The browser demo has browser-local persistence. The native AnyApp host is the intended desktop path; the automated two-process persistence probe now proves the saved workspace and event-to-section link survive a process restart. Real-host composition-package consumption remains to be validated.
 
-Not promised for this Alpha: cloud sync, collaboration, LLM-backed drafting, a full Renderer integration, or Workshop WebPage hosting. Immutable Markdown publication snapshots and corrected-edition lineage are now implemented on `development`; their new persistence and integrity tests must pass before this gate is considered verified.
+Not promised for this Alpha: cloud sync, collaboration, LLM-backed drafting, a full Renderer integration, or Workshop WebPage hosting. Immutable Markdown publication snapshots, SHA-256 integrity, scene/event provenance, corrected-edition lineage, and stream export are implemented on `development`; their persistence, integrity, export, and promotion tests have green CI evidence.
 
 ## Publishing boundary
 
