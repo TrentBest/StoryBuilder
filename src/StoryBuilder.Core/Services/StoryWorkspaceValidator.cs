@@ -114,6 +114,13 @@ public static class StoryWorkspaceValidator
                 Missing(nameof(TimelinePlanningPoint), point.Id, "related scene", sceneId, scenes);
             foreach (var eventId in point.RelatedEventIds)
                 Missing(nameof(TimelinePlanningPoint), point.Id, "related event", eventId, events);
+            if (point.PromotedEventId is Guid promotedEventId)
+            {
+                Missing(nameof(TimelinePlanningPoint), point.Id, "promoted event", promotedEventId, events);
+                if (point.Status != TimelinePlanningStatus.Superseded)
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(TimelinePlanningPoint), point.Id, "promotion status", promotedEventId,
+                        $"Planning point '{point.Id}' has a promoted event but is not marked Superseded."));
+            }
         }
 
         // Character relationships are domain links, not merely vocabulary text.
