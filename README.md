@@ -64,14 +64,13 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 ## 🟪 05 Available documentation and theory
 
+- [Phone Review Guide](docs/PHONE_REVIEW.md) — concise readiness, evidence, and next steps for reviewing this work on a phone.
 - [Documentation Index](DOCUMENTATION_INDEX.md) — choose a path through the repository.
 - [Architecture](docs/ARCHITECTURE.md) — package ownership and the Workshop integration plan.
 - [WebDemo Guide](samples/StoryBuilder.WebDemo/README.md) — how to run and explore the interactive prototype.
 - [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) — low-friction, visual-first story creation; target output discovery; and the digital publication boundary.
 - [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) — cast roles, the three-sided mirror concept, word occurrences, and careful pronoun-reference tracking.
 - [Timelines, Gestures, and Multiverse History](docs/TIMELINES_GESTURES_MULTIVERSE.md) — world events distinct from prose, timeline branches and divergence, gesture-driven animation, and Visualize/Renderer capability boundaries.
-- [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) — first-session premise capture and the future conversational guide.
-- [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) — narrative-role lanes, revision mirror, and source-context roadmap.
 - [Character Creation](docs/CHARACTER_CREATION.md) — defaults, prompts, templates, and editable character profiles.
 - [Scene Capture](docs/SCENE_CAPTURE.md) — playing scenes, beat capture, pose sequences, and narration drafts.
 - [Vocabulary and Provenance](docs/VOCABULARY_AND_PROVENANCE.md) — synonym usage, attribution, source records, and canon status.
@@ -83,7 +82,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 ## Current boundary
 
-The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, and GUI.SVG living map are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, authorable plural timelines and divergence views, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. No package publishing or release has been authorized.
+The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, versioned binary persistence adapter, Narrator-first Blazor workbench, Casting Studio role lanes and three-sided mirror, GUI.SVG living map, and host-neutral event-to-manuscript authoring commands are implemented. The local workspace autosaves to browser localStorage through FSM_Serialization and restores across refreshes. Cloud/server sync, export/backup, embedding into the Workshop's WebPage, full campaign continuity, authorable plural timelines and divergence views, Gestures-backed character animation, physics-backed fight playback, and broader source-derived visualizations remain open. No package publishing or release has been authorized.
 
 ## License
 
