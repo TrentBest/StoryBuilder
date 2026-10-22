@@ -1,5 +1,6 @@
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Runtime;
+using StoryBuilder.Core.Services;
 using StoryBuilder.FSM;
 using Xunit;
 
@@ -26,6 +27,18 @@ public sealed class TimelineProcessGroupTests
         Assert.All(first.Events, item => Assert.Equal(first.Id, item.TimelineId));
         Assert.All(second.Events, item => Assert.Equal(second.Id, item.TimelineId));
         Assert.NotEqual(first.Id, second.Id);
+    }
+
+    [Fact]
+    public void SessionCreatesCanonicalTimelineAndBranch()
+    {
+        var session = new StoryBuilderSession("Timeline authoring");
+        var original = session.CreateTimeline("Original");
+        var branch = session.CreateTimeline("Changed history", parentTimelineId: original.Id);
+
+        Assert.Equal(2, session.Workspace.Timelines.Count);
+        Assert.Equal(original.Id, branch.ParentTimelineId);
+        Assert.True(branch.IsBranch);
     }
 
     [Fact]
