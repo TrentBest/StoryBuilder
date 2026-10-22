@@ -8,6 +8,7 @@
 | Understand the purpose and boundary | [README](README.md) |
 | Meet the Narrator and understand the first-session flow | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Find causal cycles, inconsistent event links, and timeline branch cycles | [StoryContinuityAnalyzer](src/StoryBuilder.Core/Services/StoryContinuityAnalyzer.md) |
+| Find causal cycles, inconsistent event links, and timeline branch cycles | [StoryContinuityAnalyzer](src/StoryBuilder.Core/Services/StoryContinuityAnalyzer.md) |
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
 | Understand the manifest/configuration contracts and binary package artifacts | [Package contract UML](docs/UML/CompositionPackageContractsUML.md), [Binary artifacts UML](docs/UML/CompositionPackageBinaryArtifactsUML.md), [Validator UML](docs/UML/CompositionPackageValidatorUML.md) |
 | Add an approximate Plot Twist to a timeline | Timeline planning point model [UML](docs/UML/TimelinePlanningPointUML.md) and the WebDemo Timelines page |
