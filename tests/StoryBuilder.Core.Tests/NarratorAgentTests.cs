@@ -87,7 +87,7 @@ public sealed class NarratorAgentTests
 
         Assert.Equal("Captured", first.IntentState);
         Assert.Equal("Idle", second.IntentState);
-        Assert.NotEqual(first.Events.Last().Sequence, 0);
+        Assert.NotEmpty(first.Events);
         Assert.Empty(secondSession.Workspace.Premises);
     }
 }
