@@ -104,4 +104,52 @@ public sealed class CompositionPackageValidatorTests
         Assert.Contains(errors, error => error.Contains("repeats ID", StringComparison.Ordinal));
         Assert.Contains(errors, error => error.Contains("unselected bundle", StringComparison.Ordinal));
     }
+
+    [Fact]
+    public void RejectsRequiredDependencyThatIsNotSelectedOrAvailable()
+    {
+        var manifest = new CompositionPackageManifest
+        {
+            WorkspaceId = Guid.NewGuid(),
+            ContentRevision = "r2",
+            ContentSha256 = new string('a', 64),
+            ConfigurationSha256 = new string('b', 64),
+            ArbitrationRecordId = Guid.NewGuid(),
+            Bundles = [new MicroBundleRequirement { BundleId = 42, Version = "1.0", Dependencies = [77] }]
+        };
+        var configuration = new CompositionPackageConfiguration
+        {
+            PackageId = manifest.PackageId,
+            WorkspaceId = manifest.WorkspaceId,
+            ContentRevision = "r2",
+            OutputProfile = manifest.OutputProfile,
+            Bundles = [new MicroBundleRuntimeConfiguration { BundleId = 42, BundleVersion = "1.0" }]
+        };
+        var validator = new CompositionPackageValidator();
+
+        var missingFromManifest = validator.Validate(
+            manifest, configuration, manifest.ContentSha256, manifest.ConfigurationSha256, [42UL], []);
+        Assert.Contains(missingFromManifest, error => error.Contains("not selected in the manifest", StringComparison.Ordinal));
+
+        var withDependency = manifest with
+        {
+            Bundles =
+            [
+                new MicroBundleRequirement { BundleId = 42, Version = "1.0", Dependencies = [77] },
+                new MicroBundleRequirement { BundleId = 77, Version = "2.0" }
+            ]
+        };
+        var withDependencyConfiguration = configuration with
+        {
+            Bundles =
+            [
+                new MicroBundleRuntimeConfiguration { BundleId = 42, BundleVersion = "1.0" },
+                new MicroBundleRuntimeConfiguration { BundleId = 77, BundleVersion = "2.0" }
+            ]
+        };
+        var missingFromHost = validator.Validate(
+            withDependency, withDependencyConfiguration, manifest.ContentSha256, manifest.ConfigurationSha256, [42UL], []);
+        Assert.Contains(missingFromHost, error => error.Contains("Required dependency '77'", StringComparison.Ordinal));
+    }
+
 }

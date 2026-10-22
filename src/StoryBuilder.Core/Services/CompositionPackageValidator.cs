@@ -48,13 +48,28 @@ public sealed class CompositionPackageValidator
         AddDuplicateErrors(configurations.Select(item => item.BundleId), "configured bundle", errors);
 
         var requirementIds = requirements.Select(item => item.BundleId).ToHashSet();
+        var installedIds = availableBundleIds.ToHashSet();
+        foreach (var requirement in requirements)
+        {
+            foreach (var dependencyId in requirement.Dependencies ?? [])
+            {
+                if (dependencyId == 0 || dependencyId == requirement.BundleId)
+                {
+                    errors.Add($"Bundle '{requirement.BundleId}' declares an invalid self/zero dependency.");
+                    continue;
+                }
+                if (!requirementIds.Contains(dependencyId) && requirement.Required)
+                    errors.Add($"Required dependency '{dependencyId}' for bundle '{requirement.BundleId}' is not selected in the manifest.");
+                else if (requirement.Required && !installedIds.Contains(dependencyId))
+                    errors.Add($"Required dependency '{dependencyId}' for bundle '{requirement.BundleId}' is not available in this host.");
+            }
+        }
         foreach (var configured in configurations)
             if (!requirementIds.Contains(configured.BundleId))
                 errors.Add($"Configuration contains unselected bundle '{configured.BundleId}'.");
 
         var configsById = configurations.GroupBy(item => item.BundleId)
             .ToDictionary(group => group.Key, group => group.First());
-        var installedIds = availableBundleIds.ToHashSet();
         var capabilities = availableCapabilities.ToHashSet(StringComparer.Ordinal);
         foreach (var requirement in requirements)
         {

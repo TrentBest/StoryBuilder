@@ -12,4 +12,4 @@ See [CompositionPackageContracts UML](../../../docs/UML/CompositionPackageContra
 
 ## Contract boundary
 
-The records are versioned and identify a package, workspace, content revision, output profile, arbitration evidence, bundle IDs and versions, required capabilities, and provider-owned settings. Settings carry a declared value type; this is not a JSON object-graph format. The current implementation defines the contract only. Binary package production, hashing serialized content/configuration, and AnyApp consumption are not yet implemented.
+The records are versioned and identify a package, workspace, content revision, output profile, arbitration evidence, bundle IDs and versions, explicit MicroBundle dependencies, required capabilities, and provider-owned settings. Settings carry a declared value type; this is not a JSON object-graph format. The current implementation defines the contract only. Binary package production, hashing serialized content/configuration, and AnyApp consumption are not yet implemented.

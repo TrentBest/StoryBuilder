@@ -134,12 +134,13 @@ internal static class CompositionPackageBinaryCodec
 {
     private static readonly byte[] ManifestMagic = "SBPM"u8.ToArray();
     private static readonly byte[] ConfigurationMagic = "SBPC"u8.ToArray();
-    private const int FormatVersion = 1;
+    private const int ManifestFormatVersion = 2;
+    private const int ConfigurationFormatVersion = 1;
 
     internal static byte[] PackManifest(CompositionPackageManifest value) => Pack(stream =>
     {
         stream.Write(ManifestMagic);
-        BinaryCodec.WriteInt32(stream, FormatVersion);
+        BinaryCodec.WriteInt32(stream, ManifestFormatVersion);
         BinaryCodec.WriteInt32(stream, value.SchemaVersion);
         BinaryCodec.WriteGuid(stream, value.PackageId);
         BinaryCodec.WriteGuid(stream, value.WorkspaceId);
@@ -154,13 +155,16 @@ internal static class CompositionPackageBinaryCodec
             BinaryCodec.WriteString(target, item.Version);
             BinaryCodec.WriteBoolean(target, item.Required);
             BinaryCodec.WriteStringList(target, item.RequiredCapabilities);
+            BinaryCodec.WriteCount(target, item.Dependencies.Count);
+            foreach (var dependencyId in item.Dependencies)
+                BinaryCodec.WriteInt64(target, unchecked((long)dependencyId));
         });
     });
 
     internal static CompositionPackageManifest UnpackManifest(byte[] payload) => Unpack(payload, stream =>
     {
         ReadMagic(stream, ManifestMagic, "manifest");
-        ReadFormatVersion(stream);
+        ReadFormatVersion(stream, ManifestFormatVersion);
         var schemaVersion = BinaryCodec.ReadInt32(stream);
         var packageId = BinaryCodec.ReadGuid(stream);
         var workspaceId = BinaryCodec.ReadGuid(stream);
@@ -174,7 +178,8 @@ internal static class CompositionPackageBinaryCodec
             BundleId = unchecked((ulong)BinaryCodec.ReadInt64(source)),
             Version = BinaryCodec.ReadRequiredString(source, "BundleVersion"),
             Required = BinaryCodec.ReadBoolean(source),
-            RequiredCapabilities = BinaryCodec.ReadStringList(source)
+            RequiredCapabilities = BinaryCodec.ReadStringList(source),
+            Dependencies = ReadDependencies(source)
         });
         return new CompositionPackageManifest
         {
@@ -193,7 +198,7 @@ internal static class CompositionPackageBinaryCodec
     internal static byte[] PackConfiguration(CompositionPackageConfiguration value) => Pack(stream =>
     {
         stream.Write(ConfigurationMagic);
-        BinaryCodec.WriteInt32(stream, FormatVersion);
+        BinaryCodec.WriteInt32(stream, ConfigurationFormatVersion);
         BinaryCodec.WriteInt32(stream, value.SchemaVersion);
         BinaryCodec.WriteGuid(stream, value.PackageId);
         BinaryCodec.WriteGuid(stream, value.WorkspaceId);
@@ -216,7 +221,7 @@ internal static class CompositionPackageBinaryCodec
     internal static CompositionPackageConfiguration UnpackConfiguration(byte[] payload) => Unpack(payload, stream =>
     {
         ReadMagic(stream, ConfigurationMagic, "configuration");
-        ReadFormatVersion(stream);
+        ReadFormatVersion(stream, ConfigurationFormatVersion);
         var schemaVersion = BinaryCodec.ReadInt32(stream);
         var packageId = BinaryCodec.ReadGuid(stream);
         var workspaceId = BinaryCodec.ReadGuid(stream);
@@ -270,10 +275,19 @@ internal static class CompositionPackageBinaryCodec
             throw new InvalidDataException($"The payload is not a StoryBuilder {artifactName} artifact.");
     }
 
-    private static void ReadFormatVersion(IBinaryStream stream)
+    private static List<ulong> ReadDependencies(IBinaryStream stream)
+    {
+        var count = BinaryCodec.ReadCount(stream);
+        var dependencies = new List<ulong>(count);
+        for (var index = 0; index < count; index++)
+            dependencies.Add(unchecked((ulong)BinaryCodec.ReadInt64(stream)));
+        return dependencies;
+    }
+
+    private static void ReadFormatVersion(IBinaryStream stream, int expectedVersion)
     {
         var version = BinaryCodec.ReadInt32(stream);
-        if (version != FormatVersion)
+        if (version != expectedVersion)
             throw new InvalidDataException($"Unsupported package artifact format version: {version}.");
     }
 }

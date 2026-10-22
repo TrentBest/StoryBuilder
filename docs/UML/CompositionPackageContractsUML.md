@@ -18,6 +18,7 @@ classDiagram
         +string Version
         +bool Required
         +List~string~ RequiredCapabilities
+        +List~ulong~ Dependencies
     }
     class CompositionPackageConfiguration {
         +int SchemaVersion

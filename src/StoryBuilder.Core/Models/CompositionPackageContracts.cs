@@ -3,7 +3,7 @@ namespace StoryBuilder.Core.Models;
 /// <summary>Describes a Workshop-resolved package. Consumers validate and apply these decisions rather than rerunning arbitration.</summary>
 public sealed record CompositionPackageManifest
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
     public int SchemaVersion { get; init; } = CurrentSchemaVersion;
     public Guid PackageId { get; init; } = Guid.NewGuid();
     public Guid WorkspaceId { get; init; }
@@ -22,6 +22,7 @@ public sealed record MicroBundleRequirement
     public string Version { get; init; } = string.Empty;
     public bool Required { get; init; } = true;
     public List<string> RequiredCapabilities { get; init; } = [];
+    public List<ulong> Dependencies { get; init; } = [];
 }
 
 /// <summary>Resolved runtime configuration for one selected MicroBundle.</summary>
