@@ -33,6 +33,30 @@ public sealed class TimelinePlanningPointAuthoringTests
     }
 
     [Fact]
+    public void PromotionCreatesOneProposedEventAndPreservesItsIdentityLink()
+    {
+        var session = new StoryBuilderSession();
+        var timeline = session.CreateTimeline("Main");
+        var point = session.CreatePlanningPoint(timeline.Id, "The reveal", "Near the midpoint", "Expose the hidden alliance.");
+        point = session.SetPlanningPointAlternatives(point.Id, ["Public confession", "Secret bargain"]);
+
+        var promoted = session.PromotePlanningPointToEvent(point.Id);
+        var restoredPoint = Assert.Single(session.Workspace.PlanningPoints);
+        var repeated = session.PromotePlanningPointToEvent(point.Id);
+
+        Assert.Equal(point.Id, restoredPoint.Id);
+        Assert.Equal(promoted.Id, restoredPoint.PromotedEventId);
+        Assert.Equal(TimelinePlanningStatus.Superseded, restoredPoint.Status);
+        Assert.Equal(CanonStatus.Proposed, promoted.Status);
+        Assert.Equal("The reveal", promoted.Title);
+        Assert.Equal("Expose the hidden alliance.", promoted.Summary);
+        Assert.Equal(TimelinePlacementKind.Approximate, promoted.PlacementKind);
+        Assert.Equal(promoted.Id, repeated.Id);
+        Assert.Single(session.Workspace.Events);
+        Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
+    }
+
+    [Fact]
     public void ValidatorReportsMissingPlanningPointImpactTargets()
     {
         var workspace = new StoryWorkspace();
