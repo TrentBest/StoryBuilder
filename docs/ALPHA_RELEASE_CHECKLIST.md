@@ -14,7 +14,7 @@
 - [ ] Obtain green CI for the current AnyApp `development` source, including `StoryBuilderDesktopPersistenceStore` restore/save behavior and the expanded command dispatcher.
 - [ ] Perform or automate a real AnyApp `--storybuilder` create → link → save → restart → reopen smoke test, confirming the same event ID and passage link survive.
 - [x] Trent selected MIT to align with the Workshop's existing open-source direction; added the repository `LICENSE` and linked it from the README.
-- [ ] Reconcile the open development → master PR. The current live GitHub comparison reports **432 commits ahead, 13 behind** (refreshed 22 October 2026); do not blindly merge.
+- [ ] Reconcile the open development → master PR. The live GitHub comparison currently reports that `development` is **443 commits ahead and 13 behind** `master` (reviewed 22 October 2026). The ahead count changes with new commits; recheck immediately before any reconciliation. Do not blindly merge.
 - [ ] Decide the Alpha's exact version/tag, included projects, known limitations, and install/run instructions.
 - [ ] Create the GitHub Alpha release only after the preceding gates are resolved and the final release commit is verified.
 
