@@ -122,6 +122,33 @@ else
     </div>
 }
 
+@if (SelectedObserverGuid is not null && Session.Workspace.Events.Count > 0)
+{
+    <section class="panel stack" style="margin-top: 1rem">
+        <div class="eyebrow">GUI.SVG · Observer-safe composition</div>
+        <h2>What may this observer draw on?</h2>
+        <p class="muted">Build a projection at a chosen event anchor. The author-facing map resolves event titles for navigation; the projection passed to downstream providers contains only event identities and accepted knowledge claims, not unrestricted world-event titles or summaries.</p>
+        <div class="field">
+            <label for="projection-anchor">Knowledge available at</label>
+            <select id="projection-anchor" @bind="projectionAsOfEventId">
+                <option value="">No event anchor (baseline knowledge only)</option>
+                @foreach (var storyEvent in Session.Workspace.Events)
+                {
+                    <option value="@storyEvent.Id">@storyEvent.Title</option>
+                }
+            </select>
+        </div>
+        <button @onclick="ProjectObserverKnowledge">Build observer projection</button>
+        @if (projection is not null)
+        {
+            <p class="muted">@projection.Events.Count event(s) have accepted knowledge available to this observer at the selected anchor.</p>
+            <div class="living-svg" role="img" aria-label="GUI.SVG map of accepted observer knowledge">
+                @((MarkupString)projectionSvg)
+            </div>
+        }
+    </section>
+}
+
 @code {
     private string selectedObserverId = string.Empty;
     private string knowledgeEventId = string.Empty;
@@ -134,6 +161,9 @@ else
     private string claimMode = nameof(NarrationClaimMode.DirectFact);
     private string message = string.Empty;
     private ObserverKnowledgeEvaluation? evaluation;
+    private string projectionAsOfEventId = string.Empty;
+    private ObserverKnowledgeProjection? projection;
+    private string projectionSvg = string.Empty;
 
     private Guid? SelectedObserverGuid => Guid.TryParse(selectedObserverId, out var id) ? id : null;
     private IEnumerable<ObserverKnowledgeRecord> SelectedObserverRecords =>
@@ -149,6 +179,7 @@ else
         knowledgeEventId = firstEvent?.Id.ToString() ?? string.Empty;
         claimEventId = knowledgeEventId;
         claimAsOfEventId = knowledgeEventId;
+        projectionAsOfEventId = knowledgeEventId;
     }
 
     private void CreateKnowledge()
@@ -187,6 +218,38 @@ else
         evaluation = Narrator.EvaluateObserverClaim(eventId, asOf, mode);
     }
 
-    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+    private void ProjectObserverKnowledge()
+    {
+        if (!Guid.TryParse(selectedObserverId, out var observerId))
+        {
+            message = "Choose an observer before building the projection.";
+            projection = null;
+            projectionSvg = string.Empty;
+            return;
+        }
+
+        Guid? asOfEventId = Guid.TryParse(projectionAsOfEventId, out var anchorId) ? anchorId : null;
+        try
+        {
+            Narrator.SelectObserver(observerId);
+            projection = Narrator.ProjectObserverKnowledge(asOfEventId);
+            projectionSvg = new StoryBuilderObserverProjectionRenderer().Render(Session.Workspace, projection);
+            message = $"Observer projection contains {projection.Events.Count} event(s) with accepted knowledge.";
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or KeyNotFoundException)
+        {
+            projection = null;
+            projectionSvg = string.Empty;
+            message = exception.Message;
+        }
+    }
+
+    private void OnSessionChanged()
+    {
+        projection = null;
+        projectionSvg = string.Empty;
+        evaluation = null;
+        _ = InvokeAsync(StateHasChanged);
+    }
     public void Dispose() => Session.Changed -= OnSessionChanged;
 }
