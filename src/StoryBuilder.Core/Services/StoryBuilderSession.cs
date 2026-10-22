@@ -45,6 +45,7 @@ public sealed class StoryBuilderSession
     {
         var scene = SceneComposer.Create(title, location, mode);
         Workspace.AddScene(scene);
+        IndexScene(scene);
         return scene;
     }
 
@@ -82,6 +83,10 @@ public sealed class StoryBuilderSession
 
     private void IndexCharacter(CharacterProfile character)
     {
+        Vocabulary.RecordText(character.Name, VocabularyCategory.Other, character.Id, character.Name,
+            nameof(CharacterProfile.Name), context: character.Name, attribution: "Author", status: character.Status);
+        Vocabulary.RecordText(character.Role, VocabularyCategory.Other, character.Id, character.Name,
+            nameof(CharacterProfile.Role), context: character.Role, attribution: "Author", status: character.Status);
         Vocabulary.RecordText(character.Description, VocabularyCategory.Other, character.Id, character.Name,
             nameof(CharacterProfile.Description), context: character.Description, attribution: "Author",
             status: character.Status);
@@ -96,6 +101,13 @@ public sealed class StoryBuilderSession
 
     private void IndexScene(SceneRecord scene)
     {
+        Vocabulary.RecordText(scene.Title, VocabularyCategory.Other, scene.Id, scene.Title,
+            nameof(SceneRecord.Title), context: scene.Purpose, status: CanonStatus.Draft);
+        Vocabulary.RecordText(scene.Location, VocabularyCategory.Other, scene.Id, scene.Title,
+            nameof(SceneRecord.Location), context: scene.Location, status: CanonStatus.Draft);
+        Vocabulary.RecordText(scene.Purpose, VocabularyCategory.Other, scene.Id, scene.Title,
+            nameof(SceneRecord.Purpose), context: scene.Purpose, status: CanonStatus.Draft);
+
         foreach (var beat in scene.Beats.OrderBy(b => b.Sequence))
         {
             IndexBeatText(scene, beat, beat.Action, nameof(SceneBeat.Action), VocabularyCategory.Other);
