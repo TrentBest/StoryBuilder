@@ -72,7 +72,7 @@ public sealed class NarratorAgentTests
         Assert.False(submission.Accepted);
         Assert.Equal("NeedsReview", narrator.DraftState);
         Assert.Empty(session.Workspace.Manuscripts.Single().Sections.Single().Body);
-        Assert.Contains("only as an attributed report", submission.Constraints[0].Explanation);
+        Assert.Equal(NarrationClaimMode.AttributedReport, submission.Constraints[0].RequiredMode);
     }
 
     [Fact]

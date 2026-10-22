@@ -168,8 +168,9 @@ public sealed class NarratorAgent : IDisposable
         ObjectDisposedException.ThrowIf(_disposed, this);
         if (!_session.Workspace.Characters.Any(character => character.Id == observerId))
             throw new KeyNotFoundException($"Observer character '{observerId}' does not exist in this workspace.");
+        var observerChanged = _observer.ObserverId != observerId;
         _observer.ObserverId = observerId;
-        if (_observer.CurrentState != "Selected")
+        if (observerChanged || _observer.CurrentState == "Unselected")
             Move(_observer, _observerHandle, _observerGroup, "Selected");
         Emit("Observer", "ObserverSelected", $"Selected observer {observerId}.");
     }
