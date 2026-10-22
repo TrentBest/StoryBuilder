@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using StoryBuilder.Core.Models;
 
 namespace StoryBuilder.Core.Services;
@@ -149,6 +151,13 @@ public static class StoryWorkspaceValidator
                     issues.Add(new WorkspaceIntegrityIssue(nameof(PublishedBookEdition), edition.Id, "published section", sectionId,
                         $"Published edition '{edition.Id}' references section '{sectionId}' that is not in its source manuscript."));
             }
+            foreach (var eventId in edition.EventIds)
+                Missing(nameof(PublishedBookEdition), edition.Id, "published event", eventId, events);
+
+            var expectedHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(edition.Markdown)));
+            if (!string.Equals(expectedHash, edition.ContentSha256, StringComparison.OrdinalIgnoreCase))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(PublishedBookEdition), edition.Id, "content hash", edition.Id,
+                    $"Published edition '{edition.Id}' does not match its stored SHA-256 content hash."));
         }
 
         foreach (var manuscript in workspace.Manuscripts)
