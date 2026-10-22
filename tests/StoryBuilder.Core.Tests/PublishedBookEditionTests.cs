@@ -54,6 +54,8 @@ public sealed class PublishedBookEditionTests
         var session = new StoryBuilderSession("Publication persistence");
         var manuscript = session.CreateManuscript("The Cartographer");
         var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "Chapter One");
+        var scene = session.CreateScene("Opening", "The archive");
+        session.LinkSceneToManuscriptSection(manuscript.Id, section.Sections[0].Id, scene.Id);
         session.UpdateManuscriptSection(manuscript.Id, section.Sections[0].Id, "Chapter One", "The map was wrong.");
         var first = session.PublishManuscript(manuscript.Id);
         session.UpdateManuscriptSection(manuscript.Id, section.Sections[0].Id, "Chapter One", "The map was deliberately wrong.");
@@ -70,6 +72,7 @@ public sealed class PublishedBookEditionTests
         Assert.Equal(first.Id, editions[0].Id);
         Assert.Equal(first.Markdown, editions[0].Markdown);
         Assert.Equal(first.ContentSha256, editions[0].ContentSha256);
+        Assert.Contains(scene.Id, editions[0].SceneIds);
         Assert.Equal(correction.Id, editions[1].Id);
         Assert.Equal(first.Id, editions[1].PreviousEditionId);
         Assert.Equal("Clarified the reveal.", editions[1].CorrectionNotes);
