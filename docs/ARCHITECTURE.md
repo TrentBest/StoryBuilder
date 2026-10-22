@@ -39,11 +39,11 @@ GUI.SVG, Renderer, Visualize, Gestures, and Physics are optional providers and p
 
 - **FSM_API:** optional StoryBuilder.FSM adapter. Use it to coordinate focused Narrator FSMs and timeline Process Groups. Domain records remain the source of truth; Core stays independent of FSM_API.
 - **MicroBundleDomain / FSM_COS:** the bundle implements the neutral contract; FSM_COS composes it at the host boundary.
-- **FSM_Serialization:** bounded, versioned binary workspace persistence. Package payloads should reuse this proven boundary where appropriate.
+- **FSM_Serialization:** bounded, versioned binary workspace persistence plus a binary package compiler/reader that emits manifest, configuration, and content payloads. Exact payload hashes are validated before workspace restoration.
 - **GUI / GUI.SVG:** living projections derive from canonical domain data and link back to source records.
 - **Renderer:** portrays the selected composition under explicit observer/disclosure constraints; it does not own knowledge rules.
 - **Visualize / Gestures / Physics:** optional scene inspection, animation, and simulation providers.
-- **WebApp / WebPage / AnyApp:** host authoring, preview, and consumption. Package consumers validate a previously arbitrated result and report incompatibility rather than improvising.
+- **WebApp / WebPage / AnyApp:** host authoring, preview, and consumption. The package reader validates a previously arbitrated result and reports incompatibility rather than improvising.
 
 ## Product-first composition
 
@@ -63,4 +63,4 @@ See [Timeline Authoring and Observer Model](TIMELINE_AUTHORING_MODEL.md), [Timel
 
 The .NET 8 core currently provides character drafts, structured scene beats, a narration draft, vocabulary indexing, timeline definitions, provisional planning points, timeline-assigned world events, manuscript sections, event-to-section references, observer-knowledge records, and a host-neutral Process Group driver contract. ObserverKnowledgeEvaluator conservatively checks whether an observer can make a requested claim at an explicit event anchor. Optional adapters demonstrate FSM_API lifecycle behavior and the MicroBundleDomain contract. The local Blazor workbench includes Casting, Stage, Archive, Campaign, Living Map, Timeline, Book Preview, and Observer Lens views. Versioned binary workspace persistence and browser-local autosave are implemented. The latest GUI.SVG timeline map CI is green.
 
-Still planned: scene/beat-to-event links, book export, full temporal/causal graph editing, reader-disclosure policy, LLM-backed drafting and Renderer integration, immutable publication editions, binary package manifest/configuration production and consumption, exact payload hashing, cloud persistence, and Workshop-host integration.
+The binary package compiler/reader is implemented in source and awaits its own CI verification. Actual AnyApp host integration, repeated-consumption proof, scene/beat-to-event links, full temporal/causal graph editing, reader-disclosure policy, LLM-backed drafting and Renderer integration, immutable publication editions, cloud persistence, and Workshop-host integration remain planned.

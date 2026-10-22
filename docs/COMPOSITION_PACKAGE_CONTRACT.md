@@ -4,7 +4,7 @@
 
 Workshop arbitration must produce a reusable composition package that AnyApp can consume without repeating the expensive decisions that produced it. StoryBuilder's first demanding proof is a real book that can also be inspected through timeline, composition, continuity, and observer views.
 
-The host-neutral manifest/configuration records and a validator now exist in StoryBuilder.Core. Binary artifact production, payload hashing, and AnyApp loading are still not implemented; this document distinguishes the verified contract from the remaining end-to-end work.
+The manifest/configuration contracts, validator, binary artifact compiler, and reader are now implemented in source. The latest binary artifact increment is awaiting CI verification; this document distinguishes those implementation steps from production deployment and integration into the actual AnyApp host, which are not yet complete.
 
 ## Three responsibilities
 
@@ -19,8 +19,7 @@ The manifest is not the story database. Configuration is not a replacement for l
 Authoring model + constraints + available capability catalog
 → Workshop arbitration
 → validated resolved decisions
-→ composition manifest + per-MicroBundle configuration
-→ versioned binary package
+→ versioned binary manifest + per-MicroBundle configuration + content payload
 → AnyApp validates and consumes the captured package.
 
 Workshop arbitration is the honing step. It resolves choices and records the result. AnyApp validates and consumes that result; ordinary startup must not silently repeat arbitration. An incompatible or incomplete package must fail clearly or use a declared fallback, not improvise a different composition.
@@ -30,8 +29,10 @@ Workshop arbitration is the honing step. It resolves choices and records the res
 - `CompositionPackageManifest` records package/workspace identities, content revision and SHA-256, configuration SHA-256, output profile, arbitration record identity, and selected bundle requirements.
 - `CompositionPackageConfiguration` records the same package/workspace/revision/output-profile scope and per-bundle resolved settings.
 - `CompositionPackageValidator` checks schema versions, identity and revision alignment, payload hashes, selected bundle configuration, required host bundles/capabilities, versions, and duplicate IDs/settings.
-- Validation reports diagnostics and does not mutate the package or run arbitration.
-- Settings are typed textual values under an explicit value-type identifier. The contract does not introduce JSON or a general-purpose object-graph serializer.
+- `CompositionPackageCompiler` serializes workspace content through the existing FSM_Serialization-backed workspace document and emits three separate binary payloads: manifest, configuration, and content. The manifest hashes the exact configuration and content bytes.
+- `CompositionPackageReader` validates the manifest, configuration, payload hashes, and host capability availability before restoring content. Failed validation returns diagnostics and no session.
+- The manifest and configuration have explicit binary format versions and magic identifiers; settings are typed textual values under an explicit value-type identifier. No JSON or general-purpose object-graph serializer is introduced.
+- The binary artifact compiler/reader increment is awaiting CI verification. Actual AnyApp integration, provider activation, and end-to-end repeated-consumption proof remain future work.
 
 These contracts are host-neutral and do not introduce a StoryBuilder.Core dependency on FSM_COS, AnyApp, GUI.SVG, or Renderer.
 
@@ -45,7 +46,7 @@ Do not freeze intentionally dynamic state such as current author edits, particip
 
 - StoryBuilder.Core remains independent of FSM_COS and concrete providers.
 - Reuse the established FSM_Serialization binary contract for bounded domain/package payloads; do not introduce an ad hoc general-purpose object-graph serializer.
-- Manifest and configuration have explicit schema versions, stable identities, declared dependencies, and integrity boundaries.
+- Manifest, configuration, and content have explicit versioned binary boundaries, stable identities, declared dependencies, and integrity checks.
 - Provide inspectable diagnostics without making a diagnostic format the canonical persisted contract by accident.
 - Validate missing capabilities, incompatible versions, invalid references, unknown required fields, and content/configuration mismatch before execution.
 - A corrected published book or changed arbitration result creates a new version rather than mutating an immutable artifact.
@@ -55,7 +56,7 @@ Do not freeze intentionally dynamic state such as current author edits, particip
 
 1. Workspace records produce an explicit manuscript/book composition.
 2. Workshop resolves the requested output profile and provider choices.
-3. The package compiler serializes workspace content through the established FSM_Serialization boundary and computes hashes over the exact bytes.
+3. The package compiler serializes workspace content and hashes the exact bytes.
 4. Manifest and per-bundle configuration are emitted as versioned artifacts tied to that content hash/revision.
 5. AnyApp validates the captured result and produces the same book without rerunning arbitration.
 6. A deterministic test compares output across repeated package consumption.
