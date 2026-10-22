@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using StoryBuilder.Core.Models;
 
 namespace StoryBuilder.Core.Services;
@@ -11,6 +12,7 @@ public sealed class VocabularyIndex
     private readonly List<WordOccurrence> _occurrences = [];
     private readonly Dictionary<string, VocabularyConcept> _concepts = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
+    private static readonly Regex WordPattern = new(@"[\\p{L}\\p{M}\\p{N}'’\\-]+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>Returns one copy of each explicit synonym concept, suitable for durable storage.</summary>
     public IReadOnlyList<VocabularyConcept> ExportConcepts()
@@ -102,7 +104,9 @@ public sealed class VocabularyIndex
         string? context = null,
         string attribution = "Author",
         string? sourceId = null,
-        CanonStatus status = CanonStatus.Draft)
+        CanonStatus status = CanonStatus.Draft,
+        int startIndex = 0,
+        int length = 0)
     {
         ValidateTerm(surfaceForm, nameof(surfaceForm));
         var normalized = Normalize(surfaceForm);
@@ -119,6 +123,8 @@ public sealed class VocabularyIndex
                 TargetId = targetId,
                 TargetLabel = targetLabel?.Trim() ?? string.Empty,
                 Field = field?.Trim() ?? string.Empty,
+                StartIndex = Math.Max(0, startIndex),
+                Length = length > 0 ? length : surfaceForm.Trim().Length,
                 Context = context,
                 Attribution = string.IsNullOrWhiteSpace(attribution) ? "Author" : attribution.Trim(),
                 SourceId = sourceId,
@@ -145,16 +151,10 @@ public sealed class VocabularyIndex
             return Array.Empty<WordOccurrence>();
 
         var occurrences = new List<WordOccurrence>();
-        foreach (var rawToken in text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+        foreach (Match match in WordPattern.Matches(text))
         {
-            var token = new string(rawToken
-                .Where(c => char.IsLetterOrDigit(c) || c == (char)39 || c == '’' || c == '-')
-                .ToArray());
-            if (token.Length == 0)
-                continue;
-
-            occurrences.Add(Record(token, category, targetId, targetLabel, field, context ?? text,
-                attribution, sourceId, status));
+            occurrences.Add(Record(match.Value, category, targetId, targetLabel, field, context ?? text,
+                attribution, sourceId, status, match.Index, match.Length));
         }
 
         return occurrences;
