@@ -102,7 +102,7 @@ public static class LegacyStoryProjectImporter
                 Summary = summary,
                 InWorldDateOrPeriod = occurredAt?.ToString("O", CultureInfo.InvariantCulture),
                 TimelineId = timeline.Id,
-                PlacementKind = occurredAt.HasValue ? TimelinePlacementKind.Exact : TimelinePlacementKind.Unresolved,
+                PlacementKind = occurredAt.HasValue ? TimelinePlacementKind.Approximate : TimelinePlacementKind.Unresolved,
                 Status = CanonStatus.Proposed
             });
         }
