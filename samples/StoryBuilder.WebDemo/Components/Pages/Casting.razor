@@ -1,5 +1,6 @@
 @page "/casting"
 @inject StoryBuilderSession Session
+@inject StoryLifecycleRegistry Lifecycles
 
 <PageTitle>Casting · StoryBuilder</PageTitle>
 
@@ -106,7 +107,31 @@
         </div>
         <div class="row">
             <button @onclick="SaveCharacter">Save edits</button>
+            @if (selectedCharacter.Status == CanonStatus.Draft)
+            {
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Proposed)">Propose for review</button>
+            }
+            else if (selectedCharacter.Status == CanonStatus.Proposed)
+            {
+                <button @onclick="() => RequestCharacterStatus(CanonStatus.Accepted)">Accept</button>
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Rejected)">Reject</button>
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Draft)">Return to draft</button>
+            }
+            else if (selectedCharacter.Status == CanonStatus.Accepted)
+            {
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Proposed)">Reopen for revision</button>
+                <button class="danger" @onclick="() => RequestCharacterStatus(CanonStatus.Deprecated)">Deprecate</button>
+            }
+            else if (selectedCharacter.Status == CanonStatus.Rejected)
+            {
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Draft)">Return to draft</button>
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Proposed)">Re-propose</button>
+            }
         </div>
+        @if (!string.IsNullOrWhiteSpace(statusMessage))
+        {
+            <p class="muted">@statusMessage</p>
+        }
         <hr />
         <div>
             <h3>Traits and adjectives</h3>
@@ -144,6 +169,29 @@
         </div>
     </section>
 }
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="eyebrow">Vocabulary desk</div>
+    <h2>Teach the tool a synonym</h2>
+    <p class="muted">Synonyms are explicit, editable mappings. Adding one updates earlier occurrences without rewriting the words people actually used.</p>
+    <div class="field-grid">
+        <div class="field">
+            <label for="canonical-term">Shared concept</label>
+            <input id="canonical-term" @bind="canonicalTerm" placeholder="courageous" />
+        </div>
+        <div class="field">
+            <label for="synonym-term">Synonym to connect</label>
+            <input id="synonym-term" @bind="synonymTerm" placeholder="brave" />
+        </div>
+    </div>
+    <div class="row">
+        <button @onclick="AddSynonym" disabled="@(string.IsNullOrWhiteSpace(canonicalTerm) || string.IsNullOrWhiteSpace(synonymTerm))">Add synonym mapping</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(synonymMessage))
+    {
+        <p class="muted">@synonymMessage</p>
+    }
+</section>
 
 <section class="panel stack" style="margin-top:1rem">
     <div class="eyebrow">Continuity desk</div>
@@ -189,6 +237,10 @@
     private string editDescription = string.Empty;
     private string traitText = string.Empty;
     private string searchTerm = string.Empty;
+    private string canonicalTerm = string.Empty;
+    private string synonymTerm = string.Empty;
+    private string synonymMessage = string.Empty;
+    private string statusMessage = string.Empty;
     private bool hasSearched;
     private IReadOnlyList<VocabularyUsage> searchResults = Array.Empty<VocabularyUsage>();
 
@@ -197,6 +249,7 @@
     private void CreateCharacter()
     {
         selectedCharacter = Session.CreateCharacter(draftName, draftTemplate);
+        _ = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
         draftName = string.Empty;
         LoadSelectedFields();
     }
@@ -204,6 +257,7 @@
     private void SelectCharacter(CharacterProfile character)
     {
         selectedCharacter = character;
+        _ = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
         LoadSelectedFields();
     }
 
@@ -226,6 +280,23 @@
             Description = editDescription.Trim(),
             UpdatedAtUtc = DateTimeOffset.UtcNow
         });
+    }
+
+    private void RequestCharacterStatus(CanonStatus requestedStatus)
+    {
+        if (selectedCharacter is null)
+            return;
+
+        var lifecycle = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
+        var reachedStatus = lifecycle.Request(requestedStatus);
+        selectedCharacter = Session.UpdateCharacter(selectedCharacter with
+        {
+            Status = reachedStatus,
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        });
+        statusMessage = reachedStatus == requestedStatus
+            ? $"Character status is now {reachedStatus}."
+            : $"That transition is not available from {selectedCharacter.Status}; the status was not changed.";
     }
 
     private void AddTypedTrait()
@@ -254,6 +325,19 @@
             return;
 
         selectedCharacter = Session.UpdateCharacter(selectedCharacter.RemoveTrait(traitId));
+    }
+
+    private void AddSynonym()
+    {
+        if (string.IsNullOrWhiteSpace(canonicalTerm) || string.IsNullOrWhiteSpace(synonymTerm))
+            return;
+
+        Session.Vocabulary.AddSynonym(canonicalTerm, synonymTerm);
+        synonymMessage = $"Connected “{synonymTerm.Trim()}” to the concept “{canonicalTerm.Trim()}”. Existing occurrences are re-indexed.";
+        canonicalTerm = string.Empty;
+        synonymTerm = string.Empty;
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            SearchVocabulary();
     }
 
     private void SearchVocabulary()
