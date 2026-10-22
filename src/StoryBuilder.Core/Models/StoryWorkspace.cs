@@ -133,6 +133,8 @@ public sealed class StoryWorkspace
 
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
+    /// <summary>Exact original legacy project JSON retained during migration so unsupported legacy fields remain recoverable.</summary>
+    public string? LegacyProjectSourceJson { get; set; }
     public ExperienceDefinition Experience { get; set; } = new();
     public IReadOnlyList<TimelineDefinition> Timelines => _timelines.AsReadOnly();
     public IReadOnlyList<TimelinePlanningPoint> PlanningPoints => _planningPoints.AsReadOnly();
