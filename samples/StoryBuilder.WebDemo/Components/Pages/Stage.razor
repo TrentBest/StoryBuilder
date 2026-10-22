@@ -23,6 +23,11 @@
             <input id="scene-location" @bind="sceneLocation" placeholder="A ruined gate, a kitchen, a starship..." />
         </div>
         <div class="field">
+            <label for="scene-purpose">What should change in this scene? (optional)</label>
+            <textarea id="scene-purpose" @bind="scenePurpose" rows="2" placeholder="Mara wants the gate opened; the guard's refusal forces her to reveal why she is really here."></textarea>
+            <span class="muted">A scene becomes useful when something changes: a decision, relationship, danger, discovery, or available choice.</span>
+        </div>
+        <div class="field">
             <label for="capture-mode">Capture style</label>
             <select id="capture-mode" @bind="captureMode">
                 <option value="Freeform">Freeform notes</option>
@@ -69,6 +74,14 @@
                     <h2>@currentScene.Title</h2>
                 </div>
                 <span class="chip">@currentScene.Beats.Count beats</span>
+            </div>
+            <div class="field">
+                <label for="current-scene-purpose">Scene purpose / intended change</label>
+                <textarea id="current-scene-purpose" @bind="scenePurpose" rows="2" placeholder="What does someone want here, what resists them, and what changes by the end?"></textarea>
+                <div class="row">
+                    <button class="secondary" @onclick="SaveScenePurpose">Save scene purpose</button>
+                </div>
+                <span class="muted">This is an authoring note, not a rule the scene must obey. It helps you judge whether the beats serve the story.</span>
             </div>
             <div class="field-grid">
                 <div class="field">
@@ -205,6 +218,7 @@
 @code {
     private string sceneTitle = "Untitled scene";
     private string sceneLocation = string.Empty;
+    private string scenePurpose = string.Empty;
     private string captureMode = "Freeform";
     private SceneRecord? currentScene;
     private string actorLabel = string.Empty;
@@ -231,9 +245,12 @@
     private void CreateScene()
     {
         currentScene = Session.CreateScene(sceneTitle, sceneLocation, SelectedCaptureMode);
+        if (!string.IsNullOrWhiteSpace(scenePurpose))
+            currentScene = Session.UpdateScene(currentScene with { Purpose = scenePurpose.Trim() });
         selectedBeatId = string.Empty;
         sceneTitle = "Untitled scene";
         sceneLocation = string.Empty;
+        scenePurpose = string.Empty;
     }
 
     private void SelectScene(SceneRecord scene)
@@ -241,8 +258,21 @@
         currentScene = scene;
         sceneTitle = scene.Title;
         sceneLocation = scene.Location ?? string.Empty;
+        scenePurpose = scene.Purpose ?? string.Empty;
         captureMode = scene.CaptureMode.ToString();
         selectedBeatId = scene.Beats.OrderBy(beat => beat.Sequence).FirstOrDefault()?.Id.ToString() ?? string.Empty;
+    }
+
+    private void SaveScenePurpose()
+    {
+        if (currentScene is null)
+            return;
+
+        currentScene = Session.UpdateScene(currentScene with
+        {
+            Purpose = string.IsNullOrWhiteSpace(scenePurpose) ? null : scenePurpose.Trim(),
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        });
     }
 
     private void AddBeat()
