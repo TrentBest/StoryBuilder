@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 7;
+    private const int FormatVersion = 8;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -63,7 +63,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -103,7 +103,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var manuscripts = version >= 4 ? BinaryCodec.ReadList(stream, ReadManuscript) : [];
         var premises = version >= 2 ? BinaryCodec.ReadList(stream, ReadPremise) : [];
         var characters = BinaryCodec.ReadList(stream, item => ReadCharacter(item, version));
-        var scenes = BinaryCodec.ReadList(stream, ReadScene);
+        var scenes = BinaryCodec.ReadList(stream, item => ReadScene(item, version));
         var claims = BinaryCodec.ReadList(stream, ReadHistoricalClaim);
         var events = BinaryCodec.ReadList(stream, item => ReadStoryEvent(item, version));
         var observerKnowledge = version >= 7 ? BinaryCodec.ReadList(stream, ReadObserverKnowledge) : [];
@@ -403,7 +403,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static SceneRecord ReadScene(IBinaryStream stream) => new()
+    private static SceneRecord ReadScene(IBinaryStream stream, int version) => new()
     {
         Id = BinaryCodec.ReadGuid(stream),
         Title = BinaryCodec.ReadRequiredString(stream, nameof(SceneRecord.Title)),
@@ -411,7 +411,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Purpose = BinaryCodec.ReadString(stream),
         CaptureMode = BinaryCodec.ReadEnum<SceneCaptureMode>(stream),
         Status = BinaryCodec.ReadEnum<SceneStatus>(stream),
-        Beats = BinaryCodec.ReadList(stream, ReadSceneBeat),
+        Beats = BinaryCodec.ReadList(stream, item => ReadSceneBeat(item, version)),
         CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
         UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
     };
@@ -431,9 +431,12 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, value.CaptureNote);
         BinaryCodec.WriteString(stream, value.Attribution);
         BinaryCodec.WriteEnum(stream, value.Status);
+        BinaryCodec.WriteList(stream, value.EventIds, BinaryCodec.WriteGuid);
     }
 
-    private static SceneBeat ReadSceneBeat(IBinaryStream stream) => new()
+    private static SceneBeat ReadSceneBeat(IBinaryStream stream, int version)
+    {
+        var beat = new SceneBeat
     {
         Id = BinaryCodec.ReadGuid(stream),
         Sequence = BinaryCodec.ReadInt32(stream),
@@ -448,7 +451,9 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         CaptureNote = BinaryCodec.ReadString(stream),
         Attribution = BinaryCodec.ReadRequiredString(stream, nameof(SceneBeat.Attribution)),
         Status = BinaryCodec.ReadEnum<CanonStatus>(stream)
-    };
+        };
+        return version >= 8 ? beat with { EventIds = BinaryCodec.ReadList(stream, BinaryCodec.ReadGuid) } : beat;
+    }
 
     private static void WriteHistoricalClaim(IBinaryStream stream, HistoricalClaim value)
     {

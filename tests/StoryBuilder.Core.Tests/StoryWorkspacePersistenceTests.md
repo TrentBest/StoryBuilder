@@ -4,17 +4,12 @@
 
 ## Purpose
 
-These tests verify that the StoryBuilder-specific binary document preserves workspace identity, characters, scene beats, source provenance, campaigns, participant choices, and explicit synonym mappings. They also verify that unknown format versions and truncated payloads are rejected.
+Verifies that the StoryBuilder binary document preserves workspace identity, characters, scene beats, event-to-manuscript-section links, event-to-scene-beat links, observer knowledge, source provenance, campaigns, participant choices, and synonym mappings. It also verifies that unknown format versions and truncated payloads are rejected.
 
 ## Format boundary
 
-The document is versioned and bounded. It uses the FSM_Serialization byte-stream contract, but StoryBuilder owns the semantic field order for its workspace records. Word occurrences are derived on restore from source records; explicit synonym mappings are persisted.
+The document is versioned and bounded. It uses the FSM_Serialization byte-stream contract, while StoryBuilder owns the semantic field order. Older versions remain readable; scene beats from versions before 8 receive no event links.
 
 ## Verification
 
-Run the test project from the repository root using the Development guide.
-
-
-The round-trip case also verifies that manuscript metadata, authored section text, and a provisional timeline planning point preserve their stable identities and approximate placement.
-
-The round-trip test also verifies that accepted observer-knowledge records survive with their observer, event, and knowledge-kind identities.
+Run the test project from the repository root using the Development guide. The round-trip case asserts that a timeline event's identity survives links to both a manuscript section and a specific scene beat.

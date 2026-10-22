@@ -76,6 +76,7 @@ public sealed class StoryWorkspacePersistenceTests
         var chapter = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
         session.UpdateManuscriptSection(manuscript.Id, chapter.Sections[0].Id, "The North Gate", "Mara placed her hand on the latch.");
         session.LinkEventToManuscriptSection(manuscript.Id, chapter.Sections[0].Id, timelineEvent.Id);
+        session.LinkEventToSceneBeat(scene.Id, scene.Beats[0].Id, timelineEvent.Id);
         var observerKnowledge = session.AddObserverKnowledge(new ObserverKnowledgeRecord
         {
             ObserverId = character.Id,
@@ -134,6 +135,7 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(CharacterNarrativeRole.Hero, restoredCharacter.NarrativeRole);
         Assert.Equal(scene.Id, Assert.Single(restoredSession.Workspace.Scenes).Id);
         Assert.Equal("left hand on the latch", Assert.Single(restoredSession.Workspace.Scenes[0].Beats).PoseOrPosition);
+        Assert.Contains(timelineEvent.Id, Assert.Single(restoredSession.Workspace.Scenes[0].Beats).EventIds);
         Assert.Equal(source.Id, Assert.Single(restoredSession.Workspace.Sources).Id);
         Assert.Equal(campaign.Id, Assert.Single(restoredSession.Workspace.Campaigns).Id);
         Assert.Equal(CanonStatus.Proposed, Assert.Single(restoredSession.Workspace.ParticipantActions).Status);

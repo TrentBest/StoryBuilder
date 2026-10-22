@@ -231,6 +231,26 @@ public sealed class StoryBuilderSession
         return scene;
     }
 
+    /// <summary>Links a canonical world event to a scene beat without duplicating the event as new world truth.</summary>
+    public SceneRecord LinkEventToSceneBeat(Guid sceneId, Guid beatId, Guid eventId, bool linked = true)
+    {
+        if (!Workspace.Events.Any(item => item.Id == eventId))
+            throw new KeyNotFoundException($"World event '{eventId}' does not exist in this workspace.");
+        var scene = Workspace.Scenes.FirstOrDefault(item => item.Id == sceneId)
+            ?? throw new KeyNotFoundException($"Scene '{sceneId}' does not exist in this workspace.");
+        var beat = scene.Beats.FirstOrDefault(item => item.Id == beatId)
+            ?? throw new KeyNotFoundException($"Scene beat '{beatId}' does not exist in scene '{sceneId}'.");
+        var eventIds = linked
+            ? beat.EventIds.Append(eventId).Distinct().ToList()
+            : beat.EventIds.Where(id => id != eventId).ToList();
+        var updated = scene with
+        {
+            Beats = scene.Beats.Select(item => item.Id == beatId ? item with { EventIds = eventIds } : item).ToList(),
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        return UpdateScene(updated);
+    }
+
     public HistoricalClaim AddHistoricalClaim(HistoricalClaim claim)
     {
         ArgumentNullException.ThrowIfNull(claim);

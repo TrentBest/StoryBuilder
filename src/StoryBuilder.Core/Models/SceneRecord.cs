@@ -69,6 +69,7 @@ public sealed record SceneBeat
     public string? CaptureNote { get; init; }
     public string Attribution { get; init; } = "Participant";
     public CanonStatus Status { get; init; } = CanonStatus.Proposed;
+    public List<Guid> EventIds { get; init; } = [];
 }
 
 /// <summary>Meaningful beat categories used by the scene capture workflow.</summary>
