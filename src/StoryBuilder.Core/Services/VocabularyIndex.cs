@@ -12,7 +12,7 @@ public sealed class VocabularyIndex
     private readonly List<WordOccurrence> _occurrences = [];
     private readonly Dictionary<string, VocabularyConcept> _concepts = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _gate = new();
-    private static readonly Regex WordPattern = new(@"[\\p{L}\\p{M}\\p{N}'’\\-]+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex WordPattern = new(@"[\p{L}\p{M}\p{N}'’\-]+", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
     /// <summary>Returns one copy of each explicit synonym concept, suitable for durable storage.</summary>
     public IReadOnlyList<VocabularyConcept> ExportConcepts()
