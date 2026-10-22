@@ -94,10 +94,6 @@ public sealed record ContinuityIssue
     public CanonStatus Status { get; init; } = CanonStatus.Proposed;
 }
 
-/// <summary>
-/// An in-memory workspace boundary that groups the build record and fictional story records.
-/// Persistence and presentation are host responsibilities; the two record families remain distinct.
-/// </summary>
 /// <summary>A creator-owned story idea, separate from the implementation record for the StoryBuilder tool itself.</summary>
 public sealed record StoryPremise
 {
@@ -113,6 +109,10 @@ public sealed record StoryPremise
     public DateTimeOffset UpdatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
 }
 
+/// <summary>
+    /// An in-memory workspace boundary that groups the build record and fictional story records.
+    /// Persistence and presentation are host responsibilities; the two record families remain distinct.
+    /// </summary>
 public sealed class StoryWorkspace
 {
     private readonly List<StoryPremise> _premises = [];
