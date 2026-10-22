@@ -25,7 +25,9 @@ jobs:
         run: dotnet build src/StoryBuilder.FSM/StoryBuilder.FSM.csproj --configuration Release
       - name: Build MicroBundle adapter
         run: dotnet build src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj --configuration Release
-      - name: Build quickstart
+      - name: Build console quickstart
         run: dotnet build samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj --configuration Release
+      - name: Build interactive WebDemo
+        run: dotnet build samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --configuration Release
       - name: Test authoring, lifecycle, and composition
         run: dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
