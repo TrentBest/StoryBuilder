@@ -9,7 +9,11 @@ class StoryWorkspace {
   +string Name
   +ExperienceDefinition Experience
   +IReadOnlyList~TimelineDefinition~ Timelines
+  +IReadOnlyList~TimelinePlanningPoint~ PlanningPoints
+  +IReadOnlyList~ManuscriptEdition~ Manuscripts
+  +IReadOnlyList~PublishedBookEdition~ PublishedEditions
   +IReadOnlyList~StoryPremise~ Premises
+  +IReadOnlyList~PlaceRecord~ Places
   +IReadOnlyList~CharacterProfile~ Characters
   +IReadOnlyList~SceneRecord~ Scenes
   +IReadOnlyList~HistoricalClaim~ HistoricalClaims
@@ -19,6 +23,7 @@ class StoryWorkspace {
   +IReadOnlyList~SourceRecord~ Sources
   +IReadOnlyList~ContinuityIssue~ ContinuityIssues
   +AddTimeline(timeline)
+  +AddPublishedEdition(edition)
   +AddPremise(premise)
   +ReplacePremise(premise)
   +AddCharacter(character)
@@ -34,7 +39,13 @@ class StoryWorkspace {
 }
 StoryWorkspace o-- ExperienceDefinition
 StoryWorkspace o-- TimelineDefinition
+StoryWorkspace o-- TimelinePlanningPoint
+StoryWorkspace o-- ManuscriptEdition
+StoryWorkspace o-- PublishedBookEdition
 StoryWorkspace o-- StoryPremise
+StoryWorkspace o-- PlaceRecord
+PublishedBookEdition --> ManuscriptEdition : source manuscript
+PublishedBookEdition --> PublishedBookEdition : corrected from
 StoryWorkspace o-- CharacterProfile
 StoryWorkspace o-- SceneRecord
 StoryWorkspace o-- HistoricalClaim
@@ -48,4 +59,4 @@ TimelineDefinition "0..1" --> "0..*" TimelineDefinition : branch lineage
 
 ## Use case
 
-The host creates one workspace for an Experience, captures StoryPremise proposals through the Narrator, and registers timeline definitions before executing them through an optional runtime adapter. A branch must point to a parent already registered in that workspace. The host then adds fictional and campaign records without mixing them with the Experience's implementation record. The workspace exposes read-only collection views; storage and UI remain host or adapter responsibilities.
+The host creates one workspace for an Experience, captures StoryPremise proposals through the Narrator, and registers timeline definitions before executing them through an optional runtime adapter. A branch must point to a parent already registered in that workspace. The host then adds fictional and campaign records without mixing them with the Experience's implementation record. The workspace exposes read-only collection views; storage and UI remain host or adapter responsibilities. Published editions are append-only snapshots with content hashes and correction lineage, separate from mutable manuscript drafts.
