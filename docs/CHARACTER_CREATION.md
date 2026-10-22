@@ -17,7 +17,7 @@ Make a new character feel like opening a door, not filling out a tax return. The
 
 Defaults are useful only when they reduce work without smuggling in assumptions. A template provides optional questions and suggestions; it does not silently decide personality or canon. The user can accept, ignore, rename, or replace every suggestion.
 
-Vocabulary is a shared story-domain service. The first implementation supports explicit synonym mappings and preserves the exact surface word at each occurrence. Automatic language inference and thesaurus generation are future capabilities, not current claims.
+StoryBuilderSession keeps the vocabulary index synchronized when characters are created or edited. The exact wording is preserved as an occurrence; explicit synonyms make related terms searchable without silently replacing the author's language.
 
 ## Game-system boundary
 
@@ -27,6 +27,7 @@ D&D/GURPS-style attributes, skill systems, point budgets, species lists, and com
 
 - CharacterProfile: editable record with stable identity, role, description, traits, relationships, notes, and status.
 - CharacterBuilder: low-friction draft creation and optional templates.
-- VocabularyIndex: synonym-aware search over explicitly recorded occurrences.
+- StoryBuilderSession: coordinates workspace edits and vocabulary re-indexing.
+- VocabularyIndex: synonym-aware search over explicitly recorded and session-indexed occurrences.
 
 The domain types are implemented in the C# core; a clickable Casting interface and persistent storage remain future integration work.
