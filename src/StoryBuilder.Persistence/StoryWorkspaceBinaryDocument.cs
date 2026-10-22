@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 11;
+    private const int FormatVersion = 12;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -118,7 +118,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var name = BinaryCodec.ReadRequiredString(stream, nameof(StoryWorkspace.Name));
         var experience = ReadExperience(stream);
         var timelines = version >= 3 ? BinaryCodec.ReadList(stream, ReadTimeline) : [];
-        var planningPoints = version >= 5 ? BinaryCodec.ReadList(stream, ReadPlanningPoint) : [];
+        var planningPoints = version >= 5 ? BinaryCodec.ReadList(stream, item => ReadPlanningPoint(item, version)) : [];
         var manuscripts = version >= 4 ? BinaryCodec.ReadList(stream, ReadManuscript) : [];
         var premises = version >= 2 ? BinaryCodec.ReadList(stream, ReadPremise) : [];
         var characters = BinaryCodec.ReadList(stream, item => ReadCharacter(item, version));
@@ -224,25 +224,41 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteStringList(stream, value.Alternatives);
         BinaryCodec.WriteGuidList(stream, value.RelatedSceneIds);
         BinaryCodec.WriteGuidList(stream, value.RelatedEventIds);
+        BinaryCodec.WriteNullableGuid(stream, value.PromotedEventId);
         BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static TimelinePlanningPoint ReadPlanningPoint(IBinaryStream stream) => new()
+    private static TimelinePlanningPoint ReadPlanningPoint(IBinaryStream stream, int version)
     {
-        Id = BinaryCodec.ReadGuid(stream),
-        TimelineId = BinaryCodec.ReadGuid(stream),
-        Label = BinaryCodec.ReadRequiredString(stream, nameof(TimelinePlanningPoint.Label)),
-        Intent = BinaryCodec.ReadRequiredString(stream, nameof(TimelinePlanningPoint.Intent)),
-        ApproximatePlacement = BinaryCodec.ReadRequiredString(stream, nameof(TimelinePlanningPoint.ApproximatePlacement)),
-        PlacementKind = BinaryCodec.ReadEnum<TimelinePlacementKind>(stream),
-        Status = BinaryCodec.ReadEnum<TimelinePlanningStatus>(stream),
-        Alternatives = BinaryCodec.ReadStringList(stream),
-        RelatedSceneIds = BinaryCodec.ReadGuidList(stream),
-        RelatedEventIds = BinaryCodec.ReadGuidList(stream),
-        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
-        UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
-    };
+        var id = BinaryCodec.ReadGuid(stream);
+        var timelineId = BinaryCodec.ReadGuid(stream);
+        var label = BinaryCodec.ReadRequiredString(stream, nameof(TimelinePlanningPoint.Label));
+        var intent = BinaryCodec.ReadRequiredString(stream, nameof(TimelinePlanningPoint.Intent));
+        var approximatePlacement = BinaryCodec.ReadRequiredString(stream, nameof(TimelinePlanningPoint.ApproximatePlacement));
+        var placementKind = BinaryCodec.ReadEnum<TimelinePlacementKind>(stream);
+        var status = BinaryCodec.ReadEnum<TimelinePlanningStatus>(stream);
+        var alternatives = BinaryCodec.ReadStringList(stream);
+        var relatedSceneIds = BinaryCodec.ReadGuidList(stream);
+        var relatedEventIds = BinaryCodec.ReadGuidList(stream);
+        var promotedEventId = version >= 12 ? BinaryCodec.ReadNullableGuid(stream) : null;
+        return new TimelinePlanningPoint
+        {
+            Id = id,
+            TimelineId = timelineId,
+            Label = label,
+            Intent = intent,
+            ApproximatePlacement = approximatePlacement,
+            PlacementKind = placementKind,
+            Status = status,
+            Alternatives = alternatives,
+            RelatedSceneIds = relatedSceneIds,
+            RelatedEventIds = relatedEventIds,
+            PromotedEventId = promotedEventId,
+            CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+            UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+        };
+    }
 
     private static void WriteManuscript(IBinaryStream stream, ManuscriptEdition value)
     {
