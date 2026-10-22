@@ -244,6 +244,14 @@ public sealed class StoryBuilderSession
         return claim;
     }
 
+    public ObserverKnowledgeRecord UpdateObserverKnowledge(ObserverKnowledgeRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        Workspace.ReplaceObserverKnowledge(record);
+        NotifyChanged();
+        return record;
+    }
+
     public ObserverKnowledgeRecord AddObserverKnowledge(ObserverKnowledgeRecord record)
     {
         ArgumentNullException.ThrowIfNull(record);
