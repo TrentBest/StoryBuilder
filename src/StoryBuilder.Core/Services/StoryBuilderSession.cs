@@ -117,6 +117,18 @@ public sealed class StoryBuilderSession
         return campaign;
     }
 
+    public ParticipantAction UpdateParticipantAction(ParticipantAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        Workspace.ReplaceParticipantAction(action);
+        Vocabulary.RemoveTarget(action.Id);
+        var campaignName = Workspace.Campaigns.FirstOrDefault(c => c.Id == action.CampaignId)?.Name ?? "Campaign action";
+        Vocabulary.RecordText(action.Description, VocabularyCategory.Other, action.Id, campaignName,
+            nameof(ParticipantAction.Description), context: action.Description, attribution: action.Attribution,
+            sourceId: action.Id.ToString("D"), status: action.Status);
+        return action;
+    }
+
     public ParticipantAction AddParticipantAction(ParticipantAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
