@@ -100,51 +100,81 @@ public sealed record ContinuityIssue
 /// </summary>
 public sealed class StoryWorkspace
 {
+    private readonly List<CharacterProfile> _characters = [];
+    private readonly List<SceneRecord> _scenes = [];
+    private readonly List<HistoricalClaim> _historicalClaims = [];
+    private readonly List<StoryEvent> _events = [];
+    private readonly List<CampaignRecord> _campaigns = [];
+    private readonly List<ParticipantAction> _participantActions = [];
+    private readonly List<SourceRecord> _sources = [];
+    private readonly List<ContinuityIssue> _continuityIssues = [];
+
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
     public ExperienceDefinition Experience { get; set; } = new();
-    public List<CharacterProfile> Characters { get; } = [];
-    public List<SceneRecord> Scenes { get; } = [];
-    public List<HistoricalClaim> HistoricalClaims { get; } = [];
-    public List<StoryEvent> Events { get; } = [];
-    public List<CampaignRecord> Campaigns { get; } = [];
-    public List<ParticipantAction> ParticipantActions { get; } = [];
-    public List<SourceRecord> Sources { get; } = [];
-    public List<ContinuityIssue> ContinuityIssues { get; } = [];
+    public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
+    public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
+    public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
+    public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
+    public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();
+    public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
+    public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
+    public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
 
     public void AddCharacter(CharacterProfile character)
     {
         ArgumentNullException.ThrowIfNull(character);
-        EnsureUnique(Characters.Select(x => x.Id), character.Id, nameof(character));
-        Characters.Add(character);
+        EnsureUnique(_characters.Select(x => x.Id), character.Id, nameof(character));
+        _characters.Add(character);
     }
 
     public void AddScene(SceneRecord scene)
     {
         ArgumentNullException.ThrowIfNull(scene);
-        EnsureUnique(Scenes.Select(x => x.Id), scene.Id, nameof(scene));
-        Scenes.Add(scene);
+        EnsureUnique(_scenes.Select(x => x.Id), scene.Id, nameof(scene));
+        _scenes.Add(scene);
     }
 
     public void AddClaim(HistoricalClaim claim)
     {
         ArgumentNullException.ThrowIfNull(claim);
-        EnsureUnique(HistoricalClaims.Select(x => x.Id), claim.Id, nameof(claim));
-        HistoricalClaims.Add(claim);
+        EnsureUnique(_historicalClaims.Select(x => x.Id), claim.Id, nameof(claim));
+        _historicalClaims.Add(claim);
     }
 
     public void AddEvent(StoryEvent storyEvent)
     {
         ArgumentNullException.ThrowIfNull(storyEvent);
-        EnsureUnique(Events.Select(x => x.Id), storyEvent.Id, nameof(storyEvent));
-        Events.Add(storyEvent);
+        EnsureUnique(_events.Select(x => x.Id), storyEvent.Id, nameof(storyEvent));
+        _events.Add(storyEvent);
     }
 
     public void AddCampaign(CampaignRecord campaign)
     {
         ArgumentNullException.ThrowIfNull(campaign);
-        EnsureUnique(Campaigns.Select(x => x.Id), campaign.Id, nameof(campaign));
-        Campaigns.Add(campaign);
+        EnsureUnique(_campaigns.Select(x => x.Id), campaign.Id, nameof(campaign));
+        _campaigns.Add(campaign);
+    }
+
+    public void AddParticipantAction(ParticipantAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        EnsureUnique(_participantActions.Select(x => x.Id), action.Id, nameof(action));
+        _participantActions.Add(action);
+    }
+
+    public void AddSource(SourceRecord source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        EnsureUnique(_sources.Select(x => x.Id), source.Id, nameof(source));
+        _sources.Add(source);
+    }
+
+    public void AddContinuityIssue(ContinuityIssue issue)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+        EnsureUnique(_continuityIssues.Select(x => x.Id), issue.Id, nameof(issue));
+        _continuityIssues.Add(issue);
     }
 
     private static void EnsureUnique(IEnumerable<Guid> existingIds, Guid id, string parameterName)
