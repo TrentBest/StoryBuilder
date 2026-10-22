@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 10;
+    private const int FormatVersion = 11;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -109,6 +109,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.Sources, WriteSource);
         BinaryCodec.WriteList(stream, workspace.ContinuityIssues, WriteContinuityIssue);
         BinaryCodec.WriteString(stream, workspace.LegacyProjectSourceJson);
+        BinaryCodec.WriteList(stream, workspace.PublishedEditions, WritePublishedEdition);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
@@ -131,11 +132,14 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var sources = BinaryCodec.ReadList(stream, ReadSource);
         var issues = BinaryCodec.ReadList(stream, ReadContinuityIssue);
         var legacyProjectSourceJson = version >= 9 ? BinaryCodec.ReadString(stream) : null;
+        var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, ReadPublishedEdition) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
         foreach (var item in planningPoints) workspace.AddPlanningPoint(item);
         foreach (var item in manuscripts) workspace.AddManuscript(item);
+        // Persisted order preserves correction lineage: an earlier edition is added before its correction.
+        foreach (var item in publishedEditions) workspace.AddPublishedEdition(item);
         foreach (var item in premises) workspace.AddPremise(item);
         foreach (var item in characters) workspace.AddCharacter(item);
         foreach (var item in places) workspace.AddPlace(item);
@@ -283,6 +287,40 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Title = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Title)),
         Body = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Body)),
         SceneIds = BinaryCodec.ReadGuidList(stream),
+        EventIds = BinaryCodec.ReadGuidList(stream)
+    };
+
+    private static void WritePublishedEdition(IBinaryStream stream, PublishedBookEdition value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.ManuscriptId);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Subtitle);
+        BinaryCodec.WriteString(stream, value.Author);
+        BinaryCodec.WriteString(stream, value.Markdown);
+        BinaryCodec.WriteString(stream, value.ContentSha256);
+        BinaryCodec.WriteDateTimeOffset(stream, value.PublishedAtUtc);
+        BinaryCodec.WriteDateTimeOffset(stream, value.SourceUpdatedAtUtc);
+        BinaryCodec.WriteNullableGuid(stream, value.PreviousEditionId);
+        BinaryCodec.WriteString(stream, value.CorrectionNotes);
+        BinaryCodec.WriteGuidList(stream, value.SectionIds);
+        BinaryCodec.WriteGuidList(stream, value.EventIds);
+    }
+
+    private static PublishedBookEdition ReadPublishedEdition(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        ManuscriptId = BinaryCodec.ReadGuid(stream),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Title)),
+        Subtitle = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Subtitle)),
+        Author = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Author)),
+        Markdown = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.Markdown)),
+        ContentSha256 = BinaryCodec.ReadRequiredString(stream, nameof(PublishedBookEdition.ContentSha256)),
+        PublishedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        SourceUpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        PreviousEditionId = BinaryCodec.ReadNullableGuid(stream),
+        CorrectionNotes = BinaryCodec.ReadString(stream),
+        SectionIds = BinaryCodec.ReadGuidList(stream),
         EventIds = BinaryCodec.ReadGuidList(stream)
     };
 
