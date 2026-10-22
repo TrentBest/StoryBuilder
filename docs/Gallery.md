@@ -16,8 +16,9 @@ Open http://localhost:5080.
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder beats; copy an editable narration draft.
 - **World Archive:** record a historical claim and optionally attach a source record.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
+- **Living Map:** see GUI.SVG render the current characters, statuses, traits, and most-used vocabulary from StoryBuilderSession. The view updates when workspace records change.
 
-This is an interactive local Blazor host using a session created through StoryBuilderAuthoringBundle. It autosaves a versioned binary workspace in browser localStorage and restores it after refresh. Storage is local to this browser; there is no cloud sync, account sharing, or WebPage deployment yet.
+This is an interactive local Blazor host using a session created through StoryBuilderAuthoringBundle. It uses the source-pinned GUI.SVG project to render a living workspace view and autosaves a versioned binary workspace in browser localStorage, restoring it after refresh. Storage is local to this browser; there is no cloud sync, account sharing, or WebPage deployment yet.
 
 ## Recipe 2: run the compact domain example
 
