@@ -8,12 +8,21 @@ class CharacterProfile {
   +Guid Id
   +string Name
   +string Role
+  +CharacterNarrativeRole NarrativeRole
   +string Description
   +CanonStatus Status
   +List~CharacterTrait~ Traits
   +List~CharacterRelationship~ Relationships
   +Rename(name) CharacterProfile
   +AddTrait(trait) CharacterProfile
+}
+class CharacterNarrativeRole {
+  <<enumeration>>
+  Undecided
+  Hero
+  Neutral
+  Antagonist
+  Other
 }
 class CharacterTrait {
   +string Term
@@ -26,6 +35,7 @@ class CharacterRelationship {
   +string Label
   +CanonStatus Status
 }
+CharacterProfile --> CharacterNarrativeRole
 CharacterProfile o-- CharacterTrait
 CharacterProfile o-- CharacterRelationship
 ```
