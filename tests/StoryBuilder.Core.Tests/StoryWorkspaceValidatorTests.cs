@@ -47,7 +47,7 @@ public sealed class StoryWorkspaceValidatorTests
             issue.Relationship == "source" && issue.MissingTargetId == missingSourceId);
         Assert.Contains(issues, issue => issue.OwnerId == manuscript.Sections[0].Id &&
             issue.Relationship == "event" && issue.MissingTargetId == missingEventId);
-        Assert.Equal(1, workspace.Events.Count);
+        Assert.Single(workspace.Events);
         Assert.Equal(missingCauseId, Assert.Single(workspace.Events).CauseEventIds[0]);
     }
 
