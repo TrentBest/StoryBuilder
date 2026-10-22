@@ -9,7 +9,7 @@ public sealed class StoryLifecycleTests
     [Fact]
     public void LifecycleRequiresProposalBeforeAcceptance()
     {
-        var lifecycle = new StoryLifecycleSession("Character review");
+        using var lifecycle = new StoryLifecycleSession("Character review");
 
         Assert.Equal(CanonStatus.Draft, lifecycle.CurrentStatus);
         Assert.Equal(CanonStatus.Draft, lifecycle.Request(CanonStatus.Accepted));
