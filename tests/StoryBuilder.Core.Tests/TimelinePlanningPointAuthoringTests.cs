@@ -1,5 +1,7 @@
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
+using StoryBuilder.Persistence;
+using TheSingularityWorkshop.FSM_Serialization;
 using Xunit;
 
 namespace StoryBuilder.Core.Tests;
@@ -54,6 +56,27 @@ public sealed class TimelinePlanningPointAuthoringTests
         Assert.Equal(promoted.Id, repeated.Id);
         Assert.Single(session.Workspace.Events);
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
+    }
+
+    [Fact]
+    public void PromotionIdentitySurvivesFormatTwelvePersistence()
+    {
+        var session = new StoryBuilderSession();
+        var timeline = session.CreateTimeline("Main");
+        var point = session.CreatePlanningPoint(timeline.Id, "The reveal", intent: "Expose the hidden alliance.");
+        var promoted = session.PromotePlanningPointToEvent(point.Id);
+
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        using var input = new MemoryBinaryStream(output.ToArray());
+        var restored = new StoryWorkspaceBinaryDocument();
+        restored.Unpack(input);
+
+        var restoredPoint = Assert.Single(restored.Workspace.PlanningPoints);
+        Assert.Equal(TimelinePlanningStatus.Superseded, restoredPoint.Status);
+        Assert.Equal(promoted.Id, restoredPoint.PromotedEventId);
+        Assert.Equal(promoted.Id, Assert.Single(restored.Workspace.Events).Id);
+        Assert.Empty(StoryWorkspaceValidator.Validate(restored.Workspace));
     }
 
     [Fact]
