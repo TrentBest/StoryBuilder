@@ -12,7 +12,8 @@ dotnet run --project samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --
 
 Open http://localhost:5080.
 
-- **Casting:** create and edit character records; add or remove traits; search word occurrences with attribution.
+- **Narrator:** enter one free-form idea, optionally add scale/genre/approach/target hints, and get an editable premise proposal with stable identity and review status.
+- **Casting:** create and edit character records; assign Hero / Neutral / Antagonist / Undecided grouping; compare current profile, proposed revision, and indexed source context; add traits and synonyms.
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder beats; copy an editable narration draft.
 - **World Archive:** record a historical claim and optionally attach a source record.
 - **Campaign Room:** create a campaign and record a participant choice as a proposal.
