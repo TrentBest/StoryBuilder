@@ -17,5 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/StoryBuilder.Core/StoryBuilder.Core.csproj" />
+    <ProjectReference Include="../../src/StoryBuilder.FSM/StoryBuilder.FSM.csproj" />
   </ItemGroup>
 </Project>
