@@ -297,6 +297,7 @@
             Description = editDescription.Trim(),
             UpdatedAtUtc = DateTimeOffset.UtcNow
         });
+        RefreshSearchIfNeeded();
     }
 
     private void RequestCharacterStatus(CanonStatus requestedStatus)
@@ -315,6 +316,7 @@
         statusMessage = reachedStatus == requestedStatus
             ? $"Character status is now {reachedStatus}."
             : $"That transition is not available from {previousStatus}; the status was not changed.";
+        RefreshSearchIfNeeded();
     }
 
     private void AddTypedTrait()
@@ -335,6 +337,7 @@
             Attribution = traitAttribution,
             Status = CanonStatus.Draft
         }));
+        RefreshSearchIfNeeded();
     }
 
     private void RemoveTrait(Guid traitId)
@@ -343,6 +346,7 @@
             return;
 
         selectedCharacter = Session.UpdateCharacter(selectedCharacter.RemoveTrait(traitId));
+        RefreshSearchIfNeeded();
     }
 
     private void AddSynonym()
@@ -355,6 +359,12 @@
         canonicalTerm = string.Empty;
         synonymTerm = string.Empty;
         if (!string.IsNullOrWhiteSpace(searchTerm))
+            SearchVocabulary();
+    }
+
+    private void RefreshSearchIfNeeded()
+    {
+        if (hasSearched && !string.IsNullOrWhiteSpace(searchTerm))
             SearchVocabulary();
     }
 
