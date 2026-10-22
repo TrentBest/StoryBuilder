@@ -12,7 +12,7 @@ See [StoryBuilderSession UML](../../../docs/UML/StoryBuilderSessionUML.md) for t
 
 ## Use case
 
-Create a session for one workspace. Use CreateCharacter or CreateScene when a user opens Casting or the Stage. UpdateCharacter and UpdateScene replace edited records and re-index their word occurrences. Historical claims and events can also be added through the session.
+Create a session for one workspace. Use CreateCharacter or CreateScene when a user opens Casting or the Stage. UpdateCharacter and UpdateScene replace edited records and re-index their word occurrences. Historical claims, events, sources, continuity notes, campaigns, and participant actions can also be added through the session. The vocabulary index retains context and attribution for those records too.
 
 ## Boundary
 
