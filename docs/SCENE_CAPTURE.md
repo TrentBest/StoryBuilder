@@ -27,6 +27,10 @@ These modes are labels in the current domain model. A live interactive playback 
 
 Do not require all fields for every beat. A quick action such as “Mara ducks” is a valid start; a detailed choreography can be added later.
 
+## Event links
+
+A scene beat can reference a canonical world event by stable ID. Use Stage's Timeline connections controls to link an event to a specific beat. The timeline map draws a separate scene-beat rail for these relationships. Removing a link does not delete the event or beat, and an event linked to a beat is not duplicated as new world truth.
+
 ## Narration rule
 
 The current SceneComposer formats only recorded information into a first-pass draft. It does not infer motive, physics, injury, winner, or sensory details that the user did not supply. Generated wording remains editable and should retain links to the beats it summarizes.

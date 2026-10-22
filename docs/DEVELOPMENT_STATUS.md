@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 67% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, a four-FSM Narrator agent, and an accepted-knowledge projection for downstream portrayal. Scene beats can now reference canonical world-event IDs; the timeline renderer draws a separate event-to-scene-beat rail, pending CI verification. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 68% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, a four-FSM Narrator agent, and an accepted-knowledge projection for downstream portrayal. Scene beats can reference canonical world-event IDs; Stage exposes event-link controls and the timeline renderer draws a separate event-to-scene-beat rail. The persistence, renderer, and Stage increment passed CI. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -54,6 +54,9 @@
 - [Numbered timeline portrayal rail workflow run 39711644001](https://github.com/TrentBest/StoryBuilder/actions/runs/39711644001) succeeded on commit 266dd4a35d2e0088b0430834f327bc99b9a5592b.
 - [Observer projection and Narrator FSM workflow run 39712401525](https://github.com/TrentBest/StoryBuilder/actions/runs/39712401525) succeeded on commit 6e2df6c274c9789f5495e14b1cec10f21fe6372.
 - [Indexed observer projection workflow run 39712572636](https://github.com/TrentBest/StoryBuilder/actions/runs/39712572636) succeeded on commit 3465455479df9eb95e419a5124b6efbfbfc3901c.
+- [GUI.SVG observer-lens view workflow run 39712919016](https://github.com/TrentBest/StoryBuilder/actions/runs/39712919016) succeeded on commit 5ecbb45f5b1533f4266d66e2494775453c7e2cdb.
+- [Scene-beat event-link persistence workflow run 39713533768](https://github.com/TrentBest/StoryBuilder/actions/runs/39713533768) succeeded on commit d001104fcbfd7248e8f28566c5648366018dec30.
+- [Scene-beat portrayal rail and Stage controls workflow run 39713997378](https://github.com/TrentBest/StoryBuilder/actions/runs/39713997378) succeeded on commit 17d8b58dea20ad1efc6d6214d06ec8fab4542923.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
@@ -73,7 +76,7 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, the observer-safe projection, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered book portrayal rail, manifest dependency closure, and scene-beat event-link persistence are verified in CI; the new scene-beat rail and Stage controls await CI. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, the observer-safe projection, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered book portrayal rail, manifest dependency closure, scene-beat event-link persistence, scene-beat rail, and Stage controls are verified in CI. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
