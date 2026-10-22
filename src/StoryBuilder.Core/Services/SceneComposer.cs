@@ -66,6 +66,14 @@ public sealed class SceneComposer
     private static string EnsureSentenceFragment(string text) =>
         text.Length > 0 && char.IsUpper(text[0]) ? char.ToLowerInvariant(text[0]) + text[1..] : text;
 
-    private static string EnsureSentence(string text) =>
-        text.EndsWith('.') || text.EndsWith('!') || text.EndsWith('?') ? text : text + ".";
+    private static string EnsureSentence(string text)
+    {
+        if (text.EndsWith('.') || text.EndsWith('!') || text.EndsWith('?'))
+            return text;
+
+        if (text.Length > 1 && text.EndsWith('"') && ".!?".Contains(text[^2]))
+            return text;
+
+        return text + ".";
+    }
 }
