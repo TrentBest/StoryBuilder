@@ -1,0 +1,346 @@
+@page "/"
+@inject StoryBuilderSession Session
+@inject StoryLifecycleRegistry Lifecycles
+@inject NarratorAgent Narrator
+
+<PageTitle>StoryBuilder · Narrator</PageTitle>
+
+<section class="narrator-intro">
+    <div class="eyebrow">The Singularity Workshop · StoryBuilder</div>
+    <h1>Every universe starts somewhere.</h1>
+    <p class="lede">Hello. I'm your Narrator. You don't need a complete world, a cast list, or an ending before we begin. Give me the scrap of an idea you have, and we'll shape it together. You can change your mind later.</p>
+</section>
+
+<section class="panel stack" style="margin-top:1rem" aria-label="Narrator agent state">
+    <div class="eyebrow">Narrator agent · cooperating FSM_API state machines</div>
+    <div class="row wrap">
+        <span class="chip">Intent: @Narrator.IntentState</span>
+        <span class="chip">Planning: @Narrator.PlanningState</span>
+        <span class="chip">Observer: @Narrator.ObserverState</span>
+        <span class="chip">Draft/review: @Narrator.DraftState</span>
+    </div>
+    <p class="muted">These are separate state machines with separate responsibilities. The agent coordinates them; the workspace records remain the source of truth. No prose is accepted merely because an FSM advanced.</p>
+    <p class="muted">@Narrator.Events.Count recorded agent transition/event(s).</p>
+</section>
+
+@if (activePremise is null)
+{
+    <section class="panel stack narrator-prompt">
+        <div class="eyebrow">Let's start with one thing</div>
+        <h2>What would you like to create?</h2>
+        <p>It can be a character, a place, a moment, a campaign, or a whole universe. Write a sentence, a paragraph, or just a phrase.</p>
+        <div class="field">
+            <label for="vision-draft">Your idea</label>
+            <textarea id="vision-draft" @bind="visionDraft" rows="4" placeholder="A starship cartographer finds evidence that Earth was not lost by accident…"></textarea>
+        </div>
+        <details class="optional-details">
+            <summary>Optional: give me a little more direction</summary>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="scale">How large might it be?</label>
+                    <select id="scale" @bind="scaleDraft">
+                        <option>Not sure yet</option>
+                        <option>One story</option>
+                        <option>Series</option>
+                        <option>Connected series</option>
+                        <option>Shared universe</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="genre">Genre or flavor</label>
+                    <input id="genre" @bind="genreDraft" placeholder="Optional — science fiction, mystery, western…" />
+                </div>
+                <div class="field">
+                    <label for="approach">How would you like to explore it?</label>
+                    <select id="approach" @bind="approachDraft">
+                        <option>Not sure yet</option>
+                        <option>I want to write</option>
+                        <option>I want to play a scene</option>
+                        <option>I want to build a world</option>
+                        <option>I want to explore an idea</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="target">Preferred medium</label>
+                    <select id="target" @bind="targetDraft">
+                        <option>Not sure yet</option>
+                        <option>Novel</option>
+                        <option>Short story</option>
+                        <option>Screenplay</option>
+                        <option>Tabletop campaign</option>
+                        <option>Interactive experience</option>
+                        <option>Game</option>
+                        <option>Other</option>
+                    </select>
+                    <span class="muted">A preference, not a promise that an export target is already implemented.</span>
+                </div>
+            </div>
+        </details>
+        <div class="row">
+            <button @onclick="CaptureIdea" disabled="@string.IsNullOrWhiteSpace(visionDraft)">Capture this idea</button>
+            <span class="muted">No required questionnaire. No canon until you decide.</span>
+        </div>
+    </section>
+}
+else
+{
+    <section class="panel stack premise-card">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Your working premise</div>
+                <h2>@activePremise.Title</h2>
+            </div>
+            <span class="chip">@activePremise.Status</span>
+        </div>
+        <blockquote>@activePremise.Vision</blockquote>
+        <div class="row wrap">
+            @if (!string.IsNullOrWhiteSpace(activePremise.Scale)) { <span class="chip">@activePremise.Scale</span> }
+            @if (!string.IsNullOrWhiteSpace(activePremise.Genre)) { <span class="chip">@activePremise.Genre</span> }
+            @if (!string.IsNullOrWhiteSpace(activePremise.CreationApproach)) { <span class="chip">@activePremise.CreationApproach</span> }
+            @if (!string.IsNullOrWhiteSpace(activePremise.PrimaryTarget)) { <span class="chip">Prefers: @activePremise.PrimaryTarget</span> }
+        </div>
+        <p class="muted">This is a working proposal, not a declaration of canon. Your words stay attached to the premise, and you can revise it whenever you need to.</p>
+
+        @if (isEditing)
+        {
+            <div class="divider"></div>
+            <div class="eyebrow">Revise the premise</div>
+            <div class="field">
+                <label for="edit-title">Working title</label>
+                <input id="edit-title" @bind="editTitle" />
+            </div>
+            <div class="field">
+                <label for="edit-vision">Your idea, in your own words</label>
+                <textarea id="edit-vision" @bind="editVision" rows="5"></textarea>
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="edit-scale">Scale</label>
+                    <select id="edit-scale" @bind="editScale">
+                        <option>Not sure yet</option>
+                        <option>One story</option>
+                        <option>Series</option>
+                        <option>Connected series</option>
+                        <option>Shared universe</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="edit-genre">Genre or flavor</label>
+                    <input id="edit-genre" @bind="editGenre" />
+                </div>
+                <div class="field">
+                    <label for="edit-approach">Creation approach</label>
+                    <select id="edit-approach" @bind="editApproach">
+                        <option>Not sure yet</option>
+                        <option>I want to write</option>
+                        <option>I want to play a scene</option>
+                        <option>I want to build a world</option>
+                        <option>I want to explore an idea</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="edit-target">Preferred medium</label>
+                    <select id="edit-target" @bind="editTarget">
+                        <option>Not sure yet</option>
+                        <option>Novel</option>
+                        <option>Short story</option>
+                        <option>Screenplay</option>
+                        <option>Tabletop campaign</option>
+                        <option>Interactive experience</option>
+                        <option>Game</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <button @onclick="SaveRevision" disabled="@string.IsNullOrWhiteSpace(editVision)">Save revision</button>
+                <button class="secondary" @onclick="() => isEditing = false">Cancel</button>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @if (activePremise.Status == CanonStatus.Proposed)
+                {
+                    <button @onclick="() => RequestPremiseStatus(CanonStatus.Accepted)">Yes — keep this as the starting point</button>
+                }
+                @if (activePremise.Status is CanonStatus.Accepted or CanonStatus.Rejected)
+                {
+                    <button class="secondary" @onclick="() => RequestPremiseStatus(CanonStatus.Proposed)">Reopen for revision</button>
+                }
+                @if (activePremise.Status != CanonStatus.Deprecated)
+                {
+                    <button class="secondary" @onclick="BeginRevision">Let me revise it</button>
+                }
+                <button class="secondary" @onclick="StartAnotherIdea">Start another idea</button>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <p class="muted" role="status">@message</p>
+        }
+    </section>
+}
+
+@if (Session.Workspace.Premises.Count > 0)
+{
+    <section class="panel stack" style="margin-top:1rem">
+        <div class="eyebrow">Your ideas</div>
+        <h2>Nothing is lost in the archive</h2>
+        <div class="idea-list">
+            @foreach (var premise in Session.Workspace.Premises.OrderByDescending(item => item.UpdatedAtUtc))
+            {
+                <button class="idea-item" @onclick="() => SelectPremise(premise)">
+                    <span><strong>@premise.Title</strong><span class="muted">@premise.Vision</span></span>
+                    <span class="chip">@premise.Status</span>
+                </button>
+            }
+        </div>
+    </section>
+}
+
+<section class="workbench-grid" style="margin-top:1rem">
+    <article class="panel stack">
+        <div class="eyebrow">Door 01</div>
+        <h2>Casting</h2>
+        <p>Create a character without filling out a dissertation. Choose a starting pattern, add a phrase or a few traits, and revise them whenever the character changes.</p>
+        <a href="/casting">Enter the casting room →</a>
+    </article>
+    <article class="panel stack">
+        <div class="eyebrow">Door 02</div>
+        <h2>The Stage</h2>
+        <p>Capture a fight or conversation as ordered actions, reactions, dialogue, and poses. Turn the beats into an editable narration draft.</p>
+        <a href="/stage">Build a scene →</a>
+    </article>
+    <article class="panel stack">
+        <div class="eyebrow">Door 03</div>
+        <h2>World Archive</h2>
+        <p>Record historical claims and their sources. Keep what happened, what survived, and what people believe happened distinct.</p>
+        <a href="/archive">Open the archive →</a>
+    </article>
+    <article class="panel stack">
+        <div class="eyebrow">Door 04</div>
+        <h2>Campaign Room</h2>
+        <p>Capture participant choices without predetermining the outcome. Proposed actions stay proposals until an author or table accepts them.</p>
+        <a href="/campaigns">Enter a campaign →</a>
+    </article>
+    <article class="panel stack">
+        <div class="eyebrow">Door 05</div>
+        <h2>Living Map</h2>
+        <p>See the current cast and vocabulary rendered through GUI.SVG from actual workspace data.</p>
+        <a href="/living-map">Open the living map →</a>
+    </article>
+</section>
+
+@code {
+    private StoryPremise? activePremise;
+    private string visionDraft = string.Empty;
+    private string scaleDraft = "Not sure yet";
+    private string genreDraft = string.Empty;
+    private string approachDraft = "Not sure yet";
+    private string targetDraft = "Not sure yet";
+    private string editTitle = string.Empty;
+    private string editVision = string.Empty;
+    private string editScale = "Not sure yet";
+    private string editGenre = string.Empty;
+    private string editApproach = "Not sure yet";
+    private string editTarget = "Not sure yet";
+    private string message = string.Empty;
+    private bool isEditing;
+
+    protected override void OnInitialized()
+    {
+        activePremise = Session.Workspace.Premises.OrderByDescending(item => item.UpdatedAtUtc).FirstOrDefault();
+        if (activePremise is not null)
+            Narrator.AdoptPremise(activePremise);
+    }
+
+    private void CaptureIdea()
+    {
+        if (string.IsNullOrWhiteSpace(visionDraft))
+            return;
+
+        activePremise = Narrator.CaptureIntent(
+            visionDraft,
+            scale: OptionalChoice(scaleDraft),
+            genre: OptionalChoice(genreDraft),
+            creationApproach: OptionalChoice(approachDraft),
+            primaryTarget: OptionalChoice(targetDraft));
+        _ = Lifecycles.GetSession(activePremise.Id, activePremise.Status, $"Premise {activePremise.Id}");
+        visionDraft = string.Empty;
+        isEditing = false;
+        message = "I've captured your idea as a proposal. Read it back, revise it, or accept it as your starting point.";
+    }
+
+    private void SelectPremise(StoryPremise premise)
+    {
+        activePremise = premise;
+        Narrator.AdoptPremise(premise);
+        isEditing = false;
+        message = string.Empty;
+    }
+
+    private void StartAnotherIdea()
+    {
+        activePremise = null;
+        isEditing = false;
+        message = string.Empty;
+    }
+
+    private void BeginRevision()
+    {
+        if (activePremise is null || activePremise.Status == CanonStatus.Deprecated)
+            return;
+
+        if (activePremise.Status != CanonStatus.Proposed)
+            RequestPremiseStatus(CanonStatus.Proposed);
+
+        editTitle = activePremise.Title;
+        editVision = activePremise.Vision;
+        editScale = activePremise.Scale ?? "Not sure yet";
+        editGenre = activePremise.Genre ?? string.Empty;
+        editApproach = activePremise.CreationApproach ?? "Not sure yet";
+        editTarget = activePremise.PrimaryTarget ?? "Not sure yet";
+        isEditing = true;
+    }
+
+    private void SaveRevision()
+    {
+        if (activePremise is null || string.IsNullOrWhiteSpace(editVision))
+            return;
+
+        activePremise = Session.UpdatePremise(activePremise with
+        {
+            Title = string.IsNullOrWhiteSpace(editTitle) ? "Untitled story idea" : editTitle.Trim(),
+            Vision = editVision.Trim(),
+            Scale = OptionalChoice(editScale),
+            Genre = OptionalChoice(editGenre),
+            CreationApproach = OptionalChoice(editApproach),
+            PrimaryTarget = OptionalChoice(editTarget),
+            Status = CanonStatus.Proposed
+        });
+        Narrator.AdoptPremise(activePremise);
+        isEditing = false;
+        message = "Revision saved. I've returned the premise to Proposed so you can review the new version.";
+    }
+
+    private void RequestPremiseStatus(CanonStatus requestedStatus)
+    {
+        if (activePremise is null)
+            return;
+
+        var lifecycle = Lifecycles.GetSession(activePremise.Id, activePremise.Status, $"Premise {activePremise.Id}");
+        var reachedStatus = lifecycle.Request(requestedStatus);
+        activePremise = Session.UpdatePremise(activePremise with { Status = reachedStatus });
+        Narrator.AdoptPremise(activePremise);
+        message = reachedStatus == requestedStatus
+            ? $"Premise status is now {reachedStatus}."
+            : $"That transition is not available from {activePremise.Status}.";
+    }
+
+    private static string? OptionalChoice(string? value) =>
+        string.IsNullOrWhiteSpace(value) || value.Equals("Not sure yet", StringComparison.OrdinalIgnoreCase)
+            ? null
+            : value.Trim();
+}

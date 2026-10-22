@@ -1,0 +1,15 @@
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(Layout.MainLayout)">
+            <PageTitle>Not found</PageTitle>
+            <section class="panel">
+                <h1>That door is not here.</h1>
+                <p>Choose Casting, The Stage, the Archive, or Campaigns from the workshop.</p>
+            </section>
+        </LayoutView>
+    </NotFound>
+</Router>

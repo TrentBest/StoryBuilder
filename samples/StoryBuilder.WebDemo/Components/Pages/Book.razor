@@ -1,0 +1,255 @@
+@page "/book"
+@implements IDisposable
+@inject StoryBuilderSession Session
+
+<PageTitle>Book Preview · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Product view · Manuscript</div>
+    <h1>See the book taking shape.</h1>
+    <p class="lede">This is a live product view of saved manuscript records—not a static mockup. Add ordered sections and write actual text. The same stable records will later connect the book to timeline events, scenes, and observer-specific accounts.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">Manuscripts in this workspace</div>
+        <div class="field">
+            <label for="book-title">New book title</label>
+            <input id="book-title" @bind="newBookTitle" placeholder="The Lost Cartographer" />
+        </div>
+        <button @onclick="CreateBook">Create book</button>
+        @if (Session.Workspace.Manuscripts.Count == 0)
+        {
+            <div class="empty">No manuscript yet. Create a book, then add its first chapter.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var manuscript in Session.Workspace.Manuscripts)
+                {
+                    <button class="list-item @(CurrentManuscript?.Id == manuscript.Id ? "selected" : "")" @onclick="() => SelectBook(manuscript.Id)">
+                        <strong>@manuscript.Title</strong>
+                        <span>@manuscript.Sections.Count section(s) · @manuscript.Status</span>
+                        <span>@manuscript.Id</span>
+                    </button>
+                }
+            </div>
+        }
+
+        @if (CurrentManuscript is not null)
+        {
+            <hr />
+            <div class="eyebrow">Add to @CurrentManuscript.Title</div>
+            <div class="field">
+                <label for="section-kind">Section type</label>
+                <select id="section-kind" @bind="newSectionKind">
+                    <option value="FrontMatter">Front matter</option>
+                    <option value="Chapter">Chapter</option>
+                    <option value="Scene">Scene</option>
+                    <option value="Passage">Passage</option>
+                    <option value="BackMatter">Back matter</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="section-title">Section title</label>
+                <input id="section-title" @bind="newSectionTitle" placeholder="Chapter One" />
+            </div>
+            <button @onclick="AddSection">Add section</button>
+            <hr />
+            <div class="eyebrow">Structure and reading order</div>
+            @if (CurrentManuscript.Sections.Count == 0)
+            {
+                <div class="empty">The book exists; its contents are still yours to define.</div>
+            }
+            else
+            {
+                <div class="list">
+                    @foreach (var section in CurrentManuscript.Sections.OrderBy(item => item.Sequence))
+                    {
+                        <button class="list-item @(selectedSectionId == section.Id ? "selected" : "")" @onclick="() => SelectSection(section)">
+                            <span>@section.Sequence · @section.Kind</span>
+                            <strong>@section.Title</strong>
+                            <span>@(string.IsNullOrWhiteSpace(section.Body) ? "No text yet" : $"{section.Body.Length} characters")</span>
+                        </button>
+                    }
+                </div>
+            }
+        }
+    </section>
+
+    <section class="panel stack">
+        @if (CurrentManuscript is null)
+        {
+            <div class="eyebrow">Rendered product</div>
+            <h2>Your book will appear here</h2>
+            <div class="empty">Create a manuscript to begin.</div>
+        }
+        else
+        {
+            <div class="eyebrow">Live manuscript preview · @CurrentManuscript.Status</div>
+            <article class="book-preview">
+                <header class="book-title-page">
+                    <div class="eyebrow">StoryBuilder · Working edition</div>
+                    <h2>@CurrentManuscript.Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(CurrentManuscript.Subtitle))
+                    {
+                        <p>@CurrentManuscript.Subtitle</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(CurrentManuscript.Author))
+                    {
+                        <p class="book-author">@CurrentManuscript.Author</p>
+                    }
+                </header>
+                @if (CurrentManuscript.Sections.Count == 0)
+                {
+                    <p class="empty">No sections have been added. The preview is reflecting the actual empty manuscript.</p>
+                }
+                @foreach (var section in CurrentManuscript.Sections.OrderBy(item => item.Sequence))
+                {
+                    <section class="book-section">
+                        <div class="eyebrow">@section.Kind · Section @section.Sequence</div>
+                        <h3>@section.Title</h3>
+                        @if (string.IsNullOrWhiteSpace(section.Body))
+                        {
+                            <p class="empty">This section has no text yet.</p>
+                        }
+                        else
+                        {
+                            <p class="book-paragraph">@section.Body</p>
+                        }
+                        @if (section.EventIds.Count > 0)
+                        {
+                            <p class="muted">Portrays: @string.Join(", ", Session.Workspace.Events.Where(item => section.EventIds.Contains(item.Id)).Select(item => item.Title))</p>
+                        }
+                    </section>
+                }
+            </article>
+        }
+
+        @if (CurrentManuscript is not null && selectedSectionId is Guid)
+        {
+            var selectedSection = CurrentManuscript.Sections.FirstOrDefault(item => item.Id == selectedSectionId);
+            @if (selectedSection is not null)
+            {
+                <hr />
+                <div class="eyebrow">Edit source section</div>
+                <div class="field">
+                    <label for="edit-section-title">Section title</label>
+                    <input id="edit-section-title" @bind="editSectionTitle" />
+                </div>
+                <div class="field">
+                    <label for="edit-section-body">Actual manuscript text</label>
+                    <textarea id="edit-section-body" @bind="editSectionBody" rows="10" placeholder="Write the passage as it should appear in the book."></textarea>
+                </div>
+                <button @onclick="SaveSection">Save and refresh product preview</button>
+                <div class="field">
+                    <label for="section-event">Link a world event portrayed here</label>
+                    <select id="section-event" @bind="selectedEventId">
+                        <option value="">Choose an event</option>
+                        @foreach (var storyEvent in Session.Workspace.Events)
+                        {
+                            <option value="@storyEvent.Id">@storyEvent.Title</option>
+                        }
+                    </select>
+                </div>
+                <button @onclick="LinkSelectedEvent" disabled="@string.IsNullOrWhiteSpace(selectedEventId)">Link event to this section</button>
+                @if (selectedSection.EventIds.Count > 0)
+                {
+                    <div class="list">
+                        @foreach (var eventId in selectedSection.EventIds)
+                        {
+                            var linkedEvent = Session.Workspace.Events.FirstOrDefault(item => item.Id == eventId);
+                            if (linkedEvent is not null)
+                            {
+                                <div class="list-item">
+                                    <strong>@linkedEvent.Title</strong>
+                                    <button class="danger" @onclick="() => UnlinkEvent(eventId)">Unlink</button>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            }
+        }
+    </section>
+</div>
+
+@code {
+    private string newBookTitle = string.Empty;
+    private string newSectionTitle = string.Empty;
+    private string newSectionKind = nameof(ManuscriptSectionKind.Chapter);
+    private string editSectionTitle = string.Empty;
+    private string editSectionBody = string.Empty;
+    private string selectedEventId = string.Empty;
+    private Guid? selectedManuscriptId;
+    private Guid? selectedSectionId;
+
+    private ManuscriptEdition? CurrentManuscript =>
+        Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == selectedManuscriptId)
+        ?? Session.Workspace.Manuscripts.FirstOrDefault();
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += OnSessionChanged;
+        selectedManuscriptId = Session.Workspace.Manuscripts.FirstOrDefault()?.Id;
+    }
+
+    private void CreateBook()
+    {
+        var book = Session.CreateManuscript(newBookTitle);
+        selectedManuscriptId = book.Id;
+        selectedSectionId = null;
+        newBookTitle = string.Empty;
+    }
+
+    private void SelectBook(Guid id)
+    {
+        selectedManuscriptId = id;
+        selectedSectionId = null;
+    }
+
+    private void AddSection()
+    {
+        if (CurrentManuscript is null)
+            return;
+        var kind = Enum.TryParse<ManuscriptSectionKind>(newSectionKind, out var parsed)
+            ? parsed : ManuscriptSectionKind.Chapter;
+        var updated = Session.AddManuscriptSection(CurrentManuscript.Id, kind, newSectionTitle);
+        selectedManuscriptId = updated.Id;
+        var section = updated.Sections.OrderBy(item => item.Sequence).Last();
+        SelectSection(section);
+        newSectionTitle = string.Empty;
+    }
+
+    private void SelectSection(ManuscriptSection section)
+    {
+        selectedSectionId = section.Id;
+        editSectionTitle = section.Title;
+        editSectionBody = section.Body;
+    }
+
+    private void SaveSection()
+    {
+        if (CurrentManuscript is null || selectedSectionId is not Guid sectionId)
+            return;
+        Session.UpdateManuscriptSection(CurrentManuscript.Id, sectionId, editSectionTitle, editSectionBody);
+    }
+
+    private void LinkSelectedEvent()
+    {
+        if (CurrentManuscript is null || selectedSectionId is not Guid sectionId || !Guid.TryParse(selectedEventId, out var eventId))
+            return;
+        Session.LinkEventToManuscriptSection(CurrentManuscript.Id, sectionId, eventId);
+    }
+
+    private void UnlinkEvent(Guid eventId)
+    {
+        if (CurrentManuscript is null || selectedSectionId is not Guid sectionId)
+            return;
+        Session.LinkEventToManuscriptSection(CurrentManuscript.Id, sectionId, eventId, linked: false);
+    }
+
+    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}

@@ -1,0 +1,209 @@
+@page "/campaigns"
+@inject StoryBuilderSession Session
+@inject StoryLifecycleRegistry Lifecycles
+
+<PageTitle>Campaign Room · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Door 04 · Campaign Room</div>
+    <h1>Let the participants change the story.</h1>
+    <p class="lede">A campaign is more than a sequence of authored scenes. Record what participants choose, who chose it, and which consequences are still proposals. The author can decide what becomes shared canon.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">New campaign</div>
+        <h2>Open a campaign room</h2>
+        <div class="field">
+            <label for="campaign-name">Campaign name</label>
+            <input id="campaign-name" @bind="campaignName" placeholder="The Lost Cartographers" />
+        </div>
+        <div class="field">
+            <label for="campaign-description">Premise (optional)</label>
+            <textarea id="campaign-description" @bind="campaignDescription" placeholder="What are the participants trying to do?"></textarea>
+        </div>
+        <button @onclick="CreateCampaign" disabled="@string.IsNullOrWhiteSpace(campaignName)">Create campaign</button>
+    </section>
+
+    <section class="panel stack">
+        <div class="eyebrow">Participant action</div>
+        <h2>Record a choice</h2>
+        @if (Session.Workspace.Campaigns.Count == 0)
+        {
+            <div class="empty">Create a campaign first. A choice belongs to a context.</div>
+        }
+        else
+        {
+            <div class="field">
+                <label for="campaign-select">Campaign</label>
+                <select id="campaign-select" @bind="selectedCampaignId">
+                    @foreach (var campaign in Session.Workspace.Campaigns)
+                    {
+                        <option value="@campaign.Id">@campaign.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="character-select">Character (optional)</label>
+                <select id="character-select" @bind="selectedCharacterId">
+                    <option value="">No character linked</option>
+                    @foreach (var character in Session.Workspace.Characters)
+                    {
+                        <option value="@character.Id">@character.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="choice">What did the participant choose?</label>
+                <textarea id="choice" @bind="actionDescription" placeholder="We leave the sealed door unopened and follow the signal instead."></textarea>
+            </div>
+            <button @onclick="RecordAction" disabled="@string.IsNullOrWhiteSpace(actionDescription)">Record participant choice</button>
+            @if (!string.IsNullOrWhiteSpace(message))
+            {
+                <p class="muted">@message</p>
+            }
+        }
+    </section>
+</div>
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="row">
+        <div class="grow">
+            <div class="eyebrow">Campaign catalogue</div>
+            <h2>Active stories</h2>
+        </div>
+        <span class="chip">@Session.Workspace.Campaigns.Count campaign(s)</span>
+    </div>
+    @if (Session.Workspace.Campaigns.Count == 0)
+    {
+        <div class="empty">No campaigns yet.</div>
+    }
+    else
+    {
+        <div class="list">
+            @foreach (var campaign in Session.Workspace.Campaigns)
+            {
+                <div class="list-item">
+                    <div class="row">
+                        <strong>@campaign.Name</strong>
+                        <span class="chip">@campaign.Status</span>
+                        <span class="grow"></span>
+                        <span class="chip">@Session.Workspace.ParticipantActions.Count(a => a.CampaignId == campaign.Id) choice(s)</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(campaign.Description))
+                    {
+                        <p>@campaign.Description</p>
+                    }
+                    <h3 style="margin-top:.8rem">Participant choices</h3>
+                    @if (!Session.Workspace.ParticipantActions.Any(a => a.CampaignId == campaign.Id))
+                    {
+                        <p class="muted">No choices recorded. Let the participants surprise you.</p>
+                    }
+                    else
+                    {
+                        @foreach (var action in Session.Workspace.ParticipantActions.Where(a => a.CampaignId == campaign.Id))
+                        {
+                            var character = action.CharacterId is Guid characterId
+                                ? Session.Workspace.Characters.FirstOrDefault(c => c.Id == characterId)
+                                : null;
+                            <div class="list-item">
+                                <p>@action.Description</p>
+                                <div class="row">
+                                    <span class="chip">@action.Attribution</span>
+                                    <span class="chip">@action.Status</span>
+                                    @if (character is not null)
+                                    {
+                                        <span class="chip">@character.Name</span>
+                                    }
+                                </div>
+                                <div class="row">
+                                    @if (action.Status == CanonStatus.Draft)
+                                    {
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Proposed)">Propose</button>
+                                    }
+                                    else if (action.Status == CanonStatus.Proposed)
+                                    {
+                                        <button @onclick="() => RequestActionStatus(action, CanonStatus.Accepted)">Accept as canon</button>
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Rejected)">Reject</button>
+                                    }
+                                    else if (action.Status == CanonStatus.Accepted)
+                                    {
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Proposed)">Reopen for revision</button>
+                                        <button class="danger" @onclick="() => RequestActionStatus(action, CanonStatus.Deprecated)">Deprecate</button>
+                                    }
+                                    else if (action.Status == CanonStatus.Rejected)
+                                    {
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Draft)">Return to draft</button>
+                                        <button class="secondary" @onclick="() => RequestActionStatus(action, CanonStatus.Proposed)">Re-propose</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private string campaignName = string.Empty;
+    private string campaignDescription = string.Empty;
+    private string selectedCampaignId = string.Empty;
+    private string selectedCharacterId = string.Empty;
+    private string actionDescription = string.Empty;
+    private string message = string.Empty;
+
+    private void CreateCampaign()
+    {
+        if (string.IsNullOrWhiteSpace(campaignName))
+            return;
+
+        var campaign = Session.AddCampaign(new CampaignRecord
+        {
+            Name = campaignName.Trim(),
+            Description = campaignDescription.Trim(),
+            Status = CanonStatus.Draft
+        });
+        selectedCampaignId = campaign.Id.ToString("D");
+        campaignName = string.Empty;
+        campaignDescription = string.Empty;
+        message = "Campaign created. It is ready for participant choices.";
+    }
+
+    private void RequestActionStatus(ParticipantAction action, CanonStatus requestedStatus)
+    {
+        var previousStatus = action.Status;
+        var lifecycle = Lifecycles.GetSession(action.Id, previousStatus, $"Participant choice {action.Id}");
+        var reachedStatus = lifecycle.Request(requestedStatus);
+        Session.UpdateParticipantAction(action with { Status = reachedStatus });
+        message = reachedStatus == requestedStatus
+            ? $"Choice status is now {reachedStatus}."
+            : $"That transition is not available from {previousStatus}; the status was not changed.";
+    }
+
+    private void RecordAction()
+    {
+        if (!Guid.TryParse(selectedCampaignId, out var campaignId) ||
+            string.IsNullOrWhiteSpace(actionDescription))
+            return;
+
+        Guid? characterId = Guid.TryParse(selectedCharacterId, out var parsedCharacterId)
+            ? parsedCharacterId
+            : null;
+
+        var action = Session.AddParticipantAction(new ParticipantAction
+        {
+            CampaignId = campaignId,
+            CharacterId = characterId,
+            Description = actionDescription.Trim(),
+            Attribution = "Participant",
+            Status = CanonStatus.Draft
+        });
+        var lifecycle = Lifecycles.GetSession(action.Id, action.Status, $"Participant choice {action.Id}");
+        var proposedStatus = lifecycle.Request(CanonStatus.Proposed);
+        Session.UpdateParticipantAction(action with { Status = proposedStatus });
+        actionDescription = string.Empty;
+        message = "Choice recorded as a proposal. It does not become canon until deliberately accepted.";
+    }
+}

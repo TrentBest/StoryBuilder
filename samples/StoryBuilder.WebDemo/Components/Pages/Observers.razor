@@ -1,0 +1,255 @@
+@page "/observers"
+@implements IDisposable
+@inject StoryBuilderSession Session
+@inject NarratorAgent Narrator
+
+<PageTitle>Observer Lens · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Composition view · Observer lens</div>
+    <h1>What can this observer honestly know?</h1>
+    <p class="lede">Separate world truth from what a character witnessed, was told, inferred, or believes. Proposed knowledge is not trusted until accepted. The evaluator fails closed when the causal graph cannot establish that the observer knows something yet.</p>
+</div>
+
+@if (Session.Workspace.Characters.Count == 0)
+{
+    <section class="panel stack"><h2>Add a character first</h2><a href="/casting">Open Casting →</a></section>
+}
+else if (Session.Workspace.Events.Count == 0)
+{
+    <section class="panel stack"><h2>Add a world event first</h2><a href="/timelines">Open Timelines →</a></section>
+}
+else
+{
+    <div class="workbench-grid">
+        <section class="panel stack">
+            <div class="eyebrow">Observer knowledge ledger</div>
+            <h2>Record how they know</h2>
+            <div class="field">
+                <label for="observer-character">Observer</label>
+                <select id="observer-character" @bind="selectedObserverId">
+                    @foreach (var character in Session.Workspace.Characters) { <option value="@character.Id">@character.Name</option> }
+                </select>
+            </div>
+            <div class="field">
+                <label for="knowledge-event">World event</label>
+                <select id="knowledge-event" @bind="knowledgeEventId">
+                    @foreach (var storyEvent in Session.Workspace.Events) { <option value="@storyEvent.Id">@storyEvent.Title</option> }
+                </select>
+            </div>
+            <div class="field">
+                <label for="knowledge-kind">Knowledge type</label>
+                <select id="knowledge-kind" @bind="knowledgeKind">
+                    <option value="Witnessed">Witnessed directly</option>
+                    <option value="Told">Was told by someone</option>
+                    <option value="Inferred">Inferred from evidence</option>
+                    <option value="Believes">Believes it happened</option>
+                    <option value="Disputed">Disputed knowledge</option>
+                    <option value="Forgotten">Forgotten at a later point</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="knowledge-acquired-at">When did they learn it? (causal event anchor)</label>
+                <select id="knowledge-acquired-at" @bind="knowledgeAcquiredAtEventId">
+                    <option value="">Baseline / no later acquisition anchor</option>
+                    @foreach (var storyEvent in Session.Workspace.Events) { <option value="@storyEvent.Id">@storyEvent.Title</option> }
+                </select>
+                <span class="muted">Approximate dates are not used to guess chronology. If an acquisition anchor is used, the causal graph must establish availability.</span>
+            </div>
+            <div class="field"><label for="knowledge-attribution">Attribution or source</label><input id="knowledge-attribution" @bind="knowledgeAttribution" placeholder="Mara's sister, a letter, a witness…" /></div>
+            <div class="field"><label for="knowledge-note">Author note</label><textarea id="knowledge-note" @bind="knowledgeNote" rows="3" placeholder="What exactly does this observer know or believe?"></textarea></div>
+            <button @onclick="CreateKnowledge">Record knowledge proposal</button>
+            <p class="muted">New records start Proposed. Accept only what you want the Narrator and portrayal providers to rely on.</p>
+            @if (!string.IsNullOrWhiteSpace(message)) { <p role="status" class="muted">@message</p> }
+        </section>
+
+        <section class="panel stack">
+            <div class="eyebrow">Narration constraint check · FSM_API Observer state: @Narrator.ObserverState</div>
+            <h2>Can the narrator make this claim?</h2>
+            <div class="field">
+                <label for="claim-event">Claim about event</label>
+                <select id="claim-event" @bind="claimEventId">
+                    @foreach (var storyEvent in Session.Workspace.Events) { <option value="@storyEvent.Id">@storyEvent.Title</option> }
+                </select>
+            </div>
+            <div class="field">
+                <label for="claim-as-of">Narration point (world event)</label>
+                <select id="claim-as-of" @bind="claimAsOfEventId">
+                    <option value="">Unresolved / no event anchor</option>
+                    @foreach (var storyEvent in Session.Workspace.Events) { <option value="@storyEvent.Id">@storyEvent.Title</option> }
+                </select>
+            </div>
+            <div class="field">
+                <label for="claim-mode">Requested wording</label>
+                <select id="claim-mode" @bind="claimMode">
+                    <option value="DirectFact">Direct factual statement</option>
+                    <option value="AttributedReport">Attributed report</option>
+                    <option value="Inference">Inference</option>
+                    <option value="Belief">Belief or uncertainty</option>
+                </select>
+            </div>
+            <button @onclick="EvaluateClaim">Evaluate observer constraint</button>
+            @if (evaluation is not null)
+            {
+                <div class="constraint-result">
+                    <strong>@(evaluation.IsAllowed ? "Allowed" : evaluation.IsUnresolved ? "Unresolved" : "Blocked")</strong>
+                    @if (evaluation.RequiredMode is NarrationClaimMode requiredMode) { <span class="chip">Required framing: @requiredMode</span> }
+                    <p>@evaluation.Explanation</p>
+                    @if (evaluation.KnowledgeRecordId is Guid recordId) { <small class="muted">Evidence record: @recordId</small> }
+                </div>
+            }
+            <div class="eyebrow">Knowledge records</div>
+            @foreach (var record in SelectedObserverRecords)
+            {
+                var linkedEvent = Session.Workspace.Events.FirstOrDefault(item => item.Id == record.EventId);
+                <div class="list-item">
+                    <strong>@(linkedEvent?.Title ?? "Missing event") · @record.Kind</strong>
+                    <span class="chip">@record.Status</span>
+                    @if (!string.IsNullOrWhiteSpace(record.Attribution)) { <span>Source: @record.Attribution</span> }
+                    @if (!string.IsNullOrWhiteSpace(record.Note)) { <span>@record.Note</span> }
+                    @if (record.Status != CanonStatus.Accepted)
+                    {
+                        <button @onclick="() => SetKnowledgeStatus(record, CanonStatus.Accepted)">Accept knowledge</button>
+                    }
+                    else
+                    {
+                        <button class="secondary" @onclick="() => SetKnowledgeStatus(record, CanonStatus.Proposed)">Reopen for revision</button>
+                    }
+                </div>
+            }
+            @if (!SelectedObserverRecords.Any()) { <p class="empty">No knowledge records for this observer yet.</p> }
+        </section>
+    </div>
+}
+
+@if (SelectedObserverGuid is not null && Session.Workspace.Events.Count > 0)
+{
+    <section class="panel stack" style="margin-top: 1rem">
+        <div class="eyebrow">GUI.SVG · Observer-safe composition</div>
+        <h2>What may this observer draw on?</h2>
+        <p class="muted">Build a projection at a chosen event anchor. The author-facing map resolves event titles for navigation; the projection passed to downstream providers contains only event identities and accepted knowledge claims, not unrestricted world-event titles or summaries.</p>
+        <div class="field">
+            <label for="projection-anchor">Knowledge available at</label>
+            <select id="projection-anchor" @bind="projectionAsOfEventId">
+                <option value="">No event anchor (baseline knowledge only)</option>
+                @foreach (var storyEvent in Session.Workspace.Events)
+                {
+                    <option value="@storyEvent.Id">@storyEvent.Title</option>
+                }
+            </select>
+        </div>
+        <button @onclick="ProjectObserverKnowledge">Build observer projection</button>
+        @if (projection is not null)
+        {
+            <p class="muted">@projection.Events.Count event(s) have accepted knowledge available to this observer at the selected anchor.</p>
+            <div class="living-svg" role="img" aria-label="GUI.SVG map of accepted observer knowledge">
+                @((MarkupString)projectionSvg)
+            </div>
+        }
+    </section>
+}
+
+@code {
+    private string selectedObserverId = string.Empty;
+    private string knowledgeEventId = string.Empty;
+    private string knowledgeKind = nameof(ObserverKnowledgeKind.Witnessed);
+    private string knowledgeAcquiredAtEventId = string.Empty;
+    private string knowledgeAttribution = string.Empty;
+    private string knowledgeNote = string.Empty;
+    private string claimEventId = string.Empty;
+    private string claimAsOfEventId = string.Empty;
+    private string claimMode = nameof(NarrationClaimMode.DirectFact);
+    private string message = string.Empty;
+    private ObserverKnowledgeEvaluation? evaluation;
+    private string projectionAsOfEventId = string.Empty;
+    private ObserverKnowledgeProjection? projection;
+    private string projectionSvg = string.Empty;
+
+    private Guid? SelectedObserverGuid => Guid.TryParse(selectedObserverId, out var id) ? id : null;
+    private IEnumerable<ObserverKnowledgeRecord> SelectedObserverRecords =>
+        SelectedObserverGuid is Guid observerId
+            ? Session.Workspace.ObserverKnowledge.Where(item => item.ObserverId == observerId).OrderByDescending(item => item.CreatedAtUtc)
+            : [];
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += OnSessionChanged;
+        selectedObserverId = Session.Workspace.Characters.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+        var firstEvent = Session.Workspace.Events.FirstOrDefault();
+        knowledgeEventId = firstEvent?.Id.ToString() ?? string.Empty;
+        claimEventId = knowledgeEventId;
+        claimAsOfEventId = knowledgeEventId;
+        projectionAsOfEventId = knowledgeEventId;
+    }
+
+    private void CreateKnowledge()
+    {
+        if (!Guid.TryParse(selectedObserverId, out var observerId) || !Guid.TryParse(knowledgeEventId, out var eventId)
+            || !Enum.TryParse<ObserverKnowledgeKind>(knowledgeKind, out var kind))
+        {
+            message = "Choose an observer and an event first.";
+            return;
+        }
+        Guid? acquiredAt = Guid.TryParse(knowledgeAcquiredAtEventId, out var acquiredId)
+            ? acquiredId : kind == ObserverKnowledgeKind.Witnessed ? eventId : null;
+        Session.AddObserverKnowledge(new ObserverKnowledgeRecord
+        {
+            ObserverId = observerId, EventId = eventId, Kind = kind, AcquiredAtEventId = acquiredAt,
+            Attribution = knowledgeAttribution.Trim(), Note = knowledgeNote.Trim(), Status = CanonStatus.Proposed
+        });
+        message = "Knowledge proposal recorded. It will not authorize narration until accepted.";
+        knowledgeAttribution = string.Empty;
+        knowledgeNote = string.Empty;
+    }
+
+    private void SetKnowledgeStatus(ObserverKnowledgeRecord record, CanonStatus status) =>
+        Session.UpdateObserverKnowledge(record with { Status = status });
+
+    private void EvaluateClaim()
+    {
+        if (!Guid.TryParse(selectedObserverId, out var observerId) || !Guid.TryParse(claimEventId, out var eventId)
+            || !Enum.TryParse<NarrationClaimMode>(claimMode, out var mode))
+        {
+            evaluation = new ObserverKnowledgeEvaluation { Explanation = "Choose an observer, event, and narration mode." };
+            return;
+        }
+        Guid? asOf = Guid.TryParse(claimAsOfEventId, out var asOfId) ? asOfId : null;
+        Narrator.SelectObserver(observerId);
+        evaluation = Narrator.EvaluateObserverClaim(eventId, asOf, mode);
+    }
+
+    private void ProjectObserverKnowledge()
+    {
+        if (!Guid.TryParse(selectedObserverId, out var observerId))
+        {
+            message = "Choose an observer before building the projection.";
+            projection = null;
+            projectionSvg = string.Empty;
+            return;
+        }
+
+        Guid? asOfEventId = Guid.TryParse(projectionAsOfEventId, out var anchorId) ? anchorId : null;
+        try
+        {
+            Narrator.SelectObserver(observerId);
+            projection = Narrator.ProjectObserverKnowledge(asOfEventId);
+            projectionSvg = new StoryBuilderObserverProjectionRenderer().Render(Session.Workspace, projection);
+            message = $"Observer projection contains {projection.Events.Count} event(s) with accepted knowledge.";
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or KeyNotFoundException)
+        {
+            projection = null;
+            projectionSvg = string.Empty;
+            message = exception.Message;
+        }
+    }
+
+    private void OnSessionChanged()
+    {
+        projection = null;
+        projectionSvg = string.Empty;
+        evaluation = null;
+        _ = InvokeAsync(StateHasChanged);
+    }
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}

@@ -1,0 +1,37 @@
+name: dotnet
+
+on:
+  push:
+    branches: [master, development]
+  pull_request:
+    branches: [master, development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          submodules: recursive
+      - name: Report SDK
+        run: dotnet --info
+      - name: Build domain core
+        run: dotnet build src/StoryBuilder.Core/StoryBuilder.Core.csproj --configuration Release
+      - name: Build FSM_API adapter
+        run: dotnet build src/StoryBuilder.FSM/StoryBuilder.FSM.csproj --configuration Release
+      - name: Build MicroBundle adapter
+        run: dotnet build src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj --configuration Release
+      - name: Build binary persistence adapter
+        run: dotnet build src/StoryBuilder.Persistence/StoryBuilder.Persistence.csproj --configuration Release
+      - name: Build console quickstart
+        run: dotnet build samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj --configuration Release
+      - name: Build interactive WebDemo
+        run: dotnet build samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --configuration Release
+      - name: Test authoring, lifecycle, composition, and persistence
+        run: dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release

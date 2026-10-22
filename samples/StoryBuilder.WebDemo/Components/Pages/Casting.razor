@@ -1,0 +1,472 @@
+@page "/casting"
+@inject StoryBuilderSession Session
+@inject StoryLifecycleRegistry Lifecycles
+
+<PageTitle>Casting · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Door 01 · The Casting Room</div>
+    <h1>Bring someone into being.</h1>
+    <p class="lede">Start with a name, a hunch, or one adjective. Templates offer ideas, never obligations. Everything here can be revised later.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div>
+            <div class="eyebrow">New character</div>
+            <h2>Open a casting file</h2>
+        </div>
+        <div class="field">
+            <label for="new-name">Name (optional)</label>
+            <input id="new-name" @bind="draftName" placeholder="A name, or leave it blank" />
+        </div>
+        <div class="field">
+            <label for="draft-narrative-role">Story-function grouping</label>
+            <select id="draft-narrative-role" @bind="draftNarrativeRole">
+                @foreach (var role in Enum.GetValues<CharacterNarrativeRole>())
+                {
+                    <option value="@role">@role</option>
+                }
+            </select>
+            <span class="muted">Hero, Neutral, and Antagonist describe story function, not moral worth. Undecided is a valid choice.</span>
+        </div>
+        <div class="field">
+            <label for="template">Starting pattern</label>
+            <select id="template" @bind="draftTemplate">
+                @foreach (var template in Session.CharacterBuilder.GetTemplates())
+                {
+                    <option value="@template.Name">@template.Name</option>
+                }
+            </select>
+        </div>
+        <button @onclick="CreateCharacter">Create character draft</button>
+        <div>
+            <h3>Optional prompts</h3>
+            <p class="muted">@Session.CharacterBuilder.FindTemplate(draftTemplate).Description</p>
+            <ul class="prompt-list">
+                @foreach (var prompt in Session.CharacterBuilder.FindTemplate(draftTemplate).SuggestedPrompts)
+                {
+                    <li>@prompt</li>
+                }
+            </ul>
+            <h3>Suggested traits (not automatically applied)</h3>
+            <div class="row">
+                @foreach (var suggestion in Session.CharacterBuilder.FindTemplate(draftTemplate).SuggestedTraits)
+                {
+                    <button class="secondary" disabled="@(selectedCharacter is null)" @onclick="() => AddTrait(suggestion)">@suggestion</button>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="panel stack">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Current cast</div>
+                <h2>Characters</h2>
+            </div>
+            <span class="chip">@Session.Workspace.Characters.Count records</span>
+        </div>
+        <div class="field">
+            <label for="role-filter">Browse by story function</label>
+            <select id="role-filter" @bind="roleFilter">
+                <option value="All">All roles</option>
+                @foreach (var role in Enum.GetValues<CharacterNarrativeRole>())
+                {
+                    <option value="@role.ToString()">@role</option>
+                }
+            </select>
+        </div>
+        @if (Session.Workspace.Characters.Count == 0)
+        {
+            <div class="empty">The room is waiting. Create a draft to begin.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var character in VisibleCharacters)
+                {
+                    <button class="list-item @(selectedCharacter?.Id == character.Id ? "selected" : "")" @onclick="() => SelectCharacter(character)">
+                        <strong>@character.Name</strong>
+                        <span class="chip">@character.NarrativeRole</span>
+                        <span class="chip">@character.Role</span>
+                        @if (!string.IsNullOrWhiteSpace(character.Description))
+                        {
+                            <span>@character.Description</span>
+                        }
+                        <span>@character.Traits.Count trait(s)</span>
+                    </button>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@if (selectedCharacter is not null)
+{
+    <section class="panel stack" style="margin-top:1rem">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Editable record · @selectedCharacter.Status</div>
+                <h2>Shape @selectedCharacter.Name</h2>
+            </div>
+            <span class="chip">Identity @ShortId(selectedCharacter.Id)</span>
+        </div>
+        <div class="field-grid">
+            <div class="field">
+                <label for="edit-name">Name</label>
+                <input id="edit-name" @bind="editName" />
+            </div>
+            <div class="field">
+                <label for="edit-role">Role / archetype</label>
+                <input id="edit-role" @bind="editRole" />
+            </div>
+        </div>
+        <div class="field">
+            <label for="edit-description">Description (one phrase is enough)</label>
+            <textarea id="edit-description" @bind="editDescription" placeholder="What should we know right now?"></textarea>
+        </div>
+        <div class="row">
+            <button @onclick="SaveCharacter">Save edits</button>
+            @if (selectedCharacter.Status == CanonStatus.Draft)
+            {
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Proposed)">Propose for review</button>
+            }
+            else if (selectedCharacter.Status == CanonStatus.Proposed)
+            {
+                <button @onclick="() => RequestCharacterStatus(CanonStatus.Accepted)">Accept</button>
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Rejected)">Reject</button>
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Draft)">Return to draft</button>
+            }
+            else if (selectedCharacter.Status == CanonStatus.Accepted)
+            {
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Proposed)">Reopen for revision</button>
+                <button class="danger" @onclick="() => RequestCharacterStatus(CanonStatus.Deprecated)">Deprecate</button>
+            }
+            else if (selectedCharacter.Status == CanonStatus.Rejected)
+            {
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Draft)">Return to draft</button>
+                <button class="secondary" @onclick="() => RequestCharacterStatus(CanonStatus.Proposed)">Re-propose</button>
+            }
+        </div>
+        @if (!string.IsNullOrWhiteSpace(statusMessage))
+        {
+            <p class="muted">@statusMessage</p>
+        }
+        <hr />
+        <div>
+            <h3>Traits and adjectives</h3>
+            <p class="muted">Keep the author's words and who used them. Add, remove, or revise traits whenever the character changes.</p>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="trait-text">Trait / adjective</label>
+                    <input id="trait-text" @bind="traitText" placeholder="stubborn, quietly generous, afraid of heights" />
+                </div>
+                <div class="field">
+                    <label for="trait-attribution">Who uses this description?</label>
+                    <select id="trait-attribution" @bind="traitAttribution">
+                        <option>Author</option>
+                        <option>Self-description</option>
+                        <option>Companion</option>
+                        <option>Rival</option>
+                        <option>Narrator</option>
+                        <option>Rumor</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <button @onclick="AddTypedTrait" disabled="@string.IsNullOrWhiteSpace(traitText)">Add trait</button>
+            </div>
+            @if (selectedCharacter.Traits.Count == 0)
+            {
+                <div class="empty" style="margin-top:.8rem">No traits yet. That's a valid character draft.</div>
+            }
+            else
+            {
+                <div class="list" style="margin-top:.8rem">
+                    @foreach (var trait in selectedCharacter.Traits)
+                    {
+                        <div class="list-item">
+                            <div class="row">
+                                <div class="grow">
+                                    <strong>@trait.Term</strong>
+                                    <span class="chip">@trait.Attribution</span>
+                                    <span class="chip">@trait.Status</span>
+                                </div>
+                                <button class="danger" @onclick="() => RemoveTrait(trait.Id)">Remove</button>
+                            </div>
+                            @if (!string.IsNullOrWhiteSpace(trait.Notes))
+                            {
+                                <p>@trait.Notes</p>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="mirror-grid" style="margin-top:1rem">
+        <article class="panel stack mirror-panel">
+            <div class="eyebrow">Mirror 01 · Profile now</div>
+            <h3>@selectedCharacter.Name</h3>
+            <span class="chip">@selectedCharacter.NarrativeRole · @selectedCharacter.Role</span>
+            <p>@selectedCharacter.Description</p>
+            <div class="row wrap">
+                @foreach (var trait in selectedCharacter.Traits)
+                {
+                    <span class="chip">@trait.Term</span>
+                }
+            </div>
+        </article>
+        <article class="panel stack mirror-panel">
+            <div class="eyebrow">Mirror 02 · Proposed revision</div>
+            <h3>@(string.IsNullOrWhiteSpace(editName) ? "Unnamed character" : editName)</h3>
+            <span class="chip">@editNarrativeRole · @editRole</span>
+            <p>@editDescription</p>
+            @if (editName != selectedCharacter.Name || editRole != selectedCharacter.Role || editDescription != selectedCharacter.Description || editNarrativeRole != selectedCharacter.NarrativeRole)
+            {
+                <span class="chip">Changes pending — save edits to apply</span>
+            }
+            else
+            {
+                <span class="chip">Matches current profile</span>
+            }
+        </article>
+        <article class="panel stack mirror-panel">
+            <div class="eyebrow">Mirror 03 · Context and usage</div>
+            <h3>Where the words appear</h3>
+            @{
+                var nameUsage = Session.Vocabulary.Search(selectedCharacter.Name).FirstOrDefault();
+            }
+            @if (nameUsage is not null)
+            {
+                <p><strong>@selectedCharacter.Name</strong> · @nameUsage.OccurrenceCount use(s) across @nameUsage.DistinctTargetCount target(s)</p>
+                @foreach (var occurrence in nameUsage.Occurrences.Take(3))
+                {
+                    <p class="muted">@occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution · span @occurrence.StartIndex–@(occurrence.StartIndex + occurrence.Length)</p>
+                    @if (!string.IsNullOrWhiteSpace(occurrence.Context))
+                    {
+                        <p>@occurrence.Context</p>
+                    }
+                }
+            }
+            @foreach (var trait in selectedCharacter.Traits.Take(3))
+            {
+                var usage = Session.Vocabulary.Search(trait.Term).FirstOrDefault();
+                <p><strong>@trait.Term</strong> · @(usage?.OccurrenceCount ?? 0) use(s)</p>
+                @if (usage is not null)
+                {
+                    @foreach (var occurrence in usage.Occurrences.Take(2))
+                    {
+                        <p class="muted">@occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution</p>
+                    }
+                }
+            }
+        </article>
+    </section>
+}
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="eyebrow">Vocabulary desk</div>
+    <h2>Teach the tool a synonym</h2>
+    <p class="muted">Synonyms are explicit, editable mappings. Adding one updates earlier occurrences without rewriting the words people actually used.</p>
+    <div class="field-grid">
+        <div class="field">
+            <label for="canonical-term">Shared concept</label>
+            <input id="canonical-term" @bind="canonicalTerm" placeholder="courageous" />
+        </div>
+        <div class="field">
+            <label for="synonym-term">Synonym to connect</label>
+            <input id="synonym-term" @bind="synonymTerm" placeholder="brave" />
+        </div>
+    </div>
+    <div class="row">
+        <button @onclick="AddSynonym" disabled="@(string.IsNullOrWhiteSpace(canonicalTerm) || string.IsNullOrWhiteSpace(synonymTerm))">Add synonym mapping</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(synonymMessage))
+    {
+        <p class="muted">@synonymMessage</p>
+    }
+</section>
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="eyebrow">Continuity desk</div>
+    <h2>Find a word across the story</h2>
+    <p class="muted">Search the actual indexed occurrences. Synonyms can be added explicitly; the tool keeps the word that was originally used.</p>
+    <div class="row">
+        <input class="grow" @bind="searchTerm" placeholder="Search a word or known synonym" />
+        <button @onclick="SearchVocabulary">Search usage</button>
+    </div>
+    @if (searchResults.Count > 0)
+    {
+        @foreach (var result in searchResults)
+        {
+            <div class="list-item">
+                <div class="row">
+                    <strong>@result.CanonicalTerm</strong>
+                    <span class="chip">@result.OccurrenceCount uses</span>
+                    <span class="chip">@result.DistinctTargetCount targets</span>
+                </div>
+                @foreach (var occurrence in result.Occurrences)
+                {
+                    <p><strong>@occurrence.SurfaceForm</strong> · @occurrence.TargetLabel · @occurrence.Field · @occurrence.Attribution · span @occurrence.StartIndex–@(occurrence.StartIndex + occurrence.Length)</p>
+                    @if (!string.IsNullOrWhiteSpace(occurrence.Context))
+                    {
+                        <p class="muted">@occurrence.Context</p>
+                    }
+                }
+            </div>
+        }
+    }
+    else if (hasSearched)
+    {
+        <div class="empty">No indexed occurrences for that term yet.</div>
+    }
+</section>
+
+@code {
+    private string draftName = string.Empty;
+    private string draftTemplate = "Unspecified";
+    private CharacterNarrativeRole draftNarrativeRole = CharacterNarrativeRole.Undecided;
+    private string roleFilter = "All";
+    private CharacterProfile? selectedCharacter;
+    private string editName = string.Empty;
+    private string editRole = string.Empty;
+    private CharacterNarrativeRole editNarrativeRole = CharacterNarrativeRole.Undecided;
+    private string editDescription = string.Empty;
+    private string traitText = string.Empty;
+    private string traitAttribution = "Author";
+    private string searchTerm = string.Empty;
+    private string canonicalTerm = string.Empty;
+    private string synonymTerm = string.Empty;
+    private string synonymMessage = string.Empty;
+    private string statusMessage = string.Empty;
+    private bool hasSearched;
+    private IReadOnlyList<VocabularyUsage> searchResults = Array.Empty<VocabularyUsage>();
+
+    private IEnumerable<CharacterProfile> VisibleCharacters =>
+        roleFilter == "All"
+            ? Session.Workspace.Characters
+            : Enum.TryParse<CharacterNarrativeRole>(roleFilter, out var role)
+                ? Session.Workspace.Characters.Where(character => character.NarrativeRole == role)
+                : Session.Workspace.Characters;
+
+    private static string ShortId(Guid id) => id.ToString("N")[..8];
+
+    private void CreateCharacter()
+    {
+        var created = Session.CreateCharacter(draftName, draftTemplate);
+        selectedCharacter = Session.UpdateCharacter(created with { NarrativeRole = draftNarrativeRole });
+        _ = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
+        draftName = string.Empty;
+        LoadSelectedFields();
+    }
+
+    private void SelectCharacter(CharacterProfile character)
+    {
+        selectedCharacter = character;
+        _ = Lifecycles.GetSession(selectedCharacter.Id, selectedCharacter.Status, $"Character {selectedCharacter.Name} review");
+        LoadSelectedFields();
+    }
+
+    private void LoadSelectedFields()
+    {
+        editName = selectedCharacter?.Name ?? string.Empty;
+        editRole = selectedCharacter?.Role ?? string.Empty;
+        editNarrativeRole = selectedCharacter?.NarrativeRole ?? CharacterNarrativeRole.Undecided;
+        editDescription = selectedCharacter?.Description ?? string.Empty;
+    }
+
+    private void SaveCharacter()
+    {
+        if (selectedCharacter is null)
+            return;
+
+        selectedCharacter = Session.UpdateCharacter(selectedCharacter with
+        {
+            Name = string.IsNullOrWhiteSpace(editName) ? "Unnamed character" : editName.Trim(),
+            Role = string.IsNullOrWhiteSpace(editRole) ? "Unspecified" : editRole.Trim(),
+            NarrativeRole = editNarrativeRole,
+            Description = editDescription.Trim(),
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        });
+        RefreshSearchIfNeeded();
+    }
+
+    private void RequestCharacterStatus(CanonStatus requestedStatus)
+    {
+        if (selectedCharacter is null)
+            return;
+
+        var previousStatus = selectedCharacter.Status;
+        var lifecycle = Lifecycles.GetSession(selectedCharacter.Id, previousStatus, $"Character {selectedCharacter.Name} review");
+        var reachedStatus = lifecycle.Request(requestedStatus);
+        selectedCharacter = Session.UpdateCharacter(selectedCharacter with
+        {
+            Status = reachedStatus,
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        });
+        statusMessage = reachedStatus == requestedStatus
+            ? $"Character status is now {reachedStatus}."
+            : $"That transition is not available from {previousStatus}; the status was not changed.";
+        RefreshSearchIfNeeded();
+    }
+
+    private void AddTypedTrait()
+    {
+        AddTrait(traitText);
+        traitText = string.Empty;
+    }
+
+    private void AddTrait(string term)
+    {
+        if (selectedCharacter is null || string.IsNullOrWhiteSpace(term))
+            return;
+
+        selectedCharacter = Session.UpdateCharacter(selectedCharacter.AddTrait(new CharacterTrait
+        {
+            Term = term.Trim(),
+            Category = "Trait",
+            Attribution = traitAttribution,
+            Status = CanonStatus.Draft
+        }));
+        RefreshSearchIfNeeded();
+    }
+
+    private void RemoveTrait(Guid traitId)
+    {
+        if (selectedCharacter is null)
+            return;
+
+        selectedCharacter = Session.UpdateCharacter(selectedCharacter.RemoveTrait(traitId));
+        RefreshSearchIfNeeded();
+    }
+
+    private void AddSynonym()
+    {
+        if (string.IsNullOrWhiteSpace(canonicalTerm) || string.IsNullOrWhiteSpace(synonymTerm))
+            return;
+
+        Session.AddSynonym(canonicalTerm, synonymTerm);
+        synonymMessage = $"Connected “{synonymTerm.Trim()}” to the concept “{canonicalTerm.Trim()}”. Existing occurrences are re-indexed.";
+        canonicalTerm = string.Empty;
+        synonymTerm = string.Empty;
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            SearchVocabulary();
+    }
+
+    private void RefreshSearchIfNeeded()
+    {
+        if (hasSearched && !string.IsNullOrWhiteSpace(searchTerm))
+            SearchVocabulary();
+    }
+
+    private void SearchVocabulary()
+    {
+        hasSearched = true;
+        searchResults = string.IsNullOrWhiteSpace(searchTerm)
+            ? Array.Empty<VocabularyUsage>()
+            : Session.Vocabulary.Search(searchTerm);
+    }
+}

@@ -1,0 +1,276 @@
+@page "/stage"
+@inject StoryBuilderSession Session
+@inject IJSRuntime JS
+
+<PageTitle>The Stage · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Door 02 · The Stage</div>
+    <h1>Show us what happened.</h1>
+    <p class="lede">Capture a fight or quiet conversation as small beats. Play it, narrate it, or arrange it like claymation. The tool turns recorded details into a draft without inventing missing actions.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">New scene</div>
+        <h2>Set the stage</h2>
+        <div class="field">
+            <label for="scene-title">Scene title</label>
+            <input id="scene-title" @bind="sceneTitle" placeholder="The North Gate" />
+        </div>
+        <div class="field">
+            <label for="scene-location">Location (optional)</label>
+            <input id="scene-location" @bind="sceneLocation" placeholder="A ruined gate, a kitchen, a starship..." />
+        </div>
+        <div class="field">
+            <label for="capture-mode">Capture style</label>
+            <select id="capture-mode" @bind="captureMode">
+                <option value="Freeform">Freeform notes</option>
+                <option value="Played">Played by participants</option>
+                <option value="BeatByBeat">Beat by beat</option>
+                <option value="PoseSequence">Pose sequence</option>
+                <option value="Claymation">Claymation</option>
+            </select>
+        </div>
+        <button @onclick="CreateScene">Create scene</button>
+        <hr />
+        <div class="eyebrow">Saved in this workspace</div>
+        @if (Session.Workspace.Scenes.Count == 0)
+        {
+            <div class="empty">No scenes yet. Every scene can start as an empty room.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var scene in Session.Workspace.Scenes)
+                {
+                    <button class="list-item @(currentScene?.Id == scene.Id ? "selected" : "")" @onclick="() => SelectScene(scene)">
+                        <strong>@scene.Title</strong>
+                        <span class="chip">@scene.CaptureMode</span>
+                        <span>@scene.Beats.Count beat(s) · @(scene.Location ?? "Location unknown")</span>
+                    </button>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="panel stack">
+        @if (currentScene is null)
+        {
+            <div class="eyebrow">Scene editor</div>
+            <h2>Choose a scene</h2>
+            <div class="empty">Create a scene or select one from the list. No prose is required to get started.</div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="grow">
+                    <div class="eyebrow">@currentScene.CaptureMode · @currentScene.Status</div>
+                    <h2>@currentScene.Title</h2>
+                </div>
+                <span class="chip">@currentScene.Beats.Count beats</span>
+            </div>
+            <div class="field-grid">
+                <div class="field">
+                    <label for="actor">Actor / participant</label>
+                    <input id="actor" @bind="actorLabel" placeholder="Mara" />
+                </div>
+                <div class="field">
+                    <label for="beat-kind">Beat type</label>
+                    <select id="beat-kind" @bind="beatKind">
+                        <option value="Action">Action</option>
+                        <option value="Reaction">Reaction</option>
+                        <option value="Dialogue">Dialogue</option>
+                        <option value="Pose">Pose / position</option>
+                        <option value="Transition">Transition</option>
+                        <option value="Narration">Narration note</option>
+                    </select>
+                </div>
+            </div>
+            <div class="field">
+                <label for="action">Action / change</label>
+                <input id="action" @bind="actionText" placeholder="ducks under the swinging arm" />
+            </div>
+            <div class="field">
+                <label for="reaction">Reaction</label>
+                <input id="reaction" @bind="reactionText" placeholder="stumbles backward" />
+            </div>
+            <div class="field">
+                <label for="dialogue">Dialogue</label>
+                <input id="dialogue" @bind="dialogueText" placeholder="Stay behind me." />
+            </div>
+            <div class="field">
+                <label for="pose">Pose / position (claymation)</label>
+                <input id="pose" @bind="poseText" placeholder="left hand on the latch, weight on the rear foot" />
+            </div>
+            <div class="field">
+                <label for="tone">Emotional tone (optional)</label>
+                <input id="tone" @bind="toneText" placeholder="afraid but determined" />
+            </div>
+            <div class="field">
+                <label for="capture-note">Anything else to preserve</label>
+                <textarea id="capture-note" @bind="captureNote" placeholder="A quick note; details can be expanded later."></textarea>
+            </div>
+            <button @onclick="AddBeat">Add beat to scene</button>
+        }
+    </section>
+</div>
+
+@if (currentScene is not null)
+{
+    <section class="panel stack" style="margin-top:1rem">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Storyboard</div>
+                <h2>Ordered beats</h2>
+            </div>
+            <span class="chip">Move beats to change timing</span>
+        </div>
+        @if (currentScene.Beats.Count == 0)
+        {
+            <div class="empty">Nothing has happened yet. Add one action, line, reaction, or pose.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var beat in currentScene.Beats.OrderBy(b => b.Sequence))
+                {
+                    <div class="list-item">
+                        <div class="row">
+                            <span class="chip">@(beat.Sequence.ToString("00"))</span>
+                            <strong>@beat.Kind</strong>
+                            <span class="grow">@beat.ActorLabel</span>
+                            <button class="secondary" disabled="@(beat.Sequence == 1)" @onclick="() => MoveBeat(beat.Id, -1)">↑</button>
+                            <button class="secondary" disabled="@(beat.Sequence == currentScene.Beats.Count)" @onclick="() => MoveBeat(beat.Id, 1)">↓</button>
+                            <button class="danger" @onclick="() => RemoveBeat(beat.Id)">Remove</button>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(beat.Action)) { <p>Action: @beat.Action</p> }
+                        @if (!string.IsNullOrWhiteSpace(beat.Reaction)) { <p>Reaction: @beat.Reaction</p> }
+                        @if (!string.IsNullOrWhiteSpace(beat.Dialogue)) { <p>Dialogue: “@beat.Dialogue”</p> }
+                        @if (!string.IsNullOrWhiteSpace(beat.PoseOrPosition)) { <p>Pose: @beat.PoseOrPosition</p> }
+                        @if (!string.IsNullOrWhiteSpace(beat.EmotionalTone)) { <p>Tone: @beat.EmotionalTone</p> }
+                        @if (!string.IsNullOrWhiteSpace(beat.CaptureNote)) { <p class="muted">@beat.CaptureNote</p> }
+                    </div>
+                }
+            </div>
+        }
+        <hr />
+        <div class="eyebrow">Narration draft</div>
+        <h2>Turn the beats into words</h2>
+        <p class="muted">This draft uses recorded details only. Edit the beats or copy the draft into your prose; it is not treated as final canon.</p>
+        <pre class="narration">@Session.SceneComposer.ComposeNarration(currentScene)</pre>
+        <button class="secondary" @onclick="CopyNarration">Copy narration draft</button>
+        @if (!string.IsNullOrWhiteSpace(copyMessage))
+        {
+            <p class="muted">@copyMessage</p>
+        }
+    </section>
+}
+
+@code {
+    private string sceneTitle = "Untitled scene";
+    private string sceneLocation = string.Empty;
+    private string captureMode = "Freeform";
+    private SceneRecord? currentScene;
+    private string actorLabel = string.Empty;
+    private string beatKind = "Action";
+    private string actionText = string.Empty;
+    private string reactionText = string.Empty;
+    private string dialogueText = string.Empty;
+    private string poseText = string.Empty;
+    private string toneText = string.Empty;
+    private string captureNote = string.Empty;
+    private string copyMessage = string.Empty;
+
+    private SceneCaptureMode SelectedCaptureMode =>
+        Enum.TryParse<SceneCaptureMode>(captureMode, out var value) ? value : SceneCaptureMode.Freeform;
+
+    private void CreateScene()
+    {
+        currentScene = Session.CreateScene(sceneTitle, sceneLocation, SelectedCaptureMode);
+        sceneTitle = "Untitled scene";
+        sceneLocation = string.Empty;
+    }
+
+    private void SelectScene(SceneRecord scene)
+    {
+        currentScene = scene;
+        sceneTitle = scene.Title;
+        sceneLocation = scene.Location ?? string.Empty;
+        captureMode = scene.CaptureMode.ToString();
+    }
+
+    private void AddBeat()
+    {
+        if (currentScene is null)
+            return;
+
+        var kind = Enum.TryParse<SceneBeatKind>(beatKind, out var value) ? value : SceneBeatKind.Action;
+        var beat = new SceneBeat
+        {
+            Kind = kind,
+            ActorLabel = string.IsNullOrWhiteSpace(actorLabel) ? null : actorLabel.Trim(),
+            Action = actionText.Trim(),
+            Reaction = reactionText.Trim(),
+            Dialogue = dialogueText.Trim(),
+            PoseOrPosition = poseText.Trim(),
+            EmotionalTone = toneText.Trim(),
+            CaptureNote = captureNote.Trim(),
+            Attribution = "Participant",
+            Status = CanonStatus.Proposed
+        };
+
+        currentScene = Session.UpdateScene(currentScene.AddBeat(beat));
+        actionText = string.Empty;
+        reactionText = string.Empty;
+        dialogueText = string.Empty;
+        poseText = string.Empty;
+        toneText = string.Empty;
+        captureNote = string.Empty;
+        copyMessage = string.Empty;
+    }
+
+    private void RemoveBeat(Guid beatId)
+    {
+        if (currentScene is null)
+            return;
+
+        var beats = currentScene.Beats
+            .Where(beat => beat.Id != beatId)
+            .OrderBy(beat => beat.Sequence)
+            .Select((beat, index) => beat with { Sequence = index + 1 })
+            .ToList();
+        currentScene = Session.UpdateScene(currentScene with { Beats = beats, UpdatedAtUtc = DateTimeOffset.UtcNow });
+    }
+
+    private void MoveBeat(Guid beatId, int offset)
+    {
+        if (currentScene is null)
+            return;
+
+        var ids = currentScene.Beats.OrderBy(beat => beat.Sequence).Select(beat => beat.Id).ToList();
+        var currentIndex = ids.IndexOf(beatId);
+        var targetIndex = currentIndex + offset;
+        if (currentIndex < 0 || targetIndex < 0 || targetIndex >= ids.Count)
+            return;
+
+        (ids[currentIndex], ids[targetIndex]) = (ids[targetIndex], ids[currentIndex]);
+        currentScene = Session.UpdateScene(currentScene.ReorderBeats(ids));
+    }
+
+    private async Task CopyNarration()
+    {
+        if (currentScene is null)
+            return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("storyBuilderCopy", Session.SceneComposer.ComposeNarration(currentScene));
+            copyMessage = "Narration draft copied to the clipboard.";
+        }
+        catch (JSException)
+        {
+            copyMessage = "Clipboard access is unavailable here. Select the narration text above and copy it manually.";
+        }
+    }
+}
