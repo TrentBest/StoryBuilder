@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Builds a downstream portrayal context from accepted observer-knowledge records and the existing conservative evaluator. It does not copy unrestricted world-event text into the observer projection.
+Builds a downstream portrayal context from accepted observer-knowledge records and the existing conservative evaluator. The batch path indexes records by event and computes causal ancestry once, rather than rescanning the entire workspace for each event. The batch path indexes records by event and computes causal ancestry once, rather than rescanning the entire workspace for each event. It does not copy unrestricted world-event text into the observer projection.
 
 ## UML class card
 

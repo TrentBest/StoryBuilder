@@ -4,7 +4,7 @@
 
 The timeline organizes world history and acts as an executable authoring Process Group. Authors need to place ideas before they know what those ideas mean, then develop them into events, scenes, passages, and a finished product without losing the original intent.
 
-This is a domain contract, not a claim that all described workflows are implemented. The current verified vertical slice includes timeline-assigned world events and stable event-to-manuscript-section references. ObserverKnowledgeRecord and ObserverKnowledgeEvaluator are implemented and tested. NarratorAgent now coordinates separate FSM_API state machines for intent, planning, observer constraints, and draft/review. The evaluator accepts only author-accepted knowledge, requires appropriate claim framing, and fails closed when causal availability cannot be established. Renderer integration and reader-disclosure policy are not yet implemented.
+This is a domain contract, not a claim that all described workflows are implemented. The current verified vertical slice includes timeline-assigned world events and stable event-to-manuscript-section references. ObserverKnowledgeRecord, ObserverKnowledgeEvaluator, and an indexed ObserverKnowledgeProjectionService are implemented and tested. NarratorAgent exposes the accepted-knowledge projection through its observer FSM. NarratorAgent now coordinates separate FSM_API state machines for intent, planning, observer constraints, and draft/review. The evaluator accepts only author-accepted knowledge, requires appropriate claim framing, and fails closed when causal availability cannot be established. Renderer integration and reader-disclosure policy are not yet implemented.
 
 ## A provisional point is a real object
 
@@ -27,7 +27,7 @@ These orders may differ without contradiction. GUI.SVG connectors must distingui
 
 An observer-constrained account should distinguish what the observer directly perceived; what they were told and by whom; what they inferred or believe; what they remember at the account's point in time; what they cannot know or have forgotten; and what the author has disclosed to the reader.
 
-Renderer can portray this constrained model in text or another supported medium. Renderer is not the authority that decides what the observer knows. StoryBuilder records and declared policies supply the constraints. An omniscient narrator is an explicit policy, not an accidental bypass.
+A text-generation provider may consume this constrained model to draft language. The current Renderer package selects observer-relative visual/semantic representations and computational detail; it is not itself a text-generation provider. Renderer is not the authority that decides what the observer knows. StoryBuilder records and declared policies supply the constraints. An omniscient narrator is an explicit policy, not an accidental bypass.
 
 When a passage exceeds an observer's knowledge, flag it and offer grounded alternatives: omit it, frame it as inference, attribute it to a source, change observer, or explicitly change narration policy. Do not silently invent knowledge.
 
@@ -35,7 +35,7 @@ When a passage exceeds an observer's knowledge, flag it and offer grounded alter
 
 Renderer's observer model governs observer-relative representation: semantic detail, visibility, interaction, spatial context, and computational detail across Event Horizons. StoryBuilder's observer-knowledge model governs what a character or narrator may claim to know, and how that claim must be framed. These are connected layers, not interchangeable policies.
 
-For example, StoryBuilder may permit an observer to report a rumor only as an attributed report. Renderer can then choose the appropriate visual or semantic representation for that observer and presentation context. A visual representation decision must never grant the character new narrative knowledge, and an observer-knowledge decision must not force a particular graphics backend. The integration belongs behind host-neutral portrayal requests and optional MicroBundle selection; StoryBuilder.Core must not acquire a direct dependency on Renderer or FSM_COS.
+For example, StoryBuilder may permit an observer to report a rumor only as an attributed report. Renderer can then choose the appropriate visual or semantic representation for that observer and presentation context. A visual representation decision must never grant the character new narrative knowledge, and an observer-knowledge decision must not force a particular graphics backend. The integration belongs behind host-neutral portrayal requests and optional MicroBundle selection; StoryBuilder.Core must not acquire a direct dependency on Renderer or FSM_COS. The projection includes only event identities and accepted knowledge claims, not unrestricted world-event titles, summaries, or causal edges.
 
 ## Multi-FSM Narrator
 

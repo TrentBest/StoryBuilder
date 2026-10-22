@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-22  
-**Readiness estimate:** 65% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, and a four-FSM Narrator agent. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
+**Readiness estimate:** 66% — verified local authoring prototype with versioned binary browser persistence, a persisted book preview, living GUI.SVG timeline markers, timeline-linked world events, event-to-manuscript links, a conservative observer-knowledge evaluator, a four-FSM Narrator agent, and an accepted-knowledge projection for downstream portrayal. Manifest/configuration contracts, host-capability validation, binary package compilation/reading, integrity checks, and package round-trip/tamper tests have passed CI. The GUI.SVG timeline now draws numbered event markers and a portrayal rail linking each event to the actual manuscript sections that reference it; this data-derived view passed CI. Actual AnyApp host integration, LLM-backed drafting, Renderer integration, reader disclosure, and publication remain incomplete. Not release-ready.
 
 ## Implemented in development source
 
@@ -20,7 +20,7 @@
 - StoryWorkspace records for Experience, timelines, planning points, timeline-linked world events, manuscripts, event-to-section portrayal references, observer-knowledge records, sources, claims, campaigns, participant actions, and continuity issues.
 - Host-neutral IStoryProcessGroup and StoryProcessGroupDriver; each inserted group is updated once per driver Update.
 - Optional FSM_API-backed TimelineProcessGroup with inspectable entry, driver-update, runtime-tick, and exit observations.
-- NarratorAgent: four isolated FSM_API definitions and processing groups for intent, planning, observer constraints, and draft/review. The Home page displays their live states; premise capture uses the intent FSM, timeline planning uses the planning FSM, and draft submission is held for review when declared event claims exceed accepted observer knowledge. The agent records transitions and disposes its instances and definitions.
+- NarratorAgent: four isolated FSM_API definitions and processing groups for intent, planning, observer constraints, and draft/review. Its observer FSM exposes an accepted-knowledge projection that omits unrestricted world-event titles, summaries, and causal edges; the projection service indexes knowledge by event and traverses causal history once per projection. The Home page displays their live states; premise capture uses the intent FSM, timeline planning uses the planning FSM, and draft submission is held for review when declared event claims exceed accepted observer knowledge. The agent records transitions and disposes its instances and definitions.
 - Binary workspace format version 7 persists timeline definitions (v3), manuscripts (v4), provisional timeline planning points (v5), timeline assignment/placement for world events (v6), and observer-knowledge records (v7). Readers retain compatibility with versions 1 through 6.
 - Host-neutral composition manifest/configuration contracts and CompositionPackageValidator: checks package/workspace identity, content revision, SHA-256 inputs, bundle configuration, required host capabilities, versions, and duplicate identifiers without rerunning arbitration.
 - CompositionPackageCompiler and CompositionPackageReader: emits binary manifest, per-MicroBundle configuration, and content payloads; hashes exact content/configuration bytes and rejects invalid packages before restoring a workspace. Manifest schema version 2 captures explicit MicroBundle dependencies; dependency-closure, round-trip, tamper, and missing-required-bundle tests passed CI.
@@ -52,6 +52,8 @@
 - [Binary package compiler/reader workflow run 39710865443](https://github.com/TrentBest/StoryBuilder/actions/runs/39710865443) succeeded on commit e0cc03494cc6418370f61f9f16d2c81842219e5f.
 - [Manifest dependency-closure workflow run 39711546281](https://github.com/TrentBest/StoryBuilder/actions/runs/39711546281) succeeded on commit f3c2b0a20946cf5b8cb2d273f2941b72c9574f80.
 - [Numbered timeline portrayal rail workflow run 39711644001](https://github.com/TrentBest/StoryBuilder/actions/runs/39711644001) succeeded on commit 266dd4a35d2e0088b0430834f327bc99b9a5592b.
+- [Observer projection and Narrator FSM workflow run 39712401525](https://github.com/TrentBest/StoryBuilder/actions/runs/39712401525) succeeded on commit 6e2df6c274c9789f5495e14b1cec10f21fe6372.
+- [Indexed observer projection workflow run 39712572636](https://github.com/TrentBest/StoryBuilder/actions/runs/39712572636) succeeded on commit 3465455479df9eb95e419a5124b6efbfbfc3901c.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
@@ -71,14 +73,15 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered portrayal rail and manifest dependency closure are verified in CI. This is a planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: domain contracts, automated verification, durable storage/provenance, user-facing authoring, and Workshop composition/visual integration. Verified work includes a persisted manuscript product, provisional planning points, timeline-assigned world events, event-to-section references, a tested observer-knowledge evaluator, four cooperating FSM_API Narrator machines, the observer-safe projection, and the binary package compiler/reader with integrity tests. Actual AnyApp integration, Renderer integration, and Workshop-host integration remain absent. The numbered portrayal rail and manifest dependency closure are verified in CI. This is a planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Add scene/beat-level event links so timeline events can navigate deeper than a manuscript section.
-2. Add a host adapter proving AnyApp validates and consumes the package without rerunning arbitration.
-3. Connect StoryBuilder's accepted-knowledge constraints with Renderer-backed representations through a host-neutral portrayal contract; keep narrative knowledge separate from visual/computational detail selection.
-4. Add richer Plot Twist alternatives, consequence/impact links, and explicit promotion to world events.
-5. Add immutable publication editions and corrected-edition lineage.
-6. Integrate StoryBuilder into the Workshop WebPage host.
-7. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
+1. Expose the observer-safe projection in the WebDemo and use GUI.SVG to inspect which accepted claims are available at a chosen anchor.
+2. Add scene/beat-level event links so timeline events can navigate deeper than a manuscript section.
+3. Add a host adapter proving AnyApp validates and consumes the package without rerunning arbitration.
+4. Connect StoryBuilder's accepted-knowledge constraints with Renderer-backed representations through a host-neutral portrayal contract; keep narrative knowledge separate from visual/computational detail selection.
+5. Add richer Plot Twist alternatives, consequence/impact links, and explicit promotion to world events.
+6. Add immutable publication editions and corrected-edition lineage.
+7. Integrate StoryBuilder into the Workshop WebPage host.
+8. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
