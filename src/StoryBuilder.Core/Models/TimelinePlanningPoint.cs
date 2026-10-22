@@ -15,6 +15,8 @@ public sealed record TimelinePlanningPoint
     public List<string> Alternatives { get; init; } = [];
     public List<Guid> RelatedSceneIds { get; init; } = [];
     public List<Guid> RelatedEventIds { get; init; } = [];
+    /// <summary>The canonical event created when the author explicitly promotes this planning point.</summary>
+    public Guid? PromotedEventId { get; init; }
     public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset UpdatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
 }
