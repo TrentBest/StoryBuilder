@@ -29,9 +29,13 @@ jobs:
         run: dotnet build src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj --configuration Release
       - name: Build binary persistence adapter
         run: dotnet build src/StoryBuilder.Persistence/StoryBuilder.Persistence.csproj --configuration Release
+      - name: Build Story Forge temporal domain
+        run: dotnet build src/StoryBuilder.StoryForge/StoryBuilder.StoryForge.csproj --configuration Release
       - name: Build console quickstart
         run: dotnet build samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj --configuration Release
       - name: Build interactive WebDemo
         run: dotnet build samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --configuration Release
       - name: Test authoring, lifecycle, composition, and persistence
         run: dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
+      - name: Test Story Forge temporal model and queries
+        run: dotnet test tests/StoryBuilder.StoryForge.Tests/StoryBuilder.StoryForge.Tests.csproj --configuration Release
