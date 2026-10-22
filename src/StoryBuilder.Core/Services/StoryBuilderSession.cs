@@ -172,7 +172,7 @@ public sealed class StoryBuilderSession
 
     private void RebuildVocabularyIndex()
     {
-        foreach (var character in Workspace.Characters) IndexCharacter(character);
+        foreach (var premise in Workspace.Premises) IndexPremise(premise);\n        foreach (var character in Workspace.Characters) IndexCharacter(character);
         foreach (var scene in Workspace.Scenes) IndexScene(scene);
         foreach (var claim in Workspace.HistoricalClaims)
         {
@@ -221,6 +221,33 @@ public sealed class StoryBuilderSession
     }
 
     private void NotifyChanged() => Changed?.Invoke();
+
+    private static string? NormalizeOptional(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static string SuggestPremiseTitle(string vision)
+    {
+        var firstSentence = vision.Split(['.', '!', '?', '\\n'], StringSplitOptions.RemoveEmptyEntries)
+            .FirstOrDefault()?.Trim() ?? vision.Trim();
+        var words = firstSentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        return words.Length <= 8 ? string.Join(' ', words) : string.Join(' ', words.Take(8)) + "…";
+    }
+
+    private void IndexPremise(StoryPremise premise)
+    {
+        Vocabulary.RecordText(premise.Title, VocabularyCategory.Other, premise.Id, premise.Title,
+            nameof(StoryPremise.Title), context: premise.Vision, status: premise.Status);
+        Vocabulary.RecordText(premise.Vision, VocabularyCategory.Other, premise.Id, premise.Title,
+            nameof(StoryPremise.Vision), context: premise.Vision, status: premise.Status);
+        Vocabulary.RecordText(premise.Scale, VocabularyCategory.Other, premise.Id, premise.Title,
+            nameof(StoryPremise.Scale), context: premise.Vision, status: premise.Status);
+        Vocabulary.RecordText(premise.Genre, VocabularyCategory.Other, premise.Id, premise.Title,
+            nameof(StoryPremise.Genre), context: premise.Vision, status: premise.Status);
+        Vocabulary.RecordText(premise.CreationApproach, VocabularyCategory.Other, premise.Id, premise.Title,
+            nameof(StoryPremise.CreationApproach), context: premise.Vision, status: premise.Status);
+        Vocabulary.RecordText(premise.PrimaryTarget, VocabularyCategory.Other, premise.Id, premise.Title,
+            nameof(StoryPremise.PrimaryTarget), context: premise.Vision, status: premise.Status);
+    }
 
     private void IndexCharacter(CharacterProfile character)
     {
