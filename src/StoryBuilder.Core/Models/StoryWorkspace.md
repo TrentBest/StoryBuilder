@@ -4,7 +4,7 @@
 
 ## Purpose
 
-StoryWorkspace groups the implementation record for an Experience with related fictional records: characters, scenes, claims, events, campaigns, participant actions, sources, and continuity issues. The collections remain distinct so implementation facts do not silently become fictional canon.
+StoryWorkspace groups the implementation record for an Experience with creator-owned StoryPremise proposals and related fictional records: characters, scenes, claims, events, campaigns, participant actions, sources, and continuity issues. The collections remain distinct so implementation facts do not silently become fictional canon. Premises preserve the creator's first idea as an editable proposal rather than turning it into an accepted world fact.
 
 ## UML class card
 
