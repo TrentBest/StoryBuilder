@@ -2,7 +2,7 @@
 
 ## Ownership
 
-StoryBuilder owns the authoring domain: Experience design, character profiles, world claims and events, scenes, campaigns, participant actions, provenance, continuity, vocabulary, timeline definitions, and—over time—explicit manuscript structure, provisional planning points, observer knowledge, and publication editions.
+StoryBuilder owns the authoring domain: Experience design, character profiles, world claims and events, scenes, campaigns, participant actions, provenance, continuity, vocabulary, timeline definitions, manuscript structure, provisional planning points, timeline-assigned world events, and event-to-section references; observer knowledge and immutable publication editions remain future capabilities.
 
 It does not own host lifecycle, durable storage implementation, GUI rendering, physics simulation, or the general composition kernel.
 
@@ -61,6 +61,6 @@ See [Timeline Authoring and Observer Model](TIMELINE_AUTHORING_MODEL.md), [Timel
 
 ## Current implementation boundary
 
-The .NET 8 core currently provides character drafts, structured scene beats, a narration draft, vocabulary indexing, workspace records, timeline definitions, and a host-neutral Process Group driver contract. Optional adapters demonstrate FSM_API lifecycle behavior and the MicroBundleDomain contract. The local Blazor workbench includes Casting, Stage, Archive, Campaign, Living Map, and Timeline views. Versioned binary workspace persistence and browser-local autosave are implemented. The latest GUI.SVG timeline map CI is green.
+The .NET 8 core currently provides character drafts, structured scene beats, a narration draft, vocabulary indexing, timeline definitions, provisional planning points, timeline-assigned world events, manuscript sections, event-to-section references, and a host-neutral Process Group driver contract. Optional adapters demonstrate FSM_API lifecycle behavior and the MicroBundleDomain contract. The local Blazor workbench includes Casting, Stage, Archive, Campaign, Living Map, and Timeline views. Versioned binary workspace persistence and browser-local autosave are implemented. The latest GUI.SVG timeline map CI is green.
 
-Still planned: full manuscript/book structure and export, first-class provisional Plot Twist points, complete event chronology and scene-to-event links, observer-aware recounting, the multi-FSM Narrator workflow, immutable publication editions, package manifest/configuration production and consumption, cloud persistence, and Workshop-host integration.
+Still planned: scene/beat-to-event links, book export, full temporal/causal graph editing, observer knowledge/disclosure constraints, the multi-FSM Narrator workflow, immutable publication editions, package manifest/configuration production and consumption, cloud persistence, and Workshop-host integration.

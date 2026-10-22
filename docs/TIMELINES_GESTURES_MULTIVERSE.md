@@ -4,7 +4,7 @@
 
 StoryBuilder must let an author build an Experience whose events can be explored, animated, revised, and revealed in different orders. A prose manuscript is one presentation of the world—not the world-history database itself.
 
-This is an architecture and product contract. It does not claim that timeline editing, character animation, physics-backed playback, or multiverse navigation are implemented today.
+This is an architecture and product contract. The current vertical slice persists timeline definitions, provisional planning points, timeline-assigned world events, manuscript sections, and event-to-section references. It does not yet provide full temporal/causal editing, observer-aware narration, character animation, physics-backed playback, or multiverse navigation.
 
 ## Core rule: one world model, several views
 
@@ -26,11 +26,11 @@ For example, an author may decide that lightning struck the lone hill's tree on 
 
 Each event should be able to record, as the domain evolves:
 
-- Stable event ID and concise author-facing label.
-- World/timeline identity and temporal placement, including approximate or unresolved dates.
+- Stable event ID and concise author-facing label. Stable event identity and optional timeline assignment now exist.
+- World/timeline identity and temporal placement, including approximate or unresolved dates. Timeline assignment and approximate/unresolved placement are persisted; full temporal semantics remain future work.
 - Participants, affected entities, location, causes, consequences, and source/provenance links when known.
 - Status such as idea, proposed, accepted canon, disputed, or superseded.
-- One or more scene, beat, paragraph, or manuscript references that portray it.
+- One or more scene, beat, paragraph, or manuscript references that portray it. Manuscript sections can currently reference events by stable ID; scene/beat-level links remain future work.
 - Disclosure state: author-only note, known to selected characters, hinted to readers, revealed, or not yet presented. Disclosure is separate from whether the event is canon.
 - Revision history and links to the event or state it changes.
 

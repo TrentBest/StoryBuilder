@@ -2,9 +2,9 @@
 
 ## Status and intent
 
-The first executable foundation is now in development source: StoryWorkspace owns canonical TimelineDefinition records, the host-neutral StoryProcessGroupDriver advances inserted IStoryProcessGroup instances, and the optional FSM_API-backed TimelineProcessGroup emits inspectable runtime observations. The binary workspace schema is version 3 and includes timeline definitions and branch lineage. The tests for this vertical slice are committed; the latest workflow result must be checked before calling the slice verified.
+The executable foundation is verified by CI: StoryWorkspace owns TimelineDefinition records, the host-neutral StoryProcessGroupDriver advances inserted IStoryProcessGroup instances, and the optional FSM_API-backed TimelineProcessGroup emits inspectable runtime observations. The binary workspace schema is version 6 and preserves timeline definitions, manuscripts, provisional planning points, and timeline assignment for world events. The WebDemo can create planning points and world events, and manuscript sections can reference events by stable ID.
 
-The keyboard-invoked developer console, colored event-to-book links, observer-aware recounting, full temporal/causal model, and immutable publication editions remain design requirements, not implemented features.
+The keyboard-invoked developer console, drawn event-to-book relationship rails, observer-aware recounting, full temporal/causal model, and immutable publication editions remain future work. Event-to-section references are persisted, but the SVG does not yet draw the cross-view links.
 
 ## A timeline is an executable Process Group
 
@@ -61,7 +61,7 @@ A published edition is an immutable artifact: its exact content, identity, and p
 1. Define timeline/event/branch identities and the adapter boundary; persist timeline definitions in the versioned binary document.
 2. Prove that two timeline Process Groups can be inserted into a driver, updated, and inspected.
 3. Build the keyboard-invoked console over actual Process Group and domain records.
-4. Add bidirectional event-to-passage links and colored relationship indicators.
+4. Draw bidirectional event-to-passage links and colored relationship indicators; stable event-to-section references now exist.
 5. Add observer-aware retelling and exact-repeat references.
 6. Add immutable publication editions and correction lineage.
 7. Integrate optional Visualize, Renderer, and Gestures providers through host-discovered capabilities.

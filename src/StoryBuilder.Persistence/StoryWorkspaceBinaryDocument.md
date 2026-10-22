@@ -12,8 +12,8 @@ See [StoryWorkspaceBinaryDocument UML](../../docs/UML/StoryWorkspaceBinaryDocume
 
 ## Safety and compatibility
 
-The format starts with the SBWS magic and version 3. Version 1 payloads default NarrativeRole to Undecided and have no premises or timelines. Version 2 payloads preserve premises but have no timeline collection. Version 3 adds the ordered timeline-definition collection before premises. Readers retain compatibility with versions 1 and 2. Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. Future incompatible schemas require a new format version and migration tests.
+The format starts with the SBWS magic and version 6. Version 1 payloads default NarrativeRole to Undecided and have no premises or timelines. Version 2 adds premises. Version 3 adds ordered timeline definitions. Version 4 adds manuscripts and ordered manuscript sections. Version 5 adds provisional timeline planning points. Version 6 adds timeline assignment and placement certainty to world events. Readers retain compatibility with versions 1 through 5. Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. Future incompatible schemas require a new format version and migration tests.
 
 ## Restore behavior
 
-Timeline definitions and their parent references are restored before later authoring work continues. Branch records must appear after their parent in the workspace collection. The vocabulary index's word occurrences are rebuilt from source records, avoiding stale duplicate index entries. The document does not persist runtime FSM handles, Process Group update state, or UI state.
+Timeline definitions are restored before planning points and timeline-assigned events so their references can be validated. Manuscript sections preserve authored text and stable event/scene references. Branch records must appear after their parent in the workspace collection. The vocabulary index's word occurrences are rebuilt from source records, avoiding stale duplicate index entries. The document does not persist runtime FSM handles, Process Group update state, or UI state.
