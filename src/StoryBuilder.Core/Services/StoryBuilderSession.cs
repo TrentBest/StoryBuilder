@@ -23,6 +23,20 @@ public sealed class StoryBuilderSession
 
     public event Action? Changed;
 
+    /// <summary>Creates a canonical timeline definition, optionally branching from a timeline in this workspace.</summary>
+    public TimelineDefinition CreateTimeline(string? name = null, string? description = null, Guid? parentTimelineId = null)
+    {
+        var timeline = new TimelineDefinition
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? "Untitled timeline" : name.Trim(),
+            Description = NormalizeOptional(description) ?? string.Empty,
+            ParentTimelineId = parentTimelineId
+        };
+        Workspace.AddTimeline(timeline);
+        NotifyChanged();
+        return timeline;
+    }
+
     /// <summary>Restores workspace records and explicit synonyms, rebuilding derived word occurrences.</summary>
     public void RestoreFrom(StoryWorkspace workspace, IEnumerable<VocabularyConcept>? concepts = null)
     {
