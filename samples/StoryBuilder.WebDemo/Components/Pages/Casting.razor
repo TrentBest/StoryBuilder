@@ -70,9 +70,9 @@
                         <span class="chip">@character.Role</span>
                         @if (!string.IsNullOrWhiteSpace(character.Description))
                         {
-                            <p>@character.Description</p>
+                            <span>@character.Description</span>
                         }
-                        <p>@character.Traits.Count trait(s)</p>
+                        <span>@character.Traits.Count trait(s)</span>
                     </button>
                 }
             </div>
