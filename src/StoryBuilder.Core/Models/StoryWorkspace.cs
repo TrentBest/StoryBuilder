@@ -98,6 +98,21 @@ public sealed record ContinuityIssue
 /// An in-memory workspace boundary that groups the build record and fictional story records.
 /// Persistence and presentation are host responsibilities; the two record families remain distinct.
 /// </summary>
+/// <summary>A creator-owned story idea, separate from the implementation record for the StoryBuilder tool itself.</summary>
+public sealed record StoryPremise
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Title { get; init; } = "Untitled story idea";
+    public string Vision { get; init; } = string.Empty;
+    public string? Scale { get; init; }
+    public string? Genre { get; init; }
+    public string? CreationApproach { get; init; }
+    public string? PrimaryTarget { get; init; }
+    public CanonStatus Status { get; init; } = CanonStatus.Proposed;
+    public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+}
+
 public sealed class StoryWorkspace
 {
     private readonly List<CharacterProfile> _characters = [];
@@ -206,6 +221,7 @@ public sealed class StoryWorkspace
 
     private static Guid GetId<T>(T record) where T : notnull => record switch
     {
+        StoryPremise premise => premise.Id,
         CharacterProfile character => character.Id,
         SceneRecord scene => scene.Id,
         ParticipantAction action => action.Id,
