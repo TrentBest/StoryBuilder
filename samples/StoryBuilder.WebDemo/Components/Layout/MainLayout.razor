@@ -1,4 +1,6 @@
 @inherits LayoutComponentBase
+@implements IDisposable
+@inject StoryBuilderPersistenceCoordinator Persistence
 
 <div class="shell">
     <header class="topbar">
@@ -10,11 +12,70 @@
             <NavLink href="/campaigns">Campaign Room</NavLink>
         </nav>
     </header>
+
+    <div class="persist-banner" role="status">
+        @if (!Persistence.IsLoaded)
+        {
+            <span>Restoring your saved workspace…</span>
+        }
+        else if (Persistence.LoadError is not null)
+        {
+            <span>@Persistence.LoadError</span>
+            <button class="danger" @onclick="ClearSavedWorkspace">Discard unreadable save and start fresh</button>
+        }
+        else if (Persistence.SaveError is not null)
+        {
+            <span>@Persistence.SaveError</span>
+        }
+        else if (Persistence.LastSavedAtUtc is DateTimeOffset savedAt)
+        {
+            <span>Saved in this browser · @savedAt.ToLocalTime().ToString("HH:mm:ss")</span>
+        }
+        else
+        {
+            <span>Browser-local autosave is ready. Your words remain yours to revise.</span>
+        }
+    </div>
+
     <main class="main-content">
-        @Body
+        @if (Persistence.IsLoaded)
+        {
+            @Body
+        }
+        else
+        {
+            <section class="panel">
+                <div class="eyebrow">World Archive</div>
+                <h1>Opening your workspace…</h1>
+                <p class="lede">StoryBuilder is restoring your saved records before you begin editing.</p>
+            </section>
+        }
     </main>
+
     <footer class="footer">
         <span>Drafts are editable. Suggestions are not canon.</span>
-        <span>Local demo · in-memory workspace</span>
+        <span>Versioned binary save · stored in this browser</span>
     </footer>
 </div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Persistence.StateChanged += OnPersistenceStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await Persistence.EnsureLoadedAsync();
+    }
+
+    private void OnPersistenceStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    private async Task ClearSavedWorkspace() => await Persistence.ClearAndStartFreshAsync();
+
+    public void Dispose()
+    {
+        Persistence.StateChanged -= OnPersistenceStateChanged;
+    }
+}
