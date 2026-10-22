@@ -43,13 +43,16 @@
 - Broader source-derived GUI.SVG views for chronology, relationships, and scene continuity beyond the current living map.
 - Browser-level automated tests for user interactions and accessibility.
 - Physics-backed fight simulation or a visual pose/claymation timeline.
+- Canonical event timelines with world time distinct from reader order, branch/divergence modeling, synchronized timeline comparison, and explicit unrevealed events.
+- Gestures-backed character animation and authorable gesture timing/preview.
+- Visualize/Renderer provider discovery for interactive scene editing and multi-format portrayal; current GUI.SVG Living Map is not a full world-scene editor.
 - Full campaign continuity resolution and source-to-event reconciliation.
 - Automatic adjective classification, multilingual stemming, or semantic inference.
 - Multi-user collaboration and concurrent editing.
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation now work together; the MicroBundle contract is tested through FSM_COS. The Narrator-first workflow, Casting Studio's revision/reference observability, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation now work together; the MicroBundle contract is tested through FSM_COS. Timeline/multiverse/gesture capabilities are now specified as design requirements but are not yet implemented, so this specification does not increase the readiness estimate. The Narrator-first workflow, Casting Studio's revision/reference observability, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
@@ -59,3 +62,6 @@ The estimate reflects five equal workstreams: (1) domain contracts, (2) automate
 4. Add export/import, backup, and migration tests for future binary schema versions.
 5. Mount StoryBuilderAuthoringBundle in the Workshop WebPage host through the existing FSM_COS composition path.
 6. Expand campaign actions into a continuity workflow linking participant choices to events and historical consequences.
+7. Add canonical world-event records and an author-facing chronology before implementing alternate-timeline branches.
+8. Define branch identity, parent/divergence references, branch-local changes, and comparison acceptance tests; preserve the original history.
+9. Integrate Gestures/Visualize/Renderer only through host-discovered MicroBundle capabilities, with truthful fallbacks when unavailable.
