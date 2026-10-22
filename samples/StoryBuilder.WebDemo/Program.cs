@@ -21,4 +21,4 @@ app.MapRazorComponents<StoryBuilder.WebDemo.Components.App>()
     .AddInteractiveServerRenderMode();
 app.Run();
 
-public partial class Program;
+public partial class Program { }
