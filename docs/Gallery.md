@@ -30,4 +30,4 @@ This console sample creates an editable character, automatically indexes its tra
 
 ## Next living proof
 
-The next end-to-end Experience should show the same character and vocabulary state through GUI.SVG, generated from the actual StoryBuilderSession rather than a static mockup. After that, integrate the StoryBuilder MicroBundle into the Workshop host, add export/backup and schema migration, then extend The Stage with pose visualization and optional physics data.
+The next end-to-end Experience should show the same character and vocabulary state through GUI.SVG, generated from the actual StoryBuilderSession rather than a static mockup. After that, integrate the StoryBuilder MicroBundle into the Workshop host, add export/backup and schema migration, then extend The Stage with pose visualization and optional physics data. The timeline/gesture/multiverse design contract is in [Timelines, Gestures, and Multiverse History](TIMELINES_GESTURES_MULTIVERSE.md); it describes intended behavior, not shipped functionality.
