@@ -82,6 +82,28 @@ public sealed class StoryBuilderSession
         return storyEvent;
     }
 
+    public CampaignRecord AddCampaign(CampaignRecord campaign)
+    {
+        ArgumentNullException.ThrowIfNull(campaign);
+        Workspace.AddCampaign(campaign);
+        Vocabulary.RecordText(campaign.Name, VocabularyCategory.Other, campaign.Id, campaign.Name,
+            nameof(CampaignRecord.Name), context: campaign.Description, status: campaign.Status);
+        Vocabulary.RecordText(campaign.Description, VocabularyCategory.Other, campaign.Id, campaign.Name,
+            nameof(CampaignRecord.Description), context: campaign.Description, status: campaign.Status);
+        return campaign;
+    }
+
+    public ParticipantAction AddParticipantAction(ParticipantAction action)
+    {
+        ArgumentNullException.ThrowIfNull(action);
+        Workspace.AddParticipantAction(action);
+        var campaignName = Workspace.Campaigns.FirstOrDefault(c => c.Id == action.CampaignId)?.Name ?? "Campaign action";
+        Vocabulary.RecordText(action.Description, VocabularyCategory.Other, action.Id, campaignName,
+            nameof(ParticipantAction.Description), context: action.Description, attribution: action.Attribution,
+            sourceId: action.Id.ToString("D"), status: action.Status);
+        return action;
+    }
+
     private void IndexCharacter(CharacterProfile character)
     {
         Vocabulary.RecordText(character.Name, VocabularyCategory.Other, character.Id, character.Name,
