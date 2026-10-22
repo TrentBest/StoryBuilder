@@ -46,6 +46,19 @@ public sealed class BookProductRenderer
             referencedEventIds);
     }
 
+    /// <summary>Writes the deterministic Markdown artifact to a caller-owned writable stream without closing it.</summary>
+    public RenderedBookArtifact WriteMarkdown(StoryWorkspace workspace, Guid manuscriptId, Stream destination)
+    {
+        ArgumentNullException.ThrowIfNull(destination);
+        if (!destination.CanWrite)
+            throw new ArgumentException("The destination stream is not writable.", nameof(destination));
+
+        var artifact = Render(workspace, manuscriptId);
+        var bytes = Encoding.UTF8.GetBytes(artifact.Markdown);
+        destination.Write(bytes);
+        return artifact;
+    }
+
     private static string Heading(ManuscriptSectionKind kind) => kind switch
     {
         ManuscriptSectionKind.FrontMatter => "##",
