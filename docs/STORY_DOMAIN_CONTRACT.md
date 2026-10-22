@@ -13,6 +13,8 @@ This document describes the domain StoryBuilder implements today. It is a guide 
 
 The same world event can be referenced from more than one scene beat or manuscript section. Those links express portrayals of one event; they do not create duplicate world events or copy the event's truth into the prose.
 
+`StoryBuilderSession.LinkEventCausality(causeId, consequenceId)` updates both sides of the causal edge, and unlinking removes both sides without deleting either event. `UpdateTimelineEvent` replaces the event and refreshes indexed title/summary terms. Planning points keep alternate outcomes and their affected scene/event IDs separate from canon; `SetPlanningPointAlternatives`, `LinkPlanningPointToScene`, and `LinkPlanningPointToEvent` edit those links explicitly. Continuity analysis reports causal cycles for review rather than silently repairing the graph.
+
 ## Records that must not be confused
 
 | Record | Meaning | What it does not mean |
