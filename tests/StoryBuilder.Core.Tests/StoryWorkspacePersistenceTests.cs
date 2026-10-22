@@ -9,6 +9,56 @@ namespace StoryBuilder.Core.Tests;
 public sealed class StoryWorkspacePersistenceTests
 {
     [Fact]
+    public void LegacyImportPreservesOriginalJsonAcrossBinarySaveAndRestore()
+    {
+        const string legacyJson = """
+        {
+          "schemaVersion": 1,
+          "projectId": "8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb1",
+          "title": "Offset Test",
+          "premise": "A promise is broken.",
+          "manuscript": "Line one.\\r\\nLine two.",
+          "createdUtc": "2024-01-02T03:04:05-08:00",
+          "updatedUtc": "2024-02-03T04:05:06+05:30",
+          "passages": [
+            { "id": "8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb2", "text": "Line two." }
+          ],
+          "timeline": [
+            {
+              "id": "8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb3",
+              "title": "The promise",
+              "description": "It is broken.",
+              "occurredAt": "2025-06-07T08:09:10+05:30",
+              "passageId": "8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb2",
+              "observerId": "witness-17"
+            }
+          ]
+        }
+        """;
+
+        var workspace = LegacyStoryProjectImporter.Import(legacyJson);
+
+        Assert.Equal(Guid.Parse("8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb1"), workspace.Id);
+        Assert.Equal(legacyJson, workspace.LegacyProjectSourceJson);
+        Assert.Equal("A promise is broken.", Assert.Single(workspace.Premises).Vision);
+        Assert.Equal("Line one.\\r\\nLine two.", Assert.Single(Assert.Single(workspace.Manuscripts).Sections).Body);
+        var importedEvent = Assert.Single(workspace.Events);
+        Assert.Equal(Guid.Parse("8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb3"), importedEvent.Id);
+        Assert.Contains("2025-06-07T08:09:10+05:30", importedEvent.InWorldDateOrPeriod);
+        Assert.Contains("Line two.", importedEvent.Summary);
+
+        var document = new StoryWorkspaceBinaryDocument(workspace);
+        using var output = new MemoryBinaryStream();
+        document.Pack(output);
+        using var input = new MemoryBinaryStream(output.ToArray());
+        var restored = new StoryWorkspaceBinaryDocument();
+        restored.Unpack(input);
+
+        Assert.Equal(legacyJson, restored.Workspace.LegacyProjectSourceJson);
+        Assert.Equal(importedEvent.Id, Assert.Single(restored.Workspace.Events).Id);
+    }
+
+    [Fact]
     public void BinaryDocumentRoundTripsWorkspaceRecordsAndSynonymMappings()
     {
         var session = new StoryBuilderSession("Persistence campaign");
