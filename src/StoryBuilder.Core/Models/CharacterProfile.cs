@@ -11,11 +11,22 @@ public enum CanonStatus
 }
 
 /// <summary>A character record that can start small and be enriched over time.</summary>
+/// <summary>Story-function grouping; this is not a moral judgment about the character.</summary>
+public enum CharacterNarrativeRole
+{
+    Undecided,
+    Hero,
+    Neutral,
+    Antagonist,
+    Other
+}
+
 public sealed record CharacterProfile
 {
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; init; } = "Unnamed character";
     public string Role { get; init; } = "Unspecified";
+    public CharacterNarrativeRole NarrativeRole { get; init; } = CharacterNarrativeRole.Undecided;
     public string Description { get; init; } = string.Empty;
     public string? Pronouns { get; init; }
     public string? Species { get; init; }
