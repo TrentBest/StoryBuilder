@@ -250,9 +250,9 @@ public sealed class StoryBuilderSession
             SourceUpdatedAtUtc = manuscript.UpdatedAtUtc,
             PreviousEditionId = previous?.Id,
             CorrectionNotes = string.IsNullOrWhiteSpace(correctionNotes) ? null : correctionNotes.Trim(),
-            SectionIds = manuscript.Sections.OrderBy(section => section.Sequence).Select(section => section.Id).ToList(),
-            SceneIds = manuscript.Sections.SelectMany(section => section.SceneIds).Distinct().ToList(),
-            EventIds = artifact.ReferencedEventIds.ToList()
+            SectionIds = Array.AsReadOnly(manuscript.Sections.OrderBy(section => section.Sequence).Select(section => section.Id).ToArray()),
+            SceneIds = Array.AsReadOnly(manuscript.Sections.SelectMany(section => section.SceneIds).Distinct().ToArray()),
+            EventIds = Array.AsReadOnly(artifact.ReferencedEventIds.ToArray())
         };
         Workspace.AddPublishedEdition(edition);
         NotifyChanged();
