@@ -466,6 +466,21 @@ public sealed class StoryBuilderSession
         NotifyChanged();
     }
 
+    /// <summary>Links or unlinks a canonical scene from a manuscript section without copying scene data into prose.</summary>
+    public ManuscriptEdition LinkSceneToManuscriptSection(Guid manuscriptId, Guid sectionId, Guid sceneId, bool linked = true)
+    {
+        if (!Workspace.Scenes.Any(item => item.Id == sceneId))
+            throw new KeyNotFoundException($"Scene '{sceneId}' does not exist in this workspace.");
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
+        var section = manuscript.Sections.FirstOrDefault(item => item.Id == sectionId)
+            ?? throw new KeyNotFoundException($"No section with ID '{sectionId}' exists in this manuscript.");
+        var sceneIds = section.SceneIds.ToList();
+        if (linked && !sceneIds.Contains(sceneId)) sceneIds.Add(sceneId);
+        else if (!linked) sceneIds.Remove(sceneId);
+        return UpdateManuscript(manuscript.ReplaceSection(section with { SceneIds = sceneIds }));
+    }
+
     public ManuscriptEdition LinkEventToManuscriptSection(Guid manuscriptId, Guid sectionId, Guid eventId, bool linked = true)
     {
         if (!Workspace.Events.Any(item => item.Id == eventId))
