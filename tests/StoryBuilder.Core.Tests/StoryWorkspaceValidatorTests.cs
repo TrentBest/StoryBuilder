@@ -63,4 +63,30 @@ public sealed class StoryWorkspaceValidatorTests
 
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
     }
+    [Fact]
+    public void ValidateRejectsDuplicateStableIdsAcrossNestedManuscriptSections()
+    {
+        var workspace = new StoryWorkspace();
+        var sharedSectionId = Guid.NewGuid();
+        workspace.AddManuscript(new ManuscriptEdition
+        {
+            Title = "First draft",
+            Sections = [new ManuscriptSection { Id = sharedSectionId, Title = "Chapter 1", Body = "First text." }]
+        });
+        workspace.AddManuscript(new ManuscriptEdition
+        {
+            Title = "Second draft",
+            Sections = [new ManuscriptSection { Id = sharedSectionId, Title = "Chapter 1", Body = "Different text." }]
+        });
+
+        var issues = StoryWorkspaceValidator.Validate(workspace);
+
+        var duplicate = Assert.Single(issues, issue =>
+            issue.Relationship == "duplicate identity" &&
+            issue.MissingTargetId == sharedSectionId);
+        Assert.Equal(nameof(ManuscriptSection), duplicate.OwnerType);
+        Assert.Contains("2 records", duplicate.Message);
+        Assert.Equal(2, workspace.Manuscripts.Count);
+    }
+
 }
