@@ -15,9 +15,9 @@ classDiagram
       +DateTimeOffset SourceUpdatedAtUtc
       +Guid? PreviousEditionId
       +string? CorrectionNotes
-      +List~Guid~ SectionIds
-      +List~Guid~ SceneIds
-      +List~Guid~ EventIds
+      +IReadOnlyList~Guid~ SectionIds
+      +IReadOnlyList~Guid~ SceneIds
+      +IReadOnlyList~Guid~ EventIds
     }
     class ManuscriptEdition
     class StoryWorkspace {
