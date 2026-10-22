@@ -77,6 +77,7 @@ public sealed class StoryWorkspacePersistenceTests
         session.UpdateCharacter(character);
         session.AddSynonym("courageous", "brave");
 
+        var place = session.CreatePlace("North Gate", "The old stone entrance.", "Gate");
         var scene = session.CreateScene("North Gate", "Old wall", SceneCaptureMode.Claymation)
             .AddBeat(new SceneBeat
             {
@@ -88,6 +89,7 @@ public sealed class StoryWorkspacePersistenceTests
                 Status = CanonStatus.Proposed
             });
         session.UpdateScene(scene);
+        scene = session.AssignSceneToPlace(scene.Id, place.Id);
 
         var source = session.AddSource(new SourceRecord
         {
@@ -152,6 +154,8 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Equal(session.Workspace.Id, restoredSession.Workspace.Id);
         Assert.Equal("Persistence campaign", restoredSession.Workspace.Name);
+        Assert.Equal(place.Id, Assert.Single(restoredSession.Workspace.Places).Id);
+        Assert.Equal(place.Id, Assert.Single(restoredSession.Workspace.Scenes).PlaceId);
         var restoredManuscript = Assert.Single(restoredSession.Workspace.Manuscripts);
         Assert.Equal(manuscript.Id, restoredManuscript.Id);
         Assert.Equal("The Lost Cartographer", restoredManuscript.Title);
