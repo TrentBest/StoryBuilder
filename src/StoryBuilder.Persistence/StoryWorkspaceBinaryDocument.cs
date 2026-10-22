@@ -304,6 +304,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteNullableGuid(stream, value.PreviousEditionId);
         BinaryCodec.WriteString(stream, value.CorrectionNotes);
         BinaryCodec.WriteGuidList(stream, value.SectionIds);
+        BinaryCodec.WriteGuidList(stream, value.SceneIds);
         BinaryCodec.WriteGuidList(stream, value.EventIds);
     }
 
@@ -321,6 +322,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         PreviousEditionId = BinaryCodec.ReadNullableGuid(stream),
         CorrectionNotes = BinaryCodec.ReadString(stream),
         SectionIds = BinaryCodec.ReadGuidList(stream),
+        SceneIds = BinaryCodec.ReadGuidList(stream),
         EventIds = BinaryCodec.ReadGuidList(stream)
     };
 
