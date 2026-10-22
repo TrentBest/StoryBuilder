@@ -234,10 +234,7 @@ public sealed class StoryBuilderSession
         var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
             ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
         var artifact = new BookProductRenderer().Render(Workspace, manuscriptId);
-        var previous = Workspace.PublishedEditions
-            .Where(item => item.ManuscriptId == manuscriptId)
-            .OrderByDescending(item => item.PublishedAtUtc)
-            .FirstOrDefault();
+        var previous = Workspace.PublishedEditions.LastOrDefault(item => item.ManuscriptId == manuscriptId);
         var edition = new PublishedBookEdition
         {
             ManuscriptId = manuscript.Id,
