@@ -227,7 +227,7 @@ public sealed class StoryBuilderSession
 
     private static string SuggestPremiseTitle(string vision)
     {
-        var firstSentence = vision.Split(['.', '!', '?', '\\n'], StringSplitOptions.RemoveEmptyEntries)
+        var firstSentence = vision.Split(['.', '!', '?'], StringSplitOptions.RemoveEmptyEntries)
             .FirstOrDefault()?.Trim() ?? vision.Trim();
         var words = firstSentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         return words.Length <= 8 ? string.Join(' ', words) : string.Join(' ', words.Take(8)) + "…";
@@ -255,6 +255,8 @@ public sealed class StoryBuilderSession
             nameof(CharacterProfile.Name), context: character.Name, attribution: "Author", status: character.Status);
         Vocabulary.RecordText(character.Role, VocabularyCategory.Other, character.Id, character.Name,
             nameof(CharacterProfile.Role), context: character.Role, attribution: "Author", status: character.Status);
+        Vocabulary.RecordText(character.NarrativeRole.ToString(), VocabularyCategory.Other, character.Id, character.Name,
+            nameof(CharacterProfile.NarrativeRole), context: character.Role, attribution: "Author", status: character.Status);
         Vocabulary.RecordText(character.Description, VocabularyCategory.Other, character.Id, character.Name,
             nameof(CharacterProfile.Description), context: character.Description, attribution: "Author",
             status: character.Status);
