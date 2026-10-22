@@ -73,7 +73,7 @@ public sealed class ObserverKnowledgeProjectionServiceTests
 
         Assert.Single(beforeReport.Events);
         Assert.Equal(2, afterReport.Events.Count);
-        var report = Assert.Single(afterReport.Events.Where(item => item.EventId == reported.Id));
+        var report = Assert.Single(afterReport.Events, item => item.EventId == reported.Id);
         Assert.Contains(report.PermittedClaims, claim => claim.Mode == NarrationClaimMode.AttributedReport);
         Assert.DoesNotContain(report.PermittedClaims, claim => claim.Mode == NarrationClaimMode.DirectFact);
     }
