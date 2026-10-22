@@ -10,7 +10,9 @@
 | Understand the initial world and historical scale | [Story Foundation](docs/STORY_FOUNDATION.md), [Historical Scale](docs/HISTORICAL_SCALE.md) |
 | Understand the diegetic-tool concept | [Diegetic StoryBuilder](docs/DIEGETIC_STORYBUILDER.md) |
 | Inspect domain UML and use cases | [UML directory](docs/UML/) |
+| Understand the FSM_API-backed review lifecycle | [StoryLifecycleSession UML](docs/UML/StoryLifecycleSessionUML.md) |
 | Review what is implemented and what remains | [Development Status](docs/DEVELOPMENT_STATUS.md) |
+| Review branch preservation and integration | [Branch Reconciliation](docs/BRANCH_RECONCILIATION.md) |
 | Build and test | [Development workflow](docs/DEVELOPMENT.md) |
 
 The README is the front door. Source code and tests define current behavior; design documents describe intended capabilities and must not be read as proof that those capabilities already run.
