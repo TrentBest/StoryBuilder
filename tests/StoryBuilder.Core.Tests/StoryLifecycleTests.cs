@@ -9,7 +9,7 @@ public sealed class StoryLifecycleTests
     [Fact]
     public void LifecycleRequiresProposalBeforeAcceptance()
     {
-        using var lifecycle = new StoryLifecycleSession("Character review");
+        using using var lifecycle = new StoryLifecycleSession("Character review");
 
         Assert.Equal(CanonStatus.Draft, lifecycle.CurrentStatus);
         Assert.Equal(CanonStatus.Draft, lifecycle.Request(CanonStatus.Accepted));
@@ -20,7 +20,7 @@ public sealed class StoryLifecycleTests
     [Fact]
     public void AcceptedRecordCanBeReproposedForRevisionThenDeprecated()
     {
-        var lifecycle = new StoryLifecycleSession("Event review");
+        using var lifecycle = new StoryLifecycleSession("Event review");
         lifecycle.Request(CanonStatus.Proposed);
         lifecycle.Request(CanonStatus.Accepted);
 
