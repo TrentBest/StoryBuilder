@@ -77,7 +77,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 
 ## Current boundary
 
-The domain core, FSM_API lifecycle adapter, and FSM_COS-composable MicroBundle contract are implemented and tested. The interactive Blazor workbench is now present; its new build is being verified in CI. Data is currently in memory; persistent storage, full campaign runtime, physics-backed fight playback, and live GUI.SVG views remain open work. No package publishing or release has been authorized.
+The domain core, FSM_API lifecycle adapter, and FSM_COS-composable MicroBundle contract are implemented and tested. The interactive Blazor workbench has a successful build/test run at commit aaabdbe91e818ad766fb6773e8817726c7a2623a; subsequent documentation commits trigger fresh checks. Data is currently in memory; persistent storage, full campaign runtime, physics-backed fight playback, and live GUI.SVG views remain open work. No package publishing or release has been authorized.
 
 ## License
 
