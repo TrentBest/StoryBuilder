@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Provides a host-neutral, explicit command boundary between desktop controls and a single StoryBuilder authoring session. Stable command IDs create timelines, characters, scenes, and manuscripts through existing StoryBuilderSession operations.
+Provides a host-neutral, explicit command boundary between desktop controls and a single StoryBuilder authoring session. Stable command IDs create timelines, characters, scenes, manuscripts, timeline events, and manuscript passages through existing StoryBuilderSession operations. A bounded link command connects the latest event to the latest passage by canonical event ID.
 
 ## UML class card
 
