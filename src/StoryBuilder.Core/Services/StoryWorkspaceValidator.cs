@@ -159,7 +159,13 @@ public static class StoryWorkspaceValidator
         {
             Missing(nameof(PublishedBookEdition), edition.Id, "manuscript", edition.ManuscriptId, manuscripts);
             if (edition.PreviousEditionId is Guid previousId)
+            {
                 Missing(nameof(PublishedBookEdition), edition.Id, "previous publication edition", previousId, publishedEditions);
+                var previous = workspace.PublishedEditions.FirstOrDefault(item => item.Id == previousId);
+                if (previous is not null && previous.ManuscriptId != edition.ManuscriptId)
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(PublishedBookEdition), edition.Id, "publication lineage manuscript", previousId,
+                        $"Published edition '{edition.Id}' links to an edition of a different manuscript."));
+            }
             foreach (var sectionId in edition.SectionIds)
             {
                 if (!workspace.Manuscripts.Any(item => item.Id == edition.ManuscriptId && item.Sections.Any(section => section.Id == sectionId)))
