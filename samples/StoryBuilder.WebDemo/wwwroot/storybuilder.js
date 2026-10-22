@@ -5,3 +5,15 @@ window.storyBuilderCopy = async function (text) {
 
     await navigator.clipboard.writeText(text);
 };
+
+window.storyBuilderStorage = {
+    get: function () {
+        return window.localStorage.getItem("storybuilder.workspace.v1");
+    },
+    set: function (encodedWorkspace) {
+        window.localStorage.setItem("storybuilder.workspace.v1", encodedWorkspace);
+    },
+    clear: function () {
+        window.localStorage.removeItem("storybuilder.workspace.v1");
+    }
+};
