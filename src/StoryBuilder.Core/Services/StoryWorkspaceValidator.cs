@@ -19,6 +19,7 @@ public static class StoryWorkspaceValidator
         var places = workspace.Places.Select(x => x.Id).ToHashSet();
         var scenes = workspace.Scenes.Select(x => x.Id).ToHashSet();
         var manuscripts = workspace.Manuscripts.Select(x => x.Id).ToHashSet();
+        var publishedEditions = workspace.PublishedEditions.Select(x => x.Id).ToHashSet();
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
         var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();
         var premises = workspace.Premises.Select(x => x.Id).ToHashSet();
@@ -27,7 +28,7 @@ public static class StoryWorkspaceValidator
         var participantActions = workspace.ParticipantActions.Select(x => x.Id).ToHashSet();
         var continuityIssues = workspace.ContinuityIssues.Select(x => x.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
-            .Concat(scenes).Concat(manuscripts).Concat(sources).Concat(campaigns).Concat(premises)
+            .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(sources).Concat(campaigns).Concat(premises)
             .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).ToHashSet();
 
         void Missing(string ownerType, Guid ownerId, string relationship, Guid targetId, HashSet<Guid> targetIds)
@@ -53,6 +54,7 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.Places, item => item.Id, nameof(PlaceRecord));
         DuplicateIds(workspace.Scenes, item => item.Id, nameof(SceneRecord));
         DuplicateIds(workspace.Manuscripts, item => item.Id, nameof(ManuscriptEdition));
+        DuplicateIds(workspace.PublishedEditions, item => item.Id, nameof(PublishedBookEdition));
         DuplicateIds(workspace.Premises, item => item.Id, nameof(StoryPremise));
         DuplicateIds(workspace.Sources, item => item.Id, nameof(SourceRecord));
         DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));
@@ -75,6 +77,7 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.Scenes.Select(item => (item.Id, nameof(SceneRecord))));
         typedIds.AddRange(workspace.Scenes.SelectMany(item => item.Beats).Select(item => (item.Id, nameof(SceneBeat))));
         typedIds.AddRange(workspace.Manuscripts.Select(item => (item.Id, nameof(ManuscriptEdition))));
+        typedIds.AddRange(workspace.PublishedEditions.Select(item => (item.Id, nameof(PublishedBookEdition))));
         typedIds.AddRange(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => (item.Id, nameof(ManuscriptSection))));
         typedIds.AddRange(workspace.Sources.Select(item => (item.Id, nameof(SourceRecord))));
         typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));
@@ -133,6 +136,19 @@ public static class StoryWorkspaceValidator
                 Missing(nameof(HistoricalClaim), claim.Id, "source", id, sources);
             foreach (var id in claim.RelatedEntityIds)
                 Missing(nameof(HistoricalClaim), claim.Id, "related record", id, knownRecords);
+        }
+
+        foreach (var edition in workspace.PublishedEditions)
+        {
+            Missing(nameof(PublishedBookEdition), edition.Id, "manuscript", edition.ManuscriptId, manuscripts);
+            if (edition.PreviousEditionId is Guid previousId)
+                Missing(nameof(PublishedBookEdition), edition.Id, "previous publication edition", previousId, publishedEditions);
+            foreach (var sectionId in edition.SectionIds)
+            {
+                if (!workspace.Manuscripts.Any(item => item.Id == edition.ManuscriptId && item.Sections.Any(section => section.Id == sectionId)))
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(PublishedBookEdition), edition.Id, "published section", sectionId,
+                        $"Published edition '{edition.Id}' references section '{sectionId}' that is not in its source manuscript."));
+            }
         }
 
         foreach (var manuscript in workspace.Manuscripts)
