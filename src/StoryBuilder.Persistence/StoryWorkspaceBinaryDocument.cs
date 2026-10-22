@@ -319,9 +319,9 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.SourceUpdatedAtUtc);
         BinaryCodec.WriteNullableGuid(stream, value.PreviousEditionId);
         BinaryCodec.WriteString(stream, value.CorrectionNotes);
-        BinaryCodec.WriteGuidList(stream, value.SectionIds);
-        BinaryCodec.WriteGuidList(stream, value.SceneIds);
-        BinaryCodec.WriteGuidList(stream, value.EventIds);
+        BinaryCodec.WriteList(stream, value.SectionIds, (target, id) => BinaryCodec.WriteGuid(target, id));
+        BinaryCodec.WriteList(stream, value.SceneIds, (target, id) => BinaryCodec.WriteGuid(target, id));
+        BinaryCodec.WriteList(stream, value.EventIds, (target, id) => BinaryCodec.WriteGuid(target, id));
     }
 
     private static PublishedBookEdition ReadPublishedEdition(IBinaryStream stream, int version)
@@ -337,9 +337,9 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var sourceUpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream);
         var previousEditionId = BinaryCodec.ReadNullableGuid(stream);
         var correctionNotes = BinaryCodec.ReadString(stream);
-        var sectionIds = BinaryCodec.ReadGuidList(stream);
-        var sceneIds = version >= 12 ? BinaryCodec.ReadGuidList(stream) : [];
-        var eventIds = BinaryCodec.ReadGuidList(stream);
+        var sectionIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
+        var sceneIds = version >= 12 ? Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()) : Array.Empty<Guid>();
+        var eventIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
         return new PublishedBookEdition
         {
             Id = id,
