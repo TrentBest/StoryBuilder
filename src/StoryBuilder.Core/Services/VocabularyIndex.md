@@ -12,8 +12,8 @@ See [VocabularyIndex UML](../../../docs/UML/VocabularyIndexUML.md) for the class
 
 ## Use case
 
-Index every word occurrence when a record changes, or record it as the user authors. Search by a canonical term or known synonym. Use Attribution and Context to distinguish a self-description from an insult, rumor, narrator statement, or author note.
+Record a term directly, or pass text to RecordText to tokenize its words and preserve context, target, field, and attribution. Search by a canonical term or known synonym. RemoveTarget supports re-indexing one edited character or scene without retaining stale occurrences.
 
 ## Boundary
 
-This first version is in-memory and synchronous. Durable storage, incremental reindexing, language-aware synonym data, and UI visualization are separate integration milestones.
+Synonym mapping is explicit and editable; the current core does not attempt automatic thesaurus generation, morphological analysis, or semantic inference. Text tokenization is intentionally simple, and it does not classify every prose word as an adjective. The index is in-memory and synchronous.
