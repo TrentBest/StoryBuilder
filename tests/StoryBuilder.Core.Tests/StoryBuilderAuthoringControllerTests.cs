@@ -1,5 +1,7 @@
 using StoryBuilder.Core.Models;
 using StoryBuilder.MicroBundle;
+using StoryBuilder.Persistence;
+using TheSingularityWorkshop.FSM_Serialization;
 using Xunit;
 
 namespace StoryBuilder.Core.Tests;
@@ -56,6 +58,36 @@ public sealed class StoryBuilderAuthoringControllerTests
         Assert.Equal(passageResult.RecordId, passage.Id);
         Assert.Contains(eventResult.RecordId!.Value, passage.EventIds);
         Assert.Equal("Main Timeline", Assert.Single(session.Workspace.Timelines).Name);
+    }
+
+    [Fact]
+    public void EventAndPassageCommandWorkflowSurvivesBinarySaveAndReopen()
+    {
+        var session = new StoryBuilder.Core.Services.StoryBuilderSession("Book workflow");
+        var controller = new StoryBuilderAuthoringController(session);
+
+        var eventResult = controller.Execute(StoryBuilderAuthoringCommands.CreateEvent, "The door opens");
+        var passageResult = controller.Execute(StoryBuilderAuthoringCommands.CreateManuscriptSection, "The discovery");
+        var linkResult = controller.Execute(StoryBuilderAuthoringCommands.LinkLatestEventToLatestSection);
+
+        Assert.True(eventResult.Succeeded);
+        Assert.True(passageResult.Succeeded);
+        Assert.True(linkResult.Succeeded);
+
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        using var input = new MemoryBinaryStream(output.ToArray());
+        var restoredDocument = new StoryWorkspaceBinaryDocument();
+        restoredDocument.Unpack(input);
+        var reopened = new StoryBuilder.Core.Services.StoryBuilderSession("temporary");
+        restoredDocument.RestoreInto(reopened);
+
+        var restoredEvent = Assert.Single(reopened.Workspace.Events);
+        var restoredManuscript = Assert.Single(reopened.Workspace.Manuscripts);
+        var restoredPassage = Assert.Single(restoredManuscript.Sections);
+        Assert.Equal(eventResult.RecordId, restoredEvent.Id);
+        Assert.Equal(passageResult.RecordId, restoredPassage.Id);
+        Assert.Contains(restoredEvent.Id, restoredPassage.EventIds);
     }
 
     [Fact]
