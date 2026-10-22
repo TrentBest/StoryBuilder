@@ -56,6 +56,30 @@ public sealed class AuthoringWorkflowTests
     }
 
     [Fact]
+    public void WorkspaceEditsRefreshDomainWideVocabularyOccurrences()
+    {
+        var session = new StoryBuilderSession("Campaign workspace");
+        var character = session.CreateCharacter("Mara", "Investigator");
+        var trait = new CharacterTrait { Term = "methodical", Attribution = "Author" };
+        character = session.UpdateCharacter(character.AddTrait(trait));
+
+        Assert.Equal(1, Assert.Single(session.Vocabulary.Search("methodical")).OccurrenceCount);
+
+        character = session.UpdateCharacter(character.RemoveTrait(trait.Id)
+            .AddTrait(new CharacterTrait { Term = "reckless", Attribution = "Rival" }));
+
+        Assert.Empty(session.Vocabulary.Search("methodical"));
+        Assert.Equal(1, Assert.Single(session.Vocabulary.Search("reckless")).OccurrenceCount);
+
+        var scene = session.CreateScene("North Gate", "Old wall", SceneCaptureMode.Claymation)
+            .AddBeat(new SceneBeat { ActorLabel = "Mara", Action = "ducks quickly." });
+        session.UpdateScene(scene);
+
+        Assert.Contains(session.Vocabulary.Search("ducks"), usage => usage.OccurrenceCount == 1);
+        Assert.Contains(session.Vocabulary.Search("North"), usage => usage.OccurrenceCount >= 1);
+    }
+
+    [Fact]
     public void SceneComposerBuildsAnEditableDraftFromOrderedBeats()
     {
         var composer = new SceneComposer();
