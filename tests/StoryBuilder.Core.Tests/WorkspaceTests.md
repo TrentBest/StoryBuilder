@@ -4,7 +4,7 @@
 
 ## Purpose
 
-These tests protect two foundational boundaries: implementation records and fictional claims occupy distinct collections, and one workspace collection cannot contain duplicate record identities.
+These tests protect two foundational boundaries: implementation records and fictional claims occupy distinct collections, one workspace collection cannot contain duplicate record identities, and participant choices stay proposals while their words are indexed with attribution.
 
 ## Verification
 
