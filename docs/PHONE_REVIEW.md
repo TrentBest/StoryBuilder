@@ -28,11 +28,11 @@ The host-neutral MicroBundle surface now exposes commands to:
 3. Link the latest event to the latest passage by stable event ID.
 4. Refuse the link safely if its prerequisites are missing.
 
-Regression tests now exercise these effects and verify the passage stores the event's ID. **The new command/test increment still needs its own green CI run before it should be called verified.** These commands are not yet wired into the AnyApp desktop command dispatcher, so this is not yet proof of the full native desktop workflow.
+Regression tests now exercise these effects and verify the passage stores the event's ID. The command/test increment passed CI on commit [`4416df3`](https://github.com/TrentBest/StoryBuilder/actions/runs/39726767850); the later documentation-only commits have separate CI runs in progress. These commands are not yet wired into the AnyApp desktop command dispatcher, so this is not yet proof of the full native desktop workflow.
 
 ## Open critical path
 
-- [ ] Green CI for the latest command, test, and documentation commits.
+- [ ] Green CI for the latest documentation/UML commits (the command/test increment itself is green).
 - [ ] Wire the new command IDs into AnyApp's desktop dispatcher.
 - [ ] Prove create event → create passage → link → save → restart → reopen with the same IDs and links.
 - [ ] Add/verify full persistence round-trip coverage for temporal links, manuscript order, and provenance.
