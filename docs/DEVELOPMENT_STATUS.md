@@ -84,11 +84,10 @@ The estimate reflects five equal workstreams: domain contracts, automated verifi
 
 ## Immediate next steps
 
-1. Expose the observer-safe projection in the WebDemo and use GUI.SVG to inspect which accepted claims are available at a chosen anchor.
-2. Add scene/beat-level event links so timeline events can navigate deeper than a manuscript section.
-3. Add a host adapter proving AnyApp validates and consumes the package without rerunning arbitration.
-4. Connect StoryBuilder's accepted-knowledge constraints with Renderer-backed representations through a host-neutral portrayal contract; keep narrative knowledge separate from visual/computational detail selection.
-5. Add richer Plot Twist alternatives, consequence/impact links, and explicit promotion to world events.
-6. Add immutable publication editions and corrected-edition lineage.
-7. Integrate StoryBuilder into the Workshop WebPage host.
-8. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
+1. Expose the observer-safe accepted-knowledge projection in the WebDemo and use GUI.SVG to inspect which claims are available at a selected observer and timeline anchor.
+2. Integrate StoryBuilder into AnyApp through an explicit host adapter: validate and consume the composition package without rerunning arbitration, use the host's shared GUI.Core identity, and keep one mutable authoring session per launch.
+3. Connect accepted-knowledge constraints to Renderer-backed portrayals through a host-neutral contract; keep narrative knowledge separate from visual/computational detail selection.
+4. Add richer Plot Twist alternatives, consequence/impact links, and promotion to canonical world events only by explicit author decision.
+5. Add immutable publication editions and corrected-edition lineage, with export and stable manuscript-to-scene/beat navigation.
+6. Integrate StoryBuilder into the Workshop WebPage host after the desktop host path is proven.
+7. Continue optional Gestures, Visualize, and Physics integration through host-discovered capabilities.
