@@ -1,5 +1,6 @@
 @page "/stage"
 @inject StoryBuilderSession Session
+@inject IJSRuntime JS
 
 <PageTitle>The Stage · StoryBuilder</PageTitle>
 
@@ -259,7 +260,17 @@
 
     private async Task CopyNarration()
     {
-        copyMessage = "Select and copy the narration text above. Clipboard access is intentionally not requested by this local demo.";
-        await Task.CompletedTask;
+        if (currentScene is null)
+            return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("storyBuilderCopy", Session.SceneComposer.ComposeNarration(currentScene));
+            copyMessage = "Narration draft copied to the clipboard.";
+        }
+        catch (JSException)
+        {
+            copyMessage = "Clipboard access is unavailable here. Select the narration text above and copy it manually.";
+        }
     }
 }
