@@ -26,6 +26,12 @@ var refreshedRoot = surface.Root;
 - Hosts own rendering, authorization, user input, and re-rendering after a successful command.
 - The semantic snapshot is regenerated from the domain session; it is not a second source of truth.
 
+## Shared GUI.Core dependency
+
+`StoryBuilder.MicroBundle.csproj` exposes the MSBuild property `WorkshopGuiCoreProject`. By default, it resolves to this repository's pinned `external/TheSingularityWorkshop.GUI` checkout. A source-mode host that already builds GUI.Core should override the property with the absolute path to that same `TheSingularityWorkshop.GUI.Core.csproj` file. This makes both projects reference one GUI.Core project identity rather than compiling parallel copies of the same semantic types.
+
+This property only solves the project-reference identity; the host must still materialize StoryBuilder as a source dependency and pass the shared path consistently. AnyApp wiring and desktop behavior are not yet verified.
+
 ## UML class card
 
 See [StoryBuilderAuthoringSurface UML](../../docs/UML/StoryBuilderAuthoringSurfaceUML.md) for the focused class diagram and use cases.
