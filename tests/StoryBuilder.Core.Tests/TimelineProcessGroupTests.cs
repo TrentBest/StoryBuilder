@@ -19,8 +19,8 @@ public sealed class TimelineProcessGroupTests
         driver.Update();
         driver.Update();
 
-        Assert.Equal(2, first.UpdateCount);
-        Assert.Equal(2, second.UpdateCount);
+        Assert.Equal(2L, first.UpdateCount);
+        Assert.Equal(2L, second.UpdateCount);
         Assert.Contains(first.Events, item => item.Kind == "RuntimeTick");
         Assert.Contains(second.Events, item => item.Kind == "RuntimeTick");
         Assert.All(first.Events, item => Assert.Equal(first.Id, item.TimelineId));
