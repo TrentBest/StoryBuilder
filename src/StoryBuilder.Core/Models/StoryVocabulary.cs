@@ -20,6 +20,8 @@ public sealed record WordOccurrence
     public Guid TargetId { get; init; }
     public string TargetLabel { get; init; } = string.Empty;
     public string Field { get; init; } = string.Empty;
+    public int StartIndex { get; init; }
+    public int Length { get; init; }
     public string? Context { get; init; }
     public string Attribution { get; init; } = "Author";
     public string? SourceId { get; init; }
