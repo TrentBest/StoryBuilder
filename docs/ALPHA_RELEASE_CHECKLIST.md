@@ -13,7 +13,7 @@
 - [x] AnyApp Windows Release build and test suite passed after the dispatcher change: [workflow run 39820766164](https://github.com/TrentBest/AnyApp/actions/runs/39820766164).
 - [ ] Perform or automate a real AnyApp --storybuilder create → link → save → restart → reopen smoke test, confirming IDs and links survive.
 - [x] Trent selected MIT to align with the Workshop's existing open-source direction; added the repository `LICENSE` and linked it from the README.
-- [ ] Reconcile the open development → master PR. The current GitHub comparison reports substantial divergence (429 commits ahead, 13 behind (live comparison refreshed 22 October 2026)); do not blindly merge.
+- [ ] Reconcile the open development → master PR. The current live GitHub comparison reports **432 commits ahead, 13 behind** (refreshed 22 October 2026); do not blindly merge.
 - [ ] Decide the Alpha's exact version/tag, included projects, known limitations, and install/run instructions.
 - [ ] Create the GitHub Alpha release only after the preceding gates are resolved and the final release commit is verified.
 
