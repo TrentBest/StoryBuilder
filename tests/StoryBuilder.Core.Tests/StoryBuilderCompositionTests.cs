@@ -24,6 +24,7 @@ public sealed class StoryBuilderCompositionTests
         Assert.NotNull(loaded);
         Assert.Equal(StoryBuilderAuthoringBundle.BundleId, loaded!.Descriptor.Id);
         Assert.Contains(loaded.Descriptor.Providers, provider => provider.Id == "storybuilder.casting");
+        Assert.Contains(loaded.Descriptor.Providers, provider => provider.Id == "storybuilder.timeline");
 
         var session = loaded.CreateSession("A campaign");
         var character = session.CreateCharacter("Mara");
