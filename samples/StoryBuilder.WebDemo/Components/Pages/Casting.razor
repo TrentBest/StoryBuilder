@@ -88,7 +88,7 @@
                 <div class="eyebrow">Editable record · @selectedCharacter.Status</div>
                 <h2>Shape @selectedCharacter.Name</h2>
             </div>
-            <span class="chip">Identity @selectedCharacter.Id.ToString("N")[..8]</span>
+            <span class="chip">Identity @ShortId(selectedCharacter.Id)</span>
         </div>
         <div class="field-grid">
             <div class="field">
@@ -191,6 +191,8 @@
     private string searchTerm = string.Empty;
     private bool hasSearched;
     private IReadOnlyList<VocabularyUsage> searchResults = Array.Empty<VocabularyUsage>();
+
+    private static string ShortId(Guid id) => id.ToString("N")[..8];
 
     private void CreateCharacter()
     {
