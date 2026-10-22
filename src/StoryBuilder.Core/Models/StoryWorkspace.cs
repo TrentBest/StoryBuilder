@@ -135,6 +135,18 @@ public sealed class StoryWorkspace
         _scenes.Add(scene);
     }
 
+    public void ReplaceCharacter(CharacterProfile character)
+    {
+        ArgumentNullException.ThrowIfNull(character);
+        ReplaceById(_characters, character.Id, character, nameof(character));
+    }
+
+    public void ReplaceScene(SceneRecord scene)
+    {
+        ArgumentNullException.ThrowIfNull(scene);
+        ReplaceById(_scenes, scene.Id, scene, nameof(scene));
+    }
+
     public void AddClaim(HistoricalClaim claim)
     {
         ArgumentNullException.ThrowIfNull(claim);
@@ -176,6 +188,22 @@ public sealed class StoryWorkspace
         EnsureUnique(_continuityIssues.Select(x => x.Id), issue.Id, nameof(issue));
         _continuityIssues.Add(issue);
     }
+
+    private static void ReplaceById<T>(List<T> records, Guid id, T replacement, string parameterName)
+        where T : notnull
+    {
+        var index = records.FindIndex(record => GetId(record) == id);
+        if (index < 0)
+            throw new KeyNotFoundException($"No record with ID '{id}' exists in this collection ({parameterName}).");
+        records[index] = replacement;
+    }
+
+    private static Guid GetId<T>(T record) where T : notnull => record switch
+    {
+        CharacterProfile character => character.Id,
+        SceneRecord scene => scene.Id,
+        _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
+    };
 
     private static void EnsureUnique(IEnumerable<Guid> existingIds, Guid id, string parameterName)
     {
