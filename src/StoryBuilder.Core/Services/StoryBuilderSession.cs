@@ -227,7 +227,7 @@ public sealed class StoryBuilderSession
 
     private static string SuggestPremiseTitle(string vision)
     {
-        var firstSentence = vision.Split(['.', '!', '?'], StringSplitOptions.RemoveEmptyEntries)
+        var firstSentence = vision.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries)
             .FirstOrDefault()?.Trim() ?? vision.Trim();
         var words = firstSentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         return words.Length <= 8 ? string.Join(' ', words) : string.Join(' ', words.Take(8)) + "…";
