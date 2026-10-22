@@ -52,6 +52,22 @@ public sealed class StoryWorkspaceValidatorTests
     }
 
     [Fact]
+    public void ValidateReportsIdentityReusedAcrossRecordTypes()
+    {
+        var workspace = new StoryWorkspace();
+        var sharedId = Guid.NewGuid();
+        workspace.AddCharacter(new CharacterProfile { Id = sharedId, Name = "Mara" });
+        workspace.AddEvent(new StoryEvent { Id = sharedId, Title = "The reveal" });
+
+        var issue = Assert.Single(StoryWorkspaceValidator.Validate(workspace));
+        Assert.Equal("Workspace", issue.OwnerType);
+        Assert.Equal("cross-type duplicate identity", issue.Relationship);
+        Assert.Equal(sharedId, issue.MissingTargetId);
+        Assert.Contains(nameof(CharacterProfile), issue.Message);
+        Assert.Contains(nameof(StoryEvent), issue.Message);
+    }
+
+    [Fact]
     public void ValidateReportsCharacterRelationshipsToMissingCharacters()
     {
         var workspace = new StoryWorkspace();
