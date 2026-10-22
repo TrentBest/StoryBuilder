@@ -82,6 +82,30 @@ public sealed class StoryBuilderSession
         return storyEvent;
     }
 
+    public SourceRecord AddSource(SourceRecord source)
+    {
+        ArgumentNullException.ThrowIfNull(source);
+        Workspace.AddSource(source);
+        Vocabulary.RecordText(source.Title, VocabularyCategory.Other, source.Id, source.Title,
+            nameof(SourceRecord.Title), context: source.Perspective, attribution: "Source");
+        Vocabulary.RecordText(source.Perspective, VocabularyCategory.Other, source.Id, source.Title,
+            nameof(SourceRecord.Perspective), context: source.ReliabilityNote, attribution: "Source");
+        Vocabulary.RecordText(source.ReliabilityNote, VocabularyCategory.Other, source.Id, source.Title,
+            nameof(SourceRecord.ReliabilityNote), context: source.ReliabilityNote, attribution: "Author");
+        return source;
+    }
+
+    public ContinuityIssue AddContinuityIssue(ContinuityIssue issue)
+    {
+        ArgumentNullException.ThrowIfNull(issue);
+        Workspace.AddContinuityIssue(issue);
+        Vocabulary.RecordText(issue.Description, VocabularyCategory.Other, issue.Id, "Continuity issue",
+            nameof(ContinuityIssue.Description), context: issue.Description, status: issue.Status);
+        Vocabulary.RecordText(issue.ResolutionNotes, VocabularyCategory.Other, issue.Id, "Continuity issue",
+            nameof(ContinuityIssue.ResolutionNotes), context: issue.ResolutionNotes, status: issue.Status);
+        return issue;
+    }
+
     public CampaignRecord AddCampaign(CampaignRecord campaign)
     {
         ArgumentNullException.ThrowIfNull(campaign);
