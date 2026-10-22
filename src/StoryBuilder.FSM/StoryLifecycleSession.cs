@@ -16,7 +16,7 @@ public sealed class StoryLifecycleContext : IStateContext
 /// Optional FSM_API-backed lifecycle for draft/proposal/acceptance decisions.
 /// The domain core remains independent of FSM_API; hosts opt into this adapter.
 /// </summary>
-public sealed class StoryLifecycleSession
+public sealed class StoryLifecycleSession : IDisposable
 {
     private const string DefinitionName = "StoryBuilder.RecordLifecycle";
     private const string ProcessingGroup = "StoryBuilder.RecordLifecycle";
@@ -34,7 +34,7 @@ public sealed class StoryLifecycleSession
         };
         _handle = FSM_API.Create.CreateInstance(DefinitionName, _context, ProcessingGroup);
         // FSM_API enters the initial state on the first update; initialize it before accepting requests.
-        _handle.Update(ProcessingGroup);
+        FSM_API.Interaction.Update(ProcessingGroup);
     }
 
     public CanonStatus CurrentStatus => _context.CurrentStatus;
@@ -42,12 +42,25 @@ public sealed class StoryLifecycleSession
     /// <summary>Requests a status and advances the FSM once; disallowed transitions leave the current status unchanged.</summary>
     public CanonStatus Request(CanonStatus requestedStatus)
     {
+        ObjectDisposedException.ThrowIf(_disposed, this);
         _context.RequestedStatus = requestedStatus;
-        _handle.Update(ProcessingGroup);
-        // FSM_API schedules the destination state's OnEnter for the next step after a transition.
+        FSM_API.Interaction.Update(ProcessingGroup);
+        // FSM_API schedules the destination state's OnEnter for the next group update after a transition.
         if (!string.Equals(_handle.CurrentState, _context.CurrentStatus.ToString(), StringComparison.Ordinal))
-            _handle.Update(ProcessingGroup);
+            FSM_API.Interaction.Update(ProcessingGroup);
         return _context.CurrentStatus;
+    }
+
+    private bool _disposed;
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+        _context.IsValid = false;
+        FSM_API.Interaction.DestroyInstance(_handle);
     }
 
     private static void EnsureDefinition()
