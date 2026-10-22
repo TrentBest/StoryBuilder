@@ -20,6 +20,35 @@ Author / participant
 
 GUI.SVG, Renderer, Visualize, Gestures, and Physics are optional providers and projections. The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather than FSM_COS itself. FSM_COS composes bundles at the host boundary. StoryBuilder.Core must not directly depend on FSM_COS or concrete renderer/physics providers.
 
+
+## AnyApp experience manifest and local launch
+
+StoryBuilder is an Experience that AnyApp discovers and launches; it is not a second desktop host. The first supported target is the native AnyApp desktop executable, so local use must not require a hosted service or a running WebPage.
+
+AnyApp already has a source convention for versioned local manifests:
+
+```text
+AnyApp/
+├── AnyApp.exe
+└── experiences/
+    ├── forge/<version>/manifest.json
+    └── moniker/<version>/manifest.json
+```
+
+The host currently loads an explicit `--experience-file`, otherwise attempts its last successfully run Experience and falls back to the Forge Experience. Its Experience repository browser is an additional discovery path, not a requirement for local execution. StoryBuilder should follow the host's manifest contract rather than inventing a competing launcher or making its authoring session the manifest itself.
+
+Keep these concepts separate:
+
+- **Experience manifest:** host-facing identity, version, runtime and MicroBundle requests; enough for AnyApp to discover and compose the StoryBuilder experience.
+- **Composition package:** StoryBuilder's versioned manifest/configuration/content payloads, hashes, capability requirements and captured arbitration record. This is the validated content/configuration consumed by an experience, not a substitute for the host's launch manifest.
+- **Workspace:** mutable authoring data such as a particular book or project. A workspace is opened inside StoryBuilder and can evolve independently from the installed Experience version.
+
+For local-first delivery, a StoryBuilder Experience manifest and its required host integration must be installable beside AnyApp without contacting the Experience repository. On first launch with no valid last-run choice, AnyApp should offer a general Experience-selection surface; selecting an Experience should persist that choice, while retaining an explicit way to return to the selector. The current Forge fallback can remain until the host's general selector is implemented. Do not hardwire StoryBuilder-specific choices into AnyApp's host shell.
+
+A spreadsheet-like experience demonstrates why this boundary matters: it may be an environmentless data workspace, while StoryBuilder is an authoring workbench. Neither should need a physical-world simulation or a hosted environment. The host selects the Experience; the Experience opens a compatible workspace; optional providers supply additional projections.
+
+The present integration is not complete: AnyApp's catalog and `RenderRuntime` explicitly recognize only the Moniker and Forge bundles, and its native renderer is coupled to those bundle surfaces. Merely adding `StoryBuilderAuthoringBundle` to the catalog is insufficient. Integration must add a supported surface/presentation contract (or a renderer-neutral host capability) and tests proving that the local StoryBuilder manifest launches and displays in AnyApp. No NuGet publish, deployment, merge, or branch deletion is implied by this design.
+
 ## Core invariants
 
 1. A sketch is useful. Require only what the current workflow truly needs.
