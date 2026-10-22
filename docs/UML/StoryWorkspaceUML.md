@@ -8,19 +8,24 @@ class StoryWorkspace {
   +Guid Id
   +string Name
   +ExperienceDefinition Experience
-  +List~CharacterProfile~ Characters
-  +List~SceneRecord~ Scenes
-  +List~HistoricalClaim~ HistoricalClaims
-  +List~StoryEvent~ Events
-  +List~CampaignRecord~ Campaigns
-  +List~ParticipantAction~ ParticipantActions
-  +List~SourceRecord~ Sources
-  +List~ContinuityIssue~ ContinuityIssues
+  +IReadOnlyList~CharacterProfile~ Characters
+  +IReadOnlyList~SceneRecord~ Scenes
+  +IReadOnlyList~HistoricalClaim~ HistoricalClaims
+  +IReadOnlyList~StoryEvent~ Events
+  +IReadOnlyList~CampaignRecord~ Campaigns
+  +IReadOnlyList~ParticipantAction~ ParticipantActions
+  +IReadOnlyList~SourceRecord~ Sources
+  +IReadOnlyList~ContinuityIssue~ ContinuityIssues
   +AddCharacter(character)
+  +ReplaceCharacter(character)
   +AddScene(scene)
+  +ReplaceScene(scene)
   +AddClaim(claim)
   +AddEvent(storyEvent)
   +AddCampaign(campaign)
+  +AddParticipantAction(action)
+  +AddSource(source)
+  +AddContinuityIssue(issue)
 }
 StoryWorkspace o-- ExperienceDefinition
 StoryWorkspace o-- CharacterProfile
@@ -35,4 +40,4 @@ StoryWorkspace o-- ContinuityIssue
 
 ## Use case
 
-The host creates one workspace for an Experience, then adds fictional and campaign records without mixing them with the Experience's implementation record. Storage and UI are intentionally owned by the host or an adapter.
+The host creates one workspace for an Experience, then adds fictional and campaign records without mixing them with the Experience's implementation record. The workspace exposes read-only collection views and controlled add/replace operations for character and scene edits. Storage and UI remain host or adapter responsibilities.
