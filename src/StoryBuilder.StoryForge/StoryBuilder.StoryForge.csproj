@@ -9,4 +9,7 @@
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Description>StoryBuilder-owned temporal story model, provenance-aware queries, and publication coverage.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../StoryBuilder.Core/StoryBuilder.Core.csproj" />
+  </ItemGroup>
 </Project>
