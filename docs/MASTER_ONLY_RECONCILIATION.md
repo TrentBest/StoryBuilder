@@ -6,7 +6,7 @@
 
 ## Verified graph facts
 
-The GitHub compare endpoint reports that `master` is **13 commits ahead of the shared merge base** `3eef29a7b6c8b016db02c6d1acd44170585211c5`. The live comparison of `master` against that merge base lists the following 10 changed paths. The broader branch comparison has also reported `development` ahead of `master` and 13 commits behind; exact ahead counts on `development` change when commits are added and should be treated as dated snapshots, not invariants.
+The GitHub compare endpoint reports that `master` is **13 commits ahead of the shared merge base** `3eef29a7b6c8b016db02c6d1acd44170585211c5`. The live comparison of `master` against that merge base lists the following 10 changed paths. The latest direct comparison of `master` (base) against `development` (head), checked 22 October 2026, reports **450 commits ahead and 13 behind**, status `diverged`; the merge base remains `3eef29a7b6c8b016db02c6d1acd44170585211c5`. Counts are a dated snapshot and change as commits land. PR [#1](https://github.com/TrentBest/StoryBuilder/pull/1) is still open and GitHub currently reports it as not mergeable.
 
 This ledger is a file/behavior inventory, not a claim that the histories are safe to merge automatically. No merge or deletion is authorized by this document.
 
@@ -26,6 +26,26 @@ This ledger is a file/behavior inventory, not a claim that the histories are saf
 | `docs/Gallery.md` | Compare reports a 20-addition/10-deletion documentation change. | **Preserve useful recipes, but verify every demonstration.** Label implemented behavior, planned work, and screenshots/diagrams accurately. |
 
 The compare endpoint reported the following aggregate change counts for the 10 paths: 404 additions and 17 deletions. This is the endpoint's aggregate for the files listed above; it is not a test result.
+
+## Canonical model mapping proposal (not yet implemented)
+
+The two models are not equivalent in scope. Treat `StoryProject` as a compact local-first project envelope and `StoryWorkspace` as the richer authoring/canon workspace; do not flatten the richer records just to make a merge easy.
+
+| Master `StoryProject` field/behavior | Development-side candidate | Required decision / invariant |
+|---|---|---|
+| `ProjectId` | `StoryWorkspace.Id` (verify exact workspace identity semantics before coding) | Preserve the original GUID through conversion; never generate a replacement during import/export. |
+| `Title` | `StoryWorkspace.Name` or a distinct project title | Confirm whether the workspace name and story/product title mean the same thing. If not, add/retain a distinct field instead of silently conflating them. |
+| `Premise` | Story idea / premise record (e.g. the workspace's story-idea collection) | Map explicitly; preserve text and record identity where a stable source identity exists. |
+| `Manuscript` | Manuscript/section records and rendered manuscript | Define deterministic text reconstruction and section ordering; avoid treating rendered Markdown as the canonical mutable source if structured records exist. |
+| `PassageAnchor.Id` / `Text` | Manuscript section IDs and section text | Preserve passage identity. Define behavior for repeated identical text and passage text that no longer appears verbatim after edits. |
+| `TimelineEvent.Id` | Development timeline/world-event record ID | Preserve event GUIDs exactly. Do not map links by title, list position, or regenerated IDs. |
+| `OccurredAt` | Timeline event's in-world date/period and/or planning placement | These are not necessarily the same concept: distinguish a concrete timestamp from an unresolved fictional period/placement. |
+| `PassageId` | Manuscript section's `EventIds` (inverse relationship) | On conversion, preserve the relationship in both directions or derive one direction from a single canonical edge list; validate dangling IDs. |
+| `ObserverId` | Observer/provenance/knowledge records | Do not discard it or assume it equals a source ID; define an explicit mapping or preserve as an external reference. |
+| `SchemaVersion` | `StoryWorkspaceBinaryDocument` format version (currently v8) | Keep file-format version separate from domain schema version. Provide explicit versioned import/migration and reject unsupported versions without destructive fallback. |
+| JSON atomic-save guarantees | Binary document + AnyApp store | Preserve local-first save semantics and stable IDs. Test replacement/failure cleanup and real process restart/reopen on the supported host. |
+
+This mapping is a design proposal derived from current source inspection, not proof that an adapter or migration exists. Before implementation, inspect the complete `StoryWorkspace` collections and binary codec, then write conversion tests for identity, links, unsupported versions, and deterministic round-trips. The first release should have one canonical mutable model and one canonical persistence route; optional JSON import/export may be a boundary adapter if it earns its maintenance cost.
 
 ## Required behavior-level reconciliation
 
