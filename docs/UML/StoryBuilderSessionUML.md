@@ -14,7 +14,7 @@ class StoryBuilderSession {
   +CreateScene(title, location, mode) SceneRecord
   +UpdateScene(scene) SceneRecord
   +AddHistoricalClaim(claim) HistoricalClaim
-  +AddEvent(storyEvent) StoryEvent
+  +AddEvent(storyEvent) StoryEvent\n  +AddSource(source) SourceRecord\n  +AddContinuityIssue(issue) ContinuityIssue\n  +AddCampaign(campaign) CampaignRecord\n  +AddParticipantAction(action) ParticipantAction\n  +UpdateParticipantAction(action) ParticipantAction
   -IndexCharacter(character)
   -IndexScene(scene)
 }
