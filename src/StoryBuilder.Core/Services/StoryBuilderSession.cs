@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using StoryBuilder.Core.Models;
 
 namespace StoryBuilder.Core.Services;
@@ -138,6 +140,37 @@ public sealed class StoryBuilderSession
             Title = string.IsNullOrWhiteSpace(title) ? "Untitled section" : title.Trim(),
             Body = body ?? string.Empty
         }));
+    }
+
+    /// <summary>Freezes the current manuscript as a content-hashed publication snapshot.</summary>
+    /// <remarks>Publishing a changed draft creates a new edition linked to the previous publication; existing snapshots are never modified.</remarks>
+    public PublishedBookEdition PublishManuscript(Guid manuscriptId, string? correctionNotes = null)
+    {
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
+        var artifact = new BookProductRenderer().Render(Workspace, manuscriptId);
+        var previous = Workspace.PublishedEditions
+            .Where(item => item.ManuscriptId == manuscriptId)
+            .OrderByDescending(item => item.PublishedAtUtc)
+            .FirstOrDefault();
+        var edition = new PublishedBookEdition
+        {
+            ManuscriptId = manuscript.Id,
+            Title = artifact.Title,
+            Subtitle = artifact.Subtitle,
+            Author = artifact.Author,
+            Markdown = artifact.Markdown,
+            ContentSha256 = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(artifact.Markdown))),
+            PublishedAtUtc = DateTimeOffset.UtcNow,
+            SourceUpdatedAtUtc = manuscript.UpdatedAtUtc,
+            PreviousEditionId = previous?.Id,
+            CorrectionNotes = string.IsNullOrWhiteSpace(correctionNotes) ? null : correctionNotes.Trim(),
+            SectionIds = manuscript.Sections.OrderBy(section => section.Sequence).Select(section => section.Id).ToList(),
+            EventIds = artifact.ReferencedEventIds.ToList()
+        };
+        Workspace.AddPublishedEdition(edition);
+        NotifyChanged();
+        return edition;
     }
 
     private static string DefaultSectionTitle(ManuscriptSectionKind kind, int sequence) => kind switch
