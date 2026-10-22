@@ -64,7 +64,7 @@ The first runnable slice should launch through AnyApp, create and reopen a local
 
 ## Development status
 
-The repository is being established. The charter and deployment decision define direction, not a claim that the application, timeline engine, campaign runtime, or living visualizations have been implemented. No package publishing or release is authorized.
+The first host-neutral Core slice now exists under `src/StoryBuilder.Core`: project identity, premise/manuscript fields, stable-ID timeline events, reusable passage anchors, chronology ordering, and local save/reopen. Tests cover identity/linking, chronology, and persistence round-trip. AnyApp launch/render integration and the interactive authoring surface are not yet implemented; see [Integration Gap Register](docs/INTEGRATION_GAPS.md). No package publishing or release is authorized.
 
 See [Gallery](docs/Gallery.md) for the current proof target and implementation evidence.
 
