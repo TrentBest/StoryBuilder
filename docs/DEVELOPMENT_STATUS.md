@@ -1,7 +1,7 @@
 # Development Status
 
 **Status snapshot:** 2026-10-21  
-**Readiness estimate:** 40% — working local authoring prototype with tested domain and composition contracts; not release-ready.
+**Readiness estimate:** 50% — interactive authoring prototype with tested domain, composition, and browser-local persistence; not release-ready.
 
 ## Implemented in development source
 
@@ -25,13 +25,13 @@
 
 ## Verification evidence
 
-- [Workflow run 39700210176](https://github.com/TrentBest/StoryBuilder/actions/runs/39700210176) succeeded for the domain core, FSM_API adapter, MicroBundle adapter, console quickstart, interactive WebDemo, and automated tests.
-- That successful run used commit aaabdbe91e818ad766fb6773e8817726c7a2623a. Subsequent commits through this status update are documentation changes; see the latest [development workflow runs](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml?query=branch%3Adevelopment) for the latest branch-head result.
+- [Workflow run 39701236400](https://github.com/TrentBest/StoryBuilder/actions/runs/39701236400) succeeded for the domain core, FSM_API adapter, MicroBundle adapter, binary persistence adapter, console quickstart, interactive WebDemo, and automated tests.
+- That successful run used commit a293edbc0aeb272c6e75a8cd0d19716c9fa25981. Subsequent commits through this status update are documentation and styling changes; see the latest [development workflow runs](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml?query=branch%3Adevelopment) for the latest branch-head result.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
 
-- Durable storage, import/export, migration handling, or FSM_Serialization integration.
+- Cloud/server storage, explicit import/export, backup, and migration from future binary schema versions.
 - Integration into the Workshop's WebPage host.
 - Live GUI.SVG manifestations generated from the same workspace data.
 - Browser-level automated tests for user interactions.
@@ -42,11 +42,11 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, and local authoring slices now work together, and the MicroBundle contract is tested through FSM_COS. Persistence and integration into the actual Workshop host remain absent; this is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, and browser-local autosave slices now work together, and the MicroBundle contract is tested through FSM_COS. Cloud persistence, import/export, and integration into the actual Workshop host remain absent; this is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Inspect FSM_Serialization's current contracts and add a round-trippable persistence adapter with migration tests.
+1. Add explicit export/import and backup flows for the current versioned binary workspace document, then define migration behavior for future schema versions.
 2. Mount StoryBuilderAuthoringBundle in the Workshop WebPage host through the existing FSM_COS composition path.
 3. Add GUI.SVG living views that reflect real characters, trait usage, scene beats, and historical chronology.
 4. Add browser-level tests for create/edit/review flows and verify the UI is keyboard accessible.
