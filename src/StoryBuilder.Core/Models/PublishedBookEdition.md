@@ -2,7 +2,7 @@
 
 **Owner:** StoryBuilder Core domain
 
-`PublishedBookEdition` is the frozen output of an explicit manuscript publication action. It stores the exact Markdown output, SHA-256 content hash, source manuscript identity and update timestamp, ordered section, scene, and event references, publication time, and optional link to the previous edition with correction notes.
+`PublishedBookEdition` is the frozen output of an explicit manuscript publication action. It stores the exact Markdown output, SHA-256 content hash, source manuscript identity and update timestamp, read-only ordered section, scene, and event references, publication time, and optional link to the previous edition with correction notes.
 
 Use `StoryBuilderSession.PublishManuscript` to create a snapshot. Editing the working manuscript afterward does not change an existing publication. Publishing a correction creates a new edition that points to the prior edition. Workspace validation checks the source manuscript, lineage, section/event references, and content hash; binary workspace format 12 persists snapshots and scene provenance while readers continue to accept formats 1–11.
 
