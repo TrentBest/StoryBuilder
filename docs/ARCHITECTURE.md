@@ -25,13 +25,15 @@ StoryBuilder.Core (host-neutral domain)
         |
         +---- StoryBuilder.FSM (optional FSM_API lifecycle adapter)
         |
-        +---- future serialization / bundle adapters
+        +---- StoryBuilder.MicroBundle (MicroBundleDomain capability contract)
+        |
+        +---- future serialization adapter
         |
         v
-Host-owned persistence and runtime composition through FSM_COS
+FSM_COS composes MicroBundles; the host owns persistence and presentation
 ```
 
-The diagram is a responsibility map. Only the domain core and optional FSM_API lifecycle adapter are currently implemented; UI, persistence, and FSM_COS composition adapters remain open.
+The MicroBundle adapter depends on the neutral MicroBundleDomain contract rather than FSM_COS itself. That preserves the composition boundary: a host catalog resolves StoryBuilderAuthoringBundle, and FSM_COS loads and arbitrates it.
 
 ## Core invariants
 
@@ -46,12 +48,12 @@ The diagram is a responsibility map. Only the domain core and optional FSM_API l
 ## Integration plan
 
 - **FSM_API:** implemented in the optional StoryBuilder.FSM adapter for the draft/proposed/accepted/rejected/deprecated review lifecycle. StoryBuilder.Core remains independent of FSM_API.
-- **FSM_COS:** compose optional authoring, vocabulary, visualization, and campaign capabilities at the host boundary. No StoryBuilder FSM_COS adapter exists yet.
-- **FSM_Serialization:** integrate only after its current contracts are inspected and the workspace record shape is tested against them. The current core has no serialization package dependency.
+- **MicroBundleDomain / FSM_COS:** StoryBuilder.MicroBundle implements the domain-owned MicroBundle contract and declares workspace, Casting, Stage, vocabulary, history, and campaign providers. An automated composition test uses FSM_COS to load it. Host-specific UI and persistence remain outside this bundle.
+- **FSM_Serialization:** integrate after its current contracts are inspected and the workspace record shape is tested against them. The current core has no serialization package dependency.
 - **GUI / GUI.SVG:** render semantic authoring controls and living diagrams from actual workspace state. The current domain core has no GUI dependency; GUI.Core's present semantic tree does not itself provide event callbacks.
 - **WebApp / WebPage:** provide the user-facing Experience after the core authoring contract is verified.
 - **Physics / Visualize / Renderer:** potential optional scene interaction and inspectable output layers, not required dependencies of the domain model.
 
 ## Current implementation boundary
 
-The .NET 8 core provides character drafts and templates, structured scene beats, a narration draft, explicit synonym mapping, usage search, and a workspace record model. The optional FSM_API adapter demonstrates controlled review transitions. The core is in-memory. Persistence, a clickable authoring UI, campaign execution, source-derived live diagrams, and FSM_COS composition remain unproven.
+The .NET 8 core provides character drafts and templates, structured scene beats, a narration draft, automatic indexing of character and scene words through StoryBuilderSession, explicit synonym mapping, usage search, and a workspace record model. Optional adapters demonstrate FSM_API lifecycle behavior and the FSM_COS MicroBundle contract. The core is in-memory. Persistence, a clickable authoring UI, campaign execution, and live GUI.SVG views remain open.
