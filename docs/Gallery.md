@@ -13,15 +13,16 @@ dotnet run --project samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csp
 The sample uses the actual C# core to:
 1. Create an editable Investigator character draft.
 2. Add a trait without requiring a full biography.
-3. Map “brave” to a “courageous” vocabulary concept and record its usage.
-4. Capture a pose, dialogue line, and action as ordered scene beats.
-5. Compose an editable narration draft from those beats.
+3. Automatically index the character's name, role, description, and trait.
+4. Map “brave” to a “courageous” vocabulary concept while preserving the word and who used it.
+5. Capture a pose, dialogue line, and action as ordered scene beats.
+6. Compose an editable narration draft from those beats and index the scene words.
 
-This is a runnable console proof, not a claim that the final clickable Casting UI or claymation view already exists.
+Editing a character or scene through StoryBuilderSession replaces that target's indexed occurrences, so old traits do not remain in the counts after a revision. This is a runnable console proof, not a claim that the final clickable Casting UI or claymation view already exists.
 
 ## Recipe 2: from a historical claim to a campaign
 
-Read [Story Foundation](STORY_FOUNDATION.md) for the setting, [Historical Scale](HISTORICAL_SCALE.md) for the millennia-to-event hierarchy, and [Diegetic StoryBuilder](DIEGETIC_STORYBUILDER.md) for the in-world tool concept. The workspace model now includes source records, historical claims, events, campaigns, participant actions, and continuity issues; a complete persisted campaign workflow remains future work.
+Read [Story Foundation](STORY_FOUNDATION.md) for the setting, [Historical Scale](HISTORICAL_SCALE.md) for the millennia-to-event hierarchy, and [Diegetic StoryBuilder](DIEGETIC_STORYBUILDER.md) for the in-world tool concept. The workspace model includes source records, historical claims, events, campaigns, participant actions, and continuity issues; a complete persisted campaign workflow remains future work.
 
 ## Next living proof
 
