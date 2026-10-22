@@ -31,6 +31,9 @@ public sealed class PublishedBookEditionTests
         Assert.Contains("Mara refuses to open the gate.", correction.Markdown);
         Assert.Equal(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(first.Markdown))), first.ContentSha256);
         Assert.Equal(2, session.Workspace.PublishedEditions.Count);
+        var frozenSections = Assert.IsAssignableFrom<IList<Guid>>(first.SectionIds);
+        Assert.True(frozenSections.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => frozenSections.Add(Guid.NewGuid()));
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
     }
 
