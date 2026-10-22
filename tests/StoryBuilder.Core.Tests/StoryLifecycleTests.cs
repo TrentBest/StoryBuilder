@@ -18,6 +18,18 @@ public sealed class StoryLifecycleTests
     }
 
     [Fact]
+    public void RegistryReconstructsTheCurrentReviewStatusForAnExistingRecord()
+    {
+        using var registry = new StoryLifecycleRegistry();
+        var recordId = Guid.NewGuid();
+
+        var lifecycle = registry.GetSession(recordId, CanonStatus.Accepted, "Restored record");
+
+        Assert.Equal(CanonStatus.Accepted, lifecycle.CurrentStatus);
+        Assert.Same(lifecycle, registry.GetSession(recordId, CanonStatus.Accepted, "Ignored later name"));
+    }
+
+    [Fact]
     public void AcceptedRecordCanBeReproposedForRevisionThenDeprecated()
     {
         using var lifecycle = new StoryLifecycleSession("Event review");
