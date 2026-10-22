@@ -14,7 +14,7 @@
 - [x] Obtain green CI for the current AnyApp `development` source, including `StoryBuilderDesktopPersistenceStore` restore/save behavior and the expanded command dispatcher: [workflow run 39850248777](https://github.com/TrentBest/AnyApp/actions/runs/39850248777) completed successfully on commit `f780889a4c47a561d59b4f22e4d740edf4e6bacb` on 22 October 2026. The regression verifies manuscript-section event links survive store restore. The separate native process restart/reopen smoke test remains open; this CI result does not close that end-to-end gate.
 - [x] Verify native process restart/reopen persistence: AnyApp workflow [39863022603](https://github.com/TrentBest/AnyApp/actions/runs/39863022603) runs the native app in a write process, exits, starts a separate verify process, reloads the workspace, and asserts the event-to-manuscript-section link survives. This closes the process-level persistence gate for the current probe path; interactive workflow coverage and real-host composition-package consumption remain separate.
 - [x] Trent selected MIT to align with the Workshop's existing open-source direction; added the repository `LICENSE` and linked it from the README.
-- [ ] Reconcile the open development → master PR. The live GitHub comparison confirms that `development` is ahead of and 13 commits behind `master` (reviewed 22 October 2026). The ahead count changes with new commits; recheck immediately before any reconciliation. Do not blindly merge.
+- [x] Release branch policy confirmed: `development` is the release candidate and will replace `master` when publication is authorized. Do not reconcile or preserve the old `master` release history as part of feature closeout; immutable prior NuGet packages remain the prior-release record. Do not delete branches or force-push `master` until the owner explicitly initiates publication.
 - [ ] Decide the Alpha's exact version/tag, included projects, known limitations, and install/run instructions.
 - [ ] Create the GitHub Alpha release only after the preceding gates are resolved and the final release commit is verified.
 
@@ -22,7 +22,7 @@
 
 The defensible first milestone is a local, book-first authoring prototype: create characters and scenes, record timeline events, place events in manuscript passages, inspect the deterministic Markdown book output, and preserve a versioned binary workspace. The browser demo has browser-local persistence. The native AnyApp host is the intended desktop path; the automated two-process persistence probe now proves the saved workspace and event-to-section link survive a process restart. Real-host composition-package consumption remains to be validated.
 
-Not promised for this Alpha: cloud sync, collaboration, LLM-backed drafting, immutable publication editions, complete Renderer integration, or Workshop WebPage hosting.
+Not promised for this Alpha: cloud sync, collaboration, LLM-backed drafting, a full Renderer integration, or Workshop WebPage hosting. Immutable Markdown publication snapshots and corrected-edition lineage are now implemented on `development`; their new persistence and integrity tests must pass before this gate is considered verified.
 
 ## Publishing boundary
 
