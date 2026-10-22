@@ -13,6 +13,7 @@ classDiagram
         +LinkPlanningPointToScene(pointId, sceneId, linked) TimelinePlanningPoint
         +LinkPlanningPointToEvent(pointId, eventId, linked) TimelinePlanningPoint
         +PublishManuscript(manuscriptId, correctionNotes) PublishedBookEdition
+        +LinkSceneToManuscriptSection(manuscriptId, sectionId, sceneId, linked)
         +LinkEventToManuscriptSection(manuscriptId, sectionId, eventId, linked)
         +LinkEventToSceneBeat(sceneId, beatId, eventId, linked) SceneRecord
         +CreateManuscript(title, subtitle, author) ManuscriptEdition
