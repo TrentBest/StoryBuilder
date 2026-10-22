@@ -57,6 +57,7 @@ public sealed class StoryBuilderSession
         Workspace.ReplaceCharacter(character);
         Vocabulary.RemoveTarget(character.Id);
         IndexCharacter(character);
+        NotifyChanged();
         return character;
     }
 
@@ -77,6 +78,7 @@ public sealed class StoryBuilderSession
         Workspace.ReplaceScene(scene);
         Vocabulary.RemoveTarget(scene.Id);
         IndexScene(scene);
+        NotifyChanged();
         return scene;
     }
 
