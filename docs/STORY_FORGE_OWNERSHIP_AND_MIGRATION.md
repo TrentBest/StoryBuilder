@@ -19,13 +19,13 @@ The implementation and tests have been relocated into `src/StoryBuilder.StoryFor
 2. [x] Establish StoryBuilder-owned project names, namespaces, solution/test integration, and package metadata. Experiences remains independent of StoryBuilder.
 3. [x] Add an explicit projection from canonical StoryBuilder workspace events into the temporal query index, preserving stable IDs and source provenance without duplicating canonical records.
 4. [ ] Add persistence round-trip coverage for story records, temporal links, manuscript order, and provenance.
-5. [ ] Connect the authoring views to AnyApp and demonstrate the first book workflow end to end.
+5. [ ] Wire the expanded host-neutral event/passage command IDs into AnyApp, then demonstrate create → link → save → restart → verify end to end.
 6. [x] Remove the old Story Forge project/test ownership from Experiences and update its solution, docs, and CI.
 
 ## Current readiness
 
 - **Story Forge relocation:** 100% — source, tests, project/solution/CI ownership are moved and both repositories' relevant CI has passed. This percentage covers the relocation, not the product workflow.
-- **Runnable book workflow:** still in progress — workspace temporal projection exists and is tested, but save/reopen round-trip, manuscript/event linkage in the native host, and end-to-end AnyApp execution are not yet proven.
+- **Runnable book workflow:** still in progress — temporal projection and the host-neutral event-to-passage command contract exist; the native AnyApp dispatcher is not yet wired to the new commands, and save/reopen verification for the complete workflow is not yet proven.
 
 ## Migration safety
 
