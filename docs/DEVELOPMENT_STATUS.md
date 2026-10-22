@@ -1,7 +1,7 @@
 # Development Status
 
-**Status snapshot:** 2026-10-21  
-**Readiness estimate:** 50% — interactive authoring prototype with tested domain, composition, and browser-local persistence; not release-ready.
+**Status snapshot:** 2026-10-22  
+**Readiness estimate:** 55% — working local authoring prototype with binary browser persistence and a live GUI.SVG view; not release-ready.
 
 ## Implemented in development source
 
@@ -13,28 +13,35 @@
 - Interactive **The Stage** page: capture action, reaction, dialogue, pose, tone, and notes; reorder/remove beats; generate and copy an editable narration draft.
 - Interactive **World Archive** page: record historical claims with optional source provenance and explicit canon status.
 - Interactive **Campaign Room**: create campaigns, record participant choices, and accept/reject/reopen/deprecate them through the FSM_API lifecycle.
+- **Living Map:** the pinned GUI.SVG source project renders a live SVG manifestation of current character cards, review status, traits, workspace counts, and most-used vocabulary. Automated tests verify that the rendered output changes with real domain data.
 - VocabularyIndex with explicit synonym mapping, surface-word preservation, counts, attribution, text tokenization, and re-indexing of existing occurrences when synonym mappings change.
 - StoryBuilderSession coordinates workspace edits and refreshes indexed names, roles, descriptions, traits, relationships, notes, scene metadata, beat text, claims, events, sources, campaigns, participant actions, and continuity notes.
 - StoryWorkspace records for the Experience definition, design decisions, sources, historical claims, events, campaigns, participant actions, and continuity issues.
 - Optional StoryBuilder.FSM adapter using FSM_API and a scoped StoryLifecycleRegistry.
 - StoryBuilder.MicroBundle exposes workspace, Casting, Stage, vocabulary, history, and campaign providers through MicroBundleDomain.
+- StoryBuilder.Persistence implements a bounded, versioned binary workspace document using FSM_Serialization. Tests cover round-trip, synonym restoration, unknown versions, and truncated payloads.
+- The WebDemo autosaves and restores that binary document through browser localStorage; a coordinator test verifies persistence across sessions.
 - Automated test composes StoryBuilderAuthoringBundle through FSM_COS.
 - Runnable console quickstart and interactive Blazor WebDemo.
+- The GUI.SVG source is pinned as a Git submodule at a specific commit. CI initializes submodules and builds the actual source rather than depending on an unpublished NuGet package.
 - Source companion Markdown pages and focused UML/use-case diagrams for maintained types.
-- GitHub Actions builds the core, both adapters, both samples, and runs the tests. Checkout action is pinned to an immutable commit SHA.
+- GitHub Actions builds the core, both adapters, persistence, both samples, and runs the tests. Checkout action is pinned to an immutable commit SHA.
 
 ## Verification evidence
 
-- [Workflow run 39701236400](https://github.com/TrentBest/StoryBuilder/actions/runs/39701236400) succeeded for the domain core, FSM_API adapter, MicroBundle adapter, binary persistence adapter, console quickstart, interactive WebDemo, and automated tests.
-- That successful run used commit a293edbc0aeb272c6e75a8cd0d19716c9fa25981. Subsequent commits through this status update are documentation and styling changes; see the latest [development workflow runs](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml?query=branch%3Adevelopment) for the latest branch-head result.
+- [Workflow run 39702171854](https://github.com/TrentBest/StoryBuilder/actions/runs/39702171854) succeeded for the domain core, FSM_API adapter, MicroBundle adapter, binary persistence adapter, console quickstart, interactive WebDemo, and tests including GUI.SVG rendering and browser-local persistence.
+- That successful run used commit ffa4dd67de94d09bea2d517458ac6cdcdcd6cabc. Subsequent commits through this status update are documentation changes; see the latest [development workflow runs](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml?query=branch%3Adevelopment) for the latest branch-head result.
 - No package has been published, no release has been created, and no deployment has occurred.
 
 ## Not yet implemented
 
+- Narrator's full first-session conversation and proposal/revision loop.
+- The full Character Casting Studio: Hero / Neutral / Antagonist / Undecided grouping, three-sided mirror, before/after impact preview, and navigable source context.
+- Confirmed versus likely versus unresolved character-reference counts; ambiguous pronouns are not automatically resolved.
 - Cloud/server storage, explicit import/export, backup, and migration from future binary schema versions.
 - Integration into the Workshop's WebPage host.
-- Live GUI.SVG manifestations generated from the same workspace data.
-- Browser-level automated tests for user interactions.
+- Broader source-derived GUI.SVG views for chronology, relationships, and scene continuity beyond the current living map.
+- Browser-level automated tests for user interactions and accessibility.
 - Physics-backed fight simulation or a visual pose/claymation timeline.
 - Full campaign continuity resolution and source-to-event reconciliation.
 - Automatic adjective classification, multilingual stemming, or semantic inference.
@@ -42,12 +49,13 @@
 
 ## Readiness rubric
 
-The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, and browser-local autosave slices now work together, and the MicroBundle contract is tested through FSM_COS. Cloud persistence, import/export, and integration into the actual Workshop host remain absent; this is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
+The estimate reflects five equal workstreams: (1) domain contracts, (2) automated verification, (3) durable storage and provenance, (4) user-facing authoring, and (5) Workshop composition/visual integration. The domain, CI, local authoring, binary round-trip, browser-local autosave, and a real GUI.SVG manifestation now work together; the MicroBundle contract is tested through FSM_COS. The Narrator-first workflow, Casting Studio's revision/reference observability, cloud storage, and embedding into the actual Workshop host remain absent. This is a useful prototype, not a finished or release-ready product. The percentage is an engineering planning estimate, not a test or quality score.
 
 ## Immediate next steps
 
-1. Add explicit export/import and backup flows for the current versioned binary workspace document, then define migration behavior for future schema versions.
-2. Mount StoryBuilderAuthoringBundle in the Workshop WebPage host through the existing FSM_COS composition path.
-3. Add GUI.SVG living views that reflect real characters, trait usage, scene beats, and historical chronology.
-4. Add browser-level tests for create/edit/review flows and verify the UI is keyboard accessible.
-5. Expand campaign actions into a continuity workflow that links participant choices to events and historical consequences.
+1. Implement the Narrator's low-friction first-session flow: capture a free-form idea, produce a visible premise proposal, and let the user revise or accept it before asking another question.
+2. Evolve Casting into Hero / Neutral / Antagonist / Undecided lanes with a three-sided mirror built from the profile, actual source context, and proposed revision.
+3. Add exact source spans and explicit author-confirmed character references; keep ambiguous pronouns unresolved unless supported.
+4. Add export/import, backup, and migration tests for future binary schema versions.
+5. Mount StoryBuilderAuthoringBundle in the Workshop WebPage host through the existing FSM_COS composition path.
+6. Expand campaign actions into a continuity workflow linking participant choices to events and historical consequences.
