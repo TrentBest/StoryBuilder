@@ -1,4 +1,5 @@
 using StoryBuilder.Core.Models;
+using StoryBuilder.Core.Services;
 using Xunit;
 
 namespace StoryBuilder.Core.Tests;
