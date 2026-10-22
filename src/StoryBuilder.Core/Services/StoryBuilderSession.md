@@ -14,7 +14,7 @@ Coordinates canonical workspace edits, vocabulary indexing, timeline planning, m
 - Revise existing world events with `UpdateTimelineEvent`; title and summary edits rebuild their vocabulary occurrences.
 - Add or remove reciprocal cause/consequence edges with `LinkEventCausality`; self-causation and missing endpoints are rejected.
 - Create a working manuscript and link its sections to world events.
-- Publish a manuscript with `PublishManuscript`; the returned immutable snapshot contains deterministic Markdown and a SHA-256 content hash.
+- Publish a manuscript with `PublishManuscript`; the returned immutable snapshot contains deterministic Markdown and a SHA-256 content hash, plus stable scene/event provenance.
 - Publish a correction as a new edition with optional correction notes; `PreviousEditionId` preserves the lineage and does not rewrite earlier output.
 - Link a world event to a specific scene beat with `LinkEventToSceneBeat`; removing a link does not delete either record.
 - Add or revise observer-knowledge records with explicit status transitions.
