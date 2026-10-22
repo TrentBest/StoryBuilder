@@ -15,10 +15,12 @@ A previous snapshot in this ledger listed `main` at `9fabe16bcf7a50f3fbbdd9d6f4e
 
 ## Reconciliation plan
 
-1. Require fresh successful checks for the current PR #1 head before merge. Historical successful runs are useful evidence for their specific commits, not proof that the current head passed.
-2. Review PR #1 and merge only after the owner authorizes reconciliation and current checks are green.
-3. Verify `master` contains the reconciled implementation and passing checks.
-4. Confirm the only permanent branches are `master` and `development`; the owner performs any manual branch cleanup.
+1. **Do not merge PR #1 as-is.** The latest compare reports `development` as 428 commits ahead of `master` and 13 commits behind; GitHub reports the PR as not mergeable.
+2. The 13 commits on `master` are not merely administrative drift. They add a host-neutral `StoryBuilder.Core` project, stable-ID story project/timeline model, atomic local save/reopen, Core tests, a dedicated pinned-action CI workflow, and updated integration/deployment documentation. These must be inspected and reconciled with the richer `development` domain/adapters/workbench rather than overwritten or silently discarded.
+3. Require fresh successful checks for the final reconciled head. Historical successful runs prove only the commits they tested.
+4. Review the resolved diff and merge only after the owner authorizes reconciliation and current checks are green.
+5. Verify `master` contains the intended combined implementation and passing checks.
+6. Confirm the only permanent branches are `master` and `development`; the owner performs any manual branch cleanup.
 
 ## Safety
 
