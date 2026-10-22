@@ -307,7 +307,7 @@ public sealed class StoryWorkspace
         StoryPremise premise => premise.Id,
         ManuscriptEdition manuscript => manuscript.Id,
         TimelinePlanningPoint point => point.Id,
-        ObserverKnowledgeRecord record => record.Id,
+        ObserverKnowledgeRecord observerRecord => observerRecord.Id,
         CharacterProfile character => character.Id,
         SceneRecord scene => scene.Id,
         ParticipantAction action => action.Id,
