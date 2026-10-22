@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 1;
+    private const int FormatVersion = 2;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -63,10 +63,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version != FormatVersion)
+        if (version is not 1 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
-        Workspace = ReadWorkspace(stream);
+        Workspace = ReadWorkspace(stream, version);
         Synonyms = BinaryCodec.ReadList(stream, ReadVocabularyConcept);
 
         if (stream.Position != stream.Length)
@@ -78,6 +78,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteGuid(stream, workspace.Id);
         BinaryCodec.WriteString(stream, workspace.Name);
         WriteExperience(stream, workspace.Experience);
+        BinaryCodec.WriteList(stream, workspace.Premises, WritePremise);
         BinaryCodec.WriteList(stream, workspace.Characters, WriteCharacter);
         BinaryCodec.WriteList(stream, workspace.Scenes, WriteScene);
         BinaryCodec.WriteList(stream, workspace.HistoricalClaims, WriteHistoricalClaim);
@@ -88,12 +89,13 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.ContinuityIssues, WriteContinuityIssue);
     }
 
-    private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
+    private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var name = BinaryCodec.ReadRequiredString(stream, nameof(StoryWorkspace.Name));
         var experience = ReadExperience(stream);
-        var characters = BinaryCodec.ReadList(stream, ReadCharacter);
+        var premises = version >= 2 ? BinaryCodec.ReadList(stream, ReadPremise) : [];
+        var characters = BinaryCodec.ReadList(stream, item => ReadCharacter(item, version));
         var scenes = BinaryCodec.ReadList(stream, ReadScene);
         var claims = BinaryCodec.ReadList(stream, ReadHistoricalClaim);
         var events = BinaryCodec.ReadList(stream, ReadStoryEvent);
@@ -103,6 +105,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var issues = BinaryCodec.ReadList(stream, ReadContinuityIssue);
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience };
+        foreach (var item in premises) workspace.AddPremise(item);
         foreach (var item in characters) workspace.AddCharacter(item);
         foreach (var item in scenes) workspace.AddScene(item);
         foreach (var item in claims) workspace.AddClaim(item);
@@ -154,6 +157,34 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         EvidenceReference = BinaryCodec.ReadString(stream)
     };
 
+    private static void WritePremise(IBinaryStream stream, StoryPremise value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Vision);
+        BinaryCodec.WriteString(stream, value.Scale);
+        BinaryCodec.WriteString(stream, value.Genre);
+        BinaryCodec.WriteString(stream, value.CreationApproach);
+        BinaryCodec.WriteString(stream, value.PrimaryTarget);
+        BinaryCodec.WriteEnum(stream, value.Status);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+        BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
+    }
+
+    private static StoryPremise ReadPremise(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(StoryPremise.Title)),
+        Vision = BinaryCodec.ReadRequiredString(stream, nameof(StoryPremise.Vision)),
+        Scale = BinaryCodec.ReadString(stream),
+        Genre = BinaryCodec.ReadString(stream),
+        CreationApproach = BinaryCodec.ReadString(stream),
+        PrimaryTarget = BinaryCodec.ReadString(stream),
+        Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+    };
+
     private static void WriteCharacter(IBinaryStream stream, CharacterProfile value)
     {
         BinaryCodec.WriteGuid(stream, value.Id);
@@ -162,6 +193,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, value.Description);
         BinaryCodec.WriteString(stream, value.Pronouns);
         BinaryCodec.WriteString(stream, value.Species);
+        BinaryCodec.WriteEnum(stream, value.NarrativeRole);
         BinaryCodec.WriteEnum(stream, value.Status);
         BinaryCodec.WriteList(stream, value.Traits, WriteCharacterTrait);
         BinaryCodec.WriteList(stream, value.Relationships, WriteCharacterRelationship);
@@ -175,7 +207,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static CharacterProfile ReadCharacter(IBinaryStream stream)
+    private static CharacterProfile ReadCharacter(IBinaryStream stream, int version)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var name = BinaryCodec.ReadRequiredString(stream, nameof(CharacterProfile.Name));
@@ -183,6 +215,9 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var description = BinaryCodec.ReadRequiredString(stream, nameof(CharacterProfile.Description));
         var pronouns = BinaryCodec.ReadString(stream);
         var species = BinaryCodec.ReadString(stream);
+        var narrativeRole = version >= 2
+            ? BinaryCodec.ReadEnum<CharacterNarrativeRole>(stream)
+            : CharacterNarrativeRole.Undecided;
         var status = BinaryCodec.ReadEnum<CanonStatus>(stream);
         var traits = BinaryCodec.ReadList(stream, ReadCharacterTrait);
         var relationships = BinaryCodec.ReadList(stream, ReadCharacterRelationship);
@@ -199,6 +234,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             Description = description,
             Pronouns = pronouns,
             Species = species,
+            NarrativeRole = narrativeRole,
             Status = status,
             Traits = traits,
             Relationships = relationships,
