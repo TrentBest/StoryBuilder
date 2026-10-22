@@ -33,6 +33,8 @@ public sealed class StoryLifecycleSession
             Name = string.IsNullOrWhiteSpace(name) ? "Story record review" : name.Trim()
         };
         _handle = FSM_API.Create.CreateInstance(DefinitionName, _context, ProcessingGroup);
+        // FSM_API enters the initial state on the first update; initialize it before accepting requests.
+        _handle.Update(ProcessingGroup);
     }
 
     public CanonStatus CurrentStatus => _context.CurrentStatus;
