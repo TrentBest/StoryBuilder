@@ -17,7 +17,7 @@ public sealed class StoryWorkspacePersistenceTests
           "projectId": "8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb1",
           "title": "Offset Test",
           "premise": "A promise is broken.",
-          "manuscript": "Line one.\\r\\nLine two.",
+          "manuscript": "Line one.\r\nLine two.",
           "createdUtc": "2024-01-02T03:04:05-08:00",
           "updatedUtc": "2024-02-03T04:05:06+05:30",
           "passages": [
@@ -41,9 +41,10 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(Guid.Parse("8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb1"), workspace.Id);
         Assert.Equal(legacyJson, workspace.LegacyProjectSourceJson);
         Assert.Equal("A promise is broken.", Assert.Single(workspace.Premises).Vision);
-        Assert.Equal("Line one.\\r\\nLine two.", Assert.Single(Assert.Single(workspace.Manuscripts).Sections).Body);
+        Assert.Equal("Line one.\r\nLine two.", Assert.Single(Assert.Single(workspace.Manuscripts).Sections).Body);
         var importedEvent = Assert.Single(workspace.Events);
         Assert.Equal(Guid.Parse("8b3b46e8-1d37-4a92-a2ce-2d08b37d4bb3"), importedEvent.Id);
+        Assert.NotNull(importedEvent.InWorldDateOrPeriod);
         Assert.Contains("2025-06-07T08:09:10+05:30", importedEvent.InWorldDateOrPeriod);
         Assert.Contains("Line two.", importedEvent.Summary);
 
