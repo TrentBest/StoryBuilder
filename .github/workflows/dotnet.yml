@@ -27,6 +27,8 @@ jobs:
         run: dotnet build src/StoryBuilder.FSM/StoryBuilder.FSM.csproj --configuration Release
       - name: Build MicroBundle adapter
         run: dotnet build src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj --configuration Release
+      - name: Build FSM_COS experience adapter
+        run: dotnet build src/StoryBuilder.FSM_COS/StoryBuilder.FSM_COS.csproj --configuration Release
       - name: Build binary persistence adapter
         run: dotnet build src/StoryBuilder.Persistence/StoryBuilder.Persistence.csproj --configuration Release
       - name: Build Story Forge temporal domain
