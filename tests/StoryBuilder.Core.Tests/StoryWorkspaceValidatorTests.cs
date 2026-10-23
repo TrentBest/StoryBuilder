@@ -134,7 +134,7 @@ public sealed class StoryWorkspaceValidatorTests
         workspace.Experience = new ExperienceDefinition
         {
             Id = sharedId,
-            Decisions = [new DesignDecision { Id = sharedId, Decision = "Use stable identity." }]
+            Decisions = [new DesignDecision { Id = sharedId, Decision = "Use stable identity." }, new DesignDecision { Id = sharedId, Decision = "Keep references stable." }]
         };
 
         var issues = StoryWorkspaceValidator.Validate(workspace);
