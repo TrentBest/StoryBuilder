@@ -89,6 +89,36 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             $"The StoryBuilder workspace contains {issues.Count} broken reference(s) and cannot be persisted or restored.{Environment.NewLine}{preview}{remainder}");
     }
 
+    private static void AddPlacesInParentOrder(StoryWorkspace workspace, IReadOnlyCollection<PlaceRecord> places)
+    {
+        var pending = places.ToList();
+        while (pending.Count > 0)
+        {
+            var ready = pending.Where(place =>
+                place.ParentPlaceId is null ||
+                workspace.Places.Any(existing => existing.Id == place.ParentPlaceId.Value)).ToList();
+
+            if (ready.Count == 0)
+            {
+                var knownIds = pending.Select(place => place.Id).ToHashSet();
+                var invalidParent = pending.FirstOrDefault(place =>
+                    place.ParentPlaceId is Guid parentId && !knownIds.Contains(parentId));
+                if (invalidParent is not null)
+                    throw new InvalidDataException(
+                        $"Place '{invalidParent.Id}' references missing parent '{invalidParent.ParentPlaceId}'.");
+
+                throw new InvalidDataException(
+                    "The workspace place hierarchy contains a containment cycle and cannot be restored.");
+            }
+
+            foreach (var place in ready)
+            {
+                workspace.AddPlace(place);
+                pending.Remove(place);
+            }
+        }
+    }
+
     private static void WriteWorkspace(IBinaryStream stream, StoryWorkspace workspace)
     {
         BinaryCodec.WriteGuid(stream, workspace.Id);
@@ -142,7 +172,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in publishedEditions) workspace.AddPublishedEdition(item);
         foreach (var item in premises) workspace.AddPremise(item);
         foreach (var item in characters) workspace.AddCharacter(item);
-        foreach (var item in places) workspace.AddPlace(item);
+        AddPlacesInParentOrder(workspace, places);
         foreach (var item in scenes) workspace.AddScene(item);
         foreach (var item in claims) workspace.AddClaim(item);
         foreach (var item in events) workspace.AddEvent(item);
