@@ -10,7 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="../StoryBuilder.Core/StoryBuilder.Core.csproj" />
     <ProjectReference Include="../StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj" />
-    <PackageReference Include="TheSingularityWorkshop.FSM_COS" Version="0.1.0-alpha.7" />
+    <PackageReference Include="TheSingularityWorkshop.FSM_COS" Version="0.1.0-alpha.6" />
     <PackageReference Include="TheSingularityWorkshop.MicroBundleDomain" Version="1.0.1" />
   </ItemGroup>
 </Project>
