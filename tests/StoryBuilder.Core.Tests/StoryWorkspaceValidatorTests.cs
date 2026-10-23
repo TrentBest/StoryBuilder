@@ -52,6 +52,36 @@ public sealed class StoryWorkspaceValidatorTests
     }
 
     [Fact]
+    public void RelatedRecordReferencesAcceptNestedSectionAndBeatIdentities()
+    {
+        var workspace = new StoryWorkspace();
+        var manuscript = new ManuscriptEdition
+        {
+            Title = "Draft",
+            Sections = [new ManuscriptSection { Title = "Chapter 1" }]
+        };
+        var scene = new SceneRecord
+        {
+            Title = "Arrival",
+            Beats = [new SceneBeat { Action = "Enter the harbor" }]
+        };
+        workspace.AddManuscript(manuscript);
+        workspace.AddScene(scene);
+        workspace.AddClaim(new HistoricalClaim
+        {
+            Statement = "The arrival was recorded in the harbor log.",
+            RelatedEntityIds = [manuscript.Sections[0].Id, scene.Beats[0].Id]
+        });
+        workspace.AddContinuityIssue(new ContinuityIssue
+        {
+            Description = "Check the chapter against the scene.",
+            RelatedRecordIds = [manuscript.Sections[0].Id, scene.Beats[0].Id]
+        });
+
+        Assert.Empty(StoryWorkspaceValidator.Validate(workspace));
+    }
+
+    [Fact]
     public void ValidateReportsMissingCanonicalScenePlace()
     {
         var workspace = new StoryWorkspace();
