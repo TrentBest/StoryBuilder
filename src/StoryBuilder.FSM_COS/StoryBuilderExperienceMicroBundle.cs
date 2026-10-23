@@ -15,7 +15,7 @@ public sealed class StoryBuilderExperienceMicroBundle : IMicroBundle
     public const string CurrentVersion = "0.1.0";
     private const string ProviderPrefix = "storybuilder.experience.";
 
-    public StoryBuilderExperienceMicroBundle(string kind, string name)
+    public StoryBuilderExperienceMicroBundle(string kind, string name, StoryBuilderSession? session = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(kind);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -23,7 +23,7 @@ public sealed class StoryBuilderExperienceMicroBundle : IMicroBundle
         Kind = Normalize(kind);
         Name = name.Trim();
         Id = CreateStableId(Kind, Name);
-        Session = new StoryBuilderSession($"{Kind}: {Name}");
+        Session = session ?? new StoryBuilderSession($"{Kind}: {Name}");
         Surface = new StoryBuilderAuthoringSurface(Session);
         Descriptor = new MicroBundleDescriptor(
             Id,
@@ -45,8 +45,6 @@ public sealed class StoryBuilderExperienceMicroBundle : IMicroBundle
     {
         ArgumentNullException.ThrowIfNull(context);
         _ = context.RuntimeId;
-        // The session is constructed before composition and remains owned by this bundle.
-        // The host only exposes it after FSM_COS returns a successful RuntimeAssembly.
     }
 
     public bool Arbitrate(IMicroBundleArbitrationContext context, int roundIndex)
