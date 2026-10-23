@@ -9,6 +9,9 @@
     <!-- Hosts with a shared GUI checkout can override this to prevent duplicate GUI.Core assembly identities. -->
     <WorkshopGuiCoreProject Condition="'$(WorkshopGuiCoreProject)' == ''">$(MSBuildThisFileDirectory)..\..\external\TheSingularityWorkshop.GUI\src\Core\TheSingularityWorkshop.GUI.Core.csproj</WorkshopGuiCoreProject>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(WorkshopUseRepositorySources)' == 'true'">
+    <DefineConstants>$(DefineConstants);WORKSHOP_USE_REPOSITORY_SOURCES</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../StoryBuilder.Core/StoryBuilder.Core.csproj" />
     <ProjectReference Include="$(WorkshopGuiCoreProject)" />
