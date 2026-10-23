@@ -33,7 +33,9 @@ public static class StoryWorkspaceValidator
             .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(sources).Concat(campaigns).Concat(premises)
             .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places)
             .Concat(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => item.Id))
-            .Concat(workspace.Scenes.SelectMany(item => item.Beats).Select(item => item.Id)).ToHashSet();
+            .Concat(workspace.Scenes.SelectMany(item => item.Beats).Select(item => item.Id))
+            .Append(workspace.Experience.Id)
+            .Concat(workspace.Experience.Decisions.Select(item => item.Id)).ToHashSet();
 
         void Missing(string ownerType, Guid ownerId, string relationship, Guid targetId, HashSet<Guid> targetIds)
         {
@@ -51,6 +53,8 @@ public static class StoryWorkspaceValidator
                     duplicate.Key, $"'{recordType}' contains {duplicate.Count()} records with duplicate ID '{duplicate.Key}'."));
         }
 
+        DuplicateIds([workspace.Experience], item => item.Id, nameof(ExperienceDefinition));
+        DuplicateIds(workspace.Experience.Decisions, item => item.Id, nameof(DesignDecision));
         DuplicateIds(workspace.Timelines, item => item.Id, nameof(TimelineDefinition));
         DuplicateIds(workspace.PlanningPoints, item => item.Id, nameof(TimelinePlanningPoint));
         DuplicateIds(workspace.Events, item => item.Id, nameof(StoryEvent));
@@ -73,6 +77,8 @@ public static class StoryWorkspaceValidator
         // within a type; this catches a GUID reused by different record types, which would
         // make generic related-record links ambiguous.
         var typedIds = new List<(Guid Id, string Type)>();
+        typedIds.Add((workspace.Experience.Id, nameof(ExperienceDefinition)));
+        typedIds.AddRange(workspace.Experience.Decisions.Select(item => (item.Id, nameof(DesignDecision))));
         typedIds.AddRange(workspace.Timelines.Select(item => (item.Id, nameof(TimelineDefinition))));
         typedIds.AddRange(workspace.PlanningPoints.Select(item => (item.Id, nameof(TimelinePlanningPoint))));
         typedIds.AddRange(workspace.Events.Select(item => (item.Id, nameof(StoryEvent))));
