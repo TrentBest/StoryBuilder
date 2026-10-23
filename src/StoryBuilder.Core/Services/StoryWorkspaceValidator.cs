@@ -31,7 +31,9 @@ public static class StoryWorkspaceValidator
         var continuityIssues = workspace.ContinuityIssues.Select(x => x.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
             .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(sources).Concat(campaigns).Concat(premises)
-            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).ToHashSet();
+            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places)
+            .Concat(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => item.Id))
+            .Concat(workspace.Scenes.SelectMany(item => item.Beats).Select(item => item.Id)).ToHashSet();
 
         void Missing(string ownerType, Guid ownerId, string relationship, Guid targetId, HashSet<Guid> targetIds)
         {
