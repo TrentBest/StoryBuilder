@@ -63,7 +63,7 @@ public sealed class StoryBuilderExperienceHost
                 return true;
             }
 
-            if (bundleId == authoring.Id &&
+            if (bundleId == authoring.Descriptor.Id &&
                 string.Equals(version, authoring.Descriptor.Version, StringComparison.Ordinal))
             {
                 bundle = authoring;
@@ -82,7 +82,7 @@ public sealed class StoryBuilderExperienceHost
                 return true;
             }
 
-            if (bundleId == authoring.Id)
+            if (bundleId == authoring.Descriptor.Id)
             {
                 bundle = authoring;
                 return true;
