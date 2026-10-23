@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="../StoryBuilder.Core/StoryBuilder.Core.csproj" />
     <ProjectReference Include="$(WorkshopGuiCoreProject)" />
-    <PackageReference Include="TheSingularityWorkshop.MicroBundleDomain" Version="1.0.1" />
+    <PackageReference Include="TheSingularityWorkshop.MicroBundleDomain" Version="1.0.1" Condition="'$(WorkshopUseRepositorySources)' != 'true'" />
+    <ProjectReference Include="..\..\..\TheSingularityWorkshop.MicroBundleDomain\TheSingularityWorkshop.MicroBundleDomain.csproj" Condition="'$(WorkshopUseRepositorySources)' == 'true'" />
   </ItemGroup>
 </Project>
