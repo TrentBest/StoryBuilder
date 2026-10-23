@@ -53,7 +53,7 @@ public static class StoryWorkspaceValidator
                     duplicate.Key, $"'{recordType}' contains {duplicate.Count()} records with duplicate ID '{duplicate.Key}'."));
         }
 
-        DuplicateIds([workspace.Experience], item => item.Id, nameof(ExperienceDefinition));
+        DuplicateIds(new[] { workspace.Experience }, item => item.Id, nameof(ExperienceDefinition));
         DuplicateIds(workspace.Experience.Decisions, item => item.Id, nameof(DesignDecision));
         DuplicateIds(workspace.Timelines, item => item.Id, nameof(TimelineDefinition));
         DuplicateIds(workspace.PlanningPoints, item => item.Id, nameof(TimelinePlanningPoint));
