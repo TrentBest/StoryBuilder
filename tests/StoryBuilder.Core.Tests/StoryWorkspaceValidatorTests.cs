@@ -127,6 +127,25 @@ public sealed class StoryWorkspaceValidatorTests
     }
 
     [Fact]
+    public void ValidateIncludesExperienceAndDesignDecisionsInIdentityChecks()
+    {
+        var workspace = new StoryWorkspace();
+        var sharedId = Guid.NewGuid();
+        workspace.Experience = new ExperienceDefinition
+        {
+            Id = sharedId,
+            Decisions = [new DesignDecision { Id = sharedId, Decision = "Use stable identity." }]
+        };
+
+        var issues = StoryWorkspaceValidator.Validate(workspace);
+
+        Assert.Contains(issues, issue => issue.Relationship == "duplicate identity" &&
+            issue.OwnerType == nameof(DesignDecision) && issue.MissingTargetId == sharedId);
+        Assert.Contains(issues, issue => issue.Relationship == "cross-type duplicate identity" &&
+            issue.MissingTargetId == sharedId);
+    }
+
+    [Fact]
     public void ValidateReportsCharacterRelationshipsToMissingCharacters()
     {
         var workspace = new StoryWorkspace();
