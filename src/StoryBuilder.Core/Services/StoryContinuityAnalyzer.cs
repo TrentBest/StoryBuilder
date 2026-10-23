@@ -14,6 +14,7 @@ public static class StoryContinuityAnalyzer
         var findings = new List<StoryContinuityFinding>();
         var events = workspace.Events.ToDictionarySafe(eventRecord => eventRecord.Id);
         var timelines = workspace.Timelines.ToDictionarySafe(timeline => timeline.Id);
+        var places = workspace.Places.ToDictionarySafe(place => place.Id);
 
         foreach (var storyEvent in workspace.Events)
         {
@@ -60,6 +61,16 @@ public static class StoryContinuityAnalyzer
         {
             findings.Add(new StoryContinuityFinding("timeline.branch-cycle", cycle[0],
                 "The timeline parent links form a cycle, so this branch does not lead back to a root timeline.",
+                cycle));
+        }
+
+        foreach (var cycle in FindCycles(places.Keys, id => places.TryGetValue(id, out var item) &&
+                     item.ParentPlaceId is Guid parent && places.ContainsKey(parent)
+                         ? [parent]
+                         : Enumerable.Empty<Guid>()))
+        {
+            findings.Add(new StoryContinuityFinding("place.containment-cycle", cycle[0],
+                "The place containment links form a cycle, so the hierarchy has no valid root for this chain.",
                 cycle));
         }
 
