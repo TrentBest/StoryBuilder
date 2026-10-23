@@ -51,6 +51,22 @@ public sealed class StoryContinuityAnalyzerTests
     }
 
     [Fact]
+    public void ReportsPlaceContainmentCyclesWithoutMutatingPlaces()
+    {
+        var workspace = new StoryWorkspace();
+        var first = new PlaceRecord { Name = "First" };
+        var second = new PlaceRecord { Name = "Second", ParentPlaceId = first.Id };
+        first = first with { ParentPlaceId = second.Id };
+        workspace.AddPlace(first);
+        workspace.AddPlace(second);
+
+        var findings = StoryContinuityAnalyzer.Analyze(workspace);
+
+        Assert.Contains(findings, finding => finding.Code == "place.containment-cycle");
+        Assert.Equal(second.Id, Assert.Single(workspace.Places, place => place.Id == first.Id).ParentPlaceId);
+    }
+
+    [Fact]
     public void LeavesConsistentAcyclicHistoryWithoutFindings()
     {
         var workspace = new StoryWorkspace();
