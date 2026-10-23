@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/StoryBuilder.Core/StoryBuilder.Core.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.MicroBundle/StoryBuilder.MicroBundle.csproj" />
+    <ProjectReference Include="../../src/StoryBuilder.FSM_COS/StoryBuilder.FSM_COS.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.FSM/StoryBuilder.FSM.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.Persistence/StoryBuilder.Persistence.csproj" />
     <ProjectReference Include="../../external/TheSingularityWorkshop.GUI/src/SVG/TheSingularityWorkshop.GUI.SVG.csproj" />
