@@ -7,7 +7,7 @@ namespace StoryBuilder.MicroBundle;
 /// A host-composable authoring capability. FSM_COS composes this bundle; the bundle itself
 /// depends only on the neutral MicroBundleDomain contract, not on the composition kernel.
 /// </summary>
-public sealed class StoryBuilderAuthoringBundle : IMicroBundle
+public sealed class StoryBuilderAuthoringBundle : IMicroBundle, IMicroBundleResolvedConfiguration
 {
     public const ulong BundleId = 0x53544F5259425549UL;
     public const string BundleVersion = "0.1.0";
@@ -39,6 +39,11 @@ public sealed class StoryBuilderAuthoringBundle : IMicroBundle
         // The bundle is a stateless capability factory; user workspaces are created per session.
         _ = context.RuntimeId;
     }
+
+    /// <summary>
+    /// StoryBuilder's bundle is a stateless capability factory with no configuration overrides.
+    /// </summary>
+    public ReadOnlyMemory<byte> ExportResolvedConfiguration() => ReadOnlyMemory<byte>.Empty;
 
     public bool Arbitrate(IMicroBundleArbitrationContext context, int roundIndex)
     {
