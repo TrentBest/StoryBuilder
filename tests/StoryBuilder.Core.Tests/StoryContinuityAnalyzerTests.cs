@@ -56,9 +56,9 @@ public sealed class StoryContinuityAnalyzerTests
         var workspace = new StoryWorkspace();
         var first = new PlaceRecord { Name = "First" };
         var second = new PlaceRecord { Name = "Second", ParentPlaceId = first.Id };
-        first = first with { ParentPlaceId = second.Id };
         workspace.AddPlace(first);
         workspace.AddPlace(second);
+        workspace.ReplacePlace(first with { ParentPlaceId = second.Id });
 
         var findings = StoryContinuityAnalyzer.Analyze(workspace);
 
