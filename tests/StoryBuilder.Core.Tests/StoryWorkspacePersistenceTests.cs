@@ -310,4 +310,25 @@ public sealed class StoryWorkspacePersistenceTests
         var document = new StoryWorkspaceBinaryDocument();
         Assert.ThrowsAny<IOException>(() => document.Unpack(input));
     }
+
+    [Fact]
+    public void BinaryRestoreRejectsPlaceContainmentCyclesInsteadOfFailingOnInsertionOrder()
+    {
+        var workspace = new StoryWorkspace();
+        var parent = new PlaceRecord { Name = "Parent", Kind = "Region" };
+        var child = new PlaceRecord { Name = "Child", Kind = "City", ParentPlaceId = parent.Id };
+        workspace.AddPlace(parent);
+        workspace.AddPlace(child);
+        workspace.ReplacePlace(parent with { ParentPlaceId = child.Id });
+
+        var document = new StoryWorkspaceBinaryDocument(workspace);
+        using var output = new MemoryBinaryStream();
+        document.Pack(output);
+        using var input = new MemoryBinaryStream(output.ToArray());
+        var restored = new StoryWorkspaceBinaryDocument();
+
+        var exception = Assert.Throws<InvalidDataException>(() => restored.Unpack(input));
+
+        Assert.Contains("containment cycle", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
 }
