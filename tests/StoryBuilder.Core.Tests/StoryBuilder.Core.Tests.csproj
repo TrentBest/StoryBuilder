@@ -14,7 +14,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="TheSingularityWorkshop.FSM_COS" Version="0.1.0-alpha.7" />
+    <PackageReference Include="TheSingularityWorkshop.FSM_COS" Version="0.1.0-alpha.6" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/StoryBuilder.Core/StoryBuilder.Core.csproj" />
