@@ -4,7 +4,7 @@
 
 Workshop arbitration must produce a reusable composition package that AnyApp can consume without repeating the expensive decisions that produced it. StoryBuilder's first demanding proof is a real book that can also be inspected through timeline, composition, continuity, and observer views.
 
-The manifest/configuration contracts, validator, binary artifact compiler, and reader are implemented and passed CI. Actual integration with the AnyApp host, provider activation, deployment packaging, and the complete repeated-consumption proof remain future work.
+The manifest/configuration contracts, validator, binary artifact compiler, and reader are implemented and have CI coverage. Repeated consumption has been verified in StoryBuilder's consumer path: unchanged package input produces identical Markdown and preserves the arbitration record identity. The remaining proof is consumption through the real AnyApp host, including host surface selection/dispatch and validation of the captured package before execution. Provider activation and deployment packaging also remain open.
 
 ## Host launch manifest versus StoryBuilder composition package
 
@@ -45,7 +45,7 @@ Workshop arbitration is the honing step. It resolves choices and records the res
 - `CompositionPackageReader` validates the manifest, configuration, payload hashes, and host capability availability before restoring content. Failed validation returns diagnostics and no session.
 - Manifest schema version 2 records explicit MicroBundle dependencies and has a matching binary format version. Configuration has its own explicit schema and binary format version. Both artifacts use magic identifiers; settings are typed textual values under an explicit value-type identifier. No JSON or general-purpose object-graph serializer is introduced.
 - CI passed for contract validation, binary compilation/reading, round-trip book restoration, tamper rejection, missing-required-bundle rejection, dependency-closure validation, and repeated package consumption that produces identical Markdown and preserves the same arbitration record ID.
-- `BookProductRenderer` turns the restored manuscript into a deterministic digital Markdown artifact without invoking arbitration. This proves the package can produce the same book repeatedly in the current StoryBuilder consumer path; it is not yet an end-to-end test against the real AnyApp host. The manifest contract now also records explicit MicroBundle dependencies. AnyApp host integration and deterministic repeated-consumption proof remain future work.
+- `BookProductRenderer` turns the restored manuscript into a deterministic digital Markdown artifact without invoking arbitration. CI verifies repeated package consumption in the StoryBuilder consumer path: the same package produces identical Markdown and retains the same arbitration record ID. This is a meaningful deterministic-consumption result, but it is not an end-to-end test against the real AnyApp host. The manifest contract records explicit MicroBundle dependencies; host integration remains open.
 
 These contracts are host-neutral and do not introduce a StoryBuilder.Core dependency on FSM_COS, AnyApp, GUI.SVG, or Renderer.
 
@@ -72,8 +72,9 @@ Do not freeze intentionally dynamic state such as current author edits, particip
 3. The package compiler serializes workspace content and hashes the exact bytes.
 4. Manifest and per-bundle configuration are emitted as versioned artifacts tied to that content hash/revision.
 5. AnyApp validates the captured result and produces the same book without rerunning arbitration.
-6. A deterministic test compares output across repeated package consumption (verified in StoryBuilder's current consumer path; real AnyApp host proof remains).
-7. Changed inputs produce an explicit new revision or invalidation result.
+6. A deterministic test compares output across repeated package consumption (verified in StoryBuilder's current consumer path).
+7. The real AnyApp host selects the StoryBuilder surface, validates and consumes the captured package without rerunning arbitration, and produces the same book; host-level evidence is still required.
+8. Changed inputs produce an explicit new revision or invalidation result.
 
 ## Acceptance checks
 
