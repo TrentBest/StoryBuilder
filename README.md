@@ -1,5 +1,7 @@
 # StoryBuilder
 
+[![Sith Policy](assets/sith-policy.svg)](https://github.com/TrentBest/StoryBuilder/actions/workflows/sith-policy.yml)
+
 **Build the Experience. Compose its history. Let the campaign make it live.**
 
 StoryBuilder is a creative workbench for documenting the creation of an Experience or Tool and composing the backstory that gives it meaning. It supports worlds, characters, factions, places, timelines, lore, narrative rules, and campaigns whose participants contribute choices and consequences.
