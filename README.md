@@ -9,6 +9,7 @@
 
 [![Build and test](https://img.shields.io/github/actions/workflow/status/TrentBest/StoryBuilder/dotnet.yml?branch=development&style=flat-square&logo=github)](https://github.com/TrentBest/StoryBuilder/actions/workflows/dotnet.yml)
 
+[![Sith Policy](assets/sith-policy.svg)](https://github.com/TrentBest/StoryBuilder/actions/workflows/sith-policy.yml)
 **Build the Experience. Compose its history. Let the campaign make it live.**
 
 ## 🟦 01 What
