@@ -37,7 +37,8 @@ The .NET 8 domain core includes:
 - **Review lifecycle:** the optional StoryBuilder.FSM adapter uses FSM_API to govern draft, proposed, accepted, rejected, and deprecated transitions.
 - **Composition contract:** StoryBuilder.MicroBundle exposes authoring capabilities through MicroBundleDomain. An automated test composes it through FSM_COS; the bundle itself does not depend on the composition kernel.
 - **Book output and publication:** render deterministic Markdown and write UTF-8 output to a caller-owned stream; freeze content as a hashed publication edition, with corrected editions linked to their predecessors without rewriting earlier output.
-- **Persistence:** StoryBuilder.Persistence uses FSM_Serialization's binary stream contract with a versioned StoryBuilder workspace schema. Workspace format 12 stores canonical places, immutable publication snapshots, and durable Plot Twist promotion links; readers retain compatibility with formats 1–11. The WebDemo autosaves binary workspace bytes to browser localStorage.
+- **Visual asset provenance:** track character, scene, and manuscript-section artwork with append-only revisions, source links, prompts, content hashes, and approval evidence attached to the exact revision.
+- **Persistence:** StoryBuilder.Persistence uses FSM_Serialization's binary stream contract with a versioned StoryBuilder workspace schema. Workspace format 13 stores canonical places, immutable publication snapshots, durable Plot Twist promotion links, and versioned visual asset provenance; readers retain compatibility with formats 1–12. The WebDemo autosaves binary workspace bytes to browser localStorage.
 
 The architecture follows the Workshop's boundaries: [FSM_API](https://github.com/TrentBest/FSM_API) governs explicit state behavior where appropriate; [FSM_COS](https://github.com/TrentBest/TheSingularityWorkshop.FSM_COS) composes capabilities at the host boundary; [GUI](https://github.com/TrentBest/TheSingularityWorkshop.GUI) and GUI.SVG provide the semantic model and living SVG manifestation; [WebApp](https://github.com/TrentBest/TheSingularityWorkshop.WebApp) and [WebPage](https://github.com/TrentBest/WebPage) are the intended Workshop hosts. The local Blazor workbench now includes a GUI.SVG map rendered from live StoryBuilderSession records; embedding the Experience into the Workshop's WebPage remains open.
 
@@ -81,6 +82,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [Scene Capture](docs/SCENE_CAPTURE.md) — playing scenes, beat capture, pose sequences, and narration drafts.
 - [Vocabulary and Provenance](docs/VOCABULARY_AND_PROVENANCE.md) — synonym usage, attribution, source records, and canon status.
 - [Little Lenny Composition Pilot](docs/LENNY_COMPOSITION_PILOT.md) — the first author-respecting path from manuscript and StoryBuilder composition through visual assets, animation, and a GitHub Pages reading edition.
+- [Visual Asset Records](docs/VISUAL_ASSET_RECORDS.md) — the implemented asset/revision model, provenance rules, validation, and binary persistence contract.
 - [Gallery](docs/Gallery.md) — runnable recipes and honest evidence of current behavior.
 - [Development Status](docs/DEVELOPMENT_STATUS.md) — implemented scope and remaining operational gaps.
 - [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) — evidence-based gates for the first public source Alpha.
