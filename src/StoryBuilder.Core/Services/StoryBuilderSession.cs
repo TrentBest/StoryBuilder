@@ -227,6 +227,60 @@ public sealed class StoryBuilderSession
         }));
     }
 
+    /// <summary>Creates a visual asset linked to the story records it illustrates.</summary>
+    public VisualAssetRecord CreateVisualAsset(
+        string title,
+        VisualAssetKind kind,
+        Guid? characterId = null,
+        Guid? sceneId = null,
+        Guid? manuscriptSectionId = null,
+        IEnumerable<Guid>? sourceIds = null)
+    {
+        var asset = new VisualAssetRecord
+        {
+            Title = string.IsNullOrWhiteSpace(title) ? "Untitled visual asset" : title.Trim(),
+            Kind = kind,
+            CharacterId = characterId,
+            SceneId = sceneId,
+            ManuscriptSectionId = manuscriptSectionId,
+            SourceIds = sourceIds?.Distinct().ToList() ?? []
+        };
+        Workspace.AddVisualAsset(asset);
+        NotifyChanged();
+        return asset;
+    }
+
+    /// <summary>Appends a new immutable revision to an existing visual asset.</summary>
+    public VisualAssetRevision AddVisualAssetRevision(Guid assetId, VisualAssetRevision revision)
+    {
+        Workspace.AddVisualAssetRevision(assetId, revision);
+        NotifyChanged();
+        return revision;
+    }
+
+    /// <summary>Records an append-only review decision for one exact visual asset revision.</summary>
+    public VisualAssetReview ReviewVisualAssetRevision(
+        Guid assetId,
+        Guid revisionId,
+        VisualAssetReviewDecision decision,
+        string reviewer,
+        string? notes = null,
+        DateTimeOffset? reviewedAtUtc = null)
+    {
+        var review = new VisualAssetReview
+        {
+            AssetId = assetId,
+            RevisionId = revisionId,
+            Decision = decision,
+            Reviewer = string.IsNullOrWhiteSpace(reviewer) ? throw new ArgumentException("A reviewer is required.", nameof(reviewer)) : reviewer.Trim(),
+            ReviewedAtUtc = reviewedAtUtc ?? DateTimeOffset.UtcNow,
+            Notes = NormalizeOptional(notes)
+        };
+        Workspace.AddVisualAssetReview(review);
+        NotifyChanged();
+        return review;
+    }
+
     /// <summary>Freezes the current manuscript as a content-hashed publication snapshot.</summary>
     /// <remarks>Publishing a changed draft creates a new edition linked to the previous publication; existing snapshots are never modified.</remarks>
     public PublishedBookEdition PublishManuscript(Guid manuscriptId, string? correctionNotes = null)
