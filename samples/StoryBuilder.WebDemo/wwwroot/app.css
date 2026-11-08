@@ -103,3 +103,10 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
 .composition-preview-image { position: absolute; display: block; max-width: none; max-height: none; }
 .composition-preview-text { position: absolute; overflow: auto; white-space: pre-wrap; font-family: Georgia, serif; font-size: clamp(.7rem, 1.5vw, 1rem); line-height: 1.45; }
 @media (max-width: 760px) { .geometry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+
+.book-composition { position: relative; width: min(100%, 620px); aspect-ratio: 3 / 4; margin: 1rem auto; overflow: hidden; border: 1px solid var(--line); border-radius: .35rem; background: #f4f0e7; color: #20252b; box-shadow: 0 12px 28px #00000030; }
+.book-composition.landscape { aspect-ratio: 4 / 3; }
+.book-composition.square { aspect-ratio: 1; }
+.book-composition > img { position: absolute; display: block; max-width: none; max-height: none; }
+.book-composition-text { position: absolute; overflow: auto; white-space: pre-wrap; font-family: Georgia, serif; font-size: clamp(.72rem, 1.45vw, 1rem); line-height: 1.45; }
