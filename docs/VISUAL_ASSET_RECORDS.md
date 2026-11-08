@@ -7,9 +7,9 @@ Visual assets are workspace records, not loose file annotations. The workspace o
 - `VisualAssetRecord` is the stable identity for a creative target, such as Lenny's character turnaround, a beach environment guide, or a page illustration.
 - `VisualAssetRevision` is an immutable revision with its own identity, sequential revision number, durable asset location, media type, optional SHA-256, creation prompt, production notes, and review evidence.
 - Asset relationships may point to a character, scene, manuscript section, and any number of source records.
-- Revision states are `Proposed`, `InReview`, `Approved`, and `Rejected`.
+- Review decisions are separate append-only records: `Approved`, `Rejected`, or `ChangesRequested`.
 
-A revision is appended through `StoryWorkspace.AddVisualAssetRevision`. Existing revisions are not replaced when a new proposal is made. Approval is attached to one exact revision and requires both reviewer attribution and a timestamp. A later revision does not inherit approval.
+A revision is appended through `StoryWorkspace.AddVisualAssetRevision`. Existing revisions are not replaced when a new proposal is made. Reviews are appended through `StoryWorkspace.AddVisualAssetReview`; each points to one exact asset and revision and records reviewer attribution, timestamp, decision, and notes. A later revision does not inherit an earlier revision's approval. Review history is not overwritten when another decision is recorded.
 
 ## Provenance and canon
 
@@ -19,14 +19,15 @@ The asset record's source links establish which manuscript or reference material
 
 ## Persistence and integrity
 
-The binary workspace format is version 13. Earlier versions remain readable; they restore with an empty visual-asset collection. Version 13 serializes assets and all revisions explicitly.
+The binary workspace format is version 14. Earlier versions remain readable; versions 1–12 restore with no visual assets, and version 13 restores its assets with no review history. Version 14 serializes assets, immutable revisions, and append-only review decisions explicitly.
 
 Workspace validation checks:
 - workspace-wide identity uniqueness, including revision identities;
 - character, scene, manuscript-section, and source references;
 - sequential revision numbering;
 - SHA-256 syntax when a content hash is supplied;
-- reviewer and timestamp evidence for approved revisions.
+- valid review-to-asset and review-to-revision ownership links;
+- reviewer attribution on every review record.
 
 The workspace stores durable relative paths or URIs, never temporary machine-local paths. Media bytes are deliberately kept outside the binary workspace document.
 
