@@ -101,7 +101,7 @@ else
                     @if (PreviewImage is { } image)
                     {
                         <img class="composition-preview-image" src="@image.AssetLocation" alt="Latest illustration for @manuscriptSection.Title"
-                             style="@RegionStyle(SelectedComposition!.ImageRegion)" />
+                             style="@($"{RegionStyle(SelectedComposition!.ImageRegion)};object-fit:{SelectedComposition.ImageFit.ToString().ToLowerInvariant()}")" />
                     }
                     <div class="composition-preview-text" style="@RegionStyle(SelectedComposition!.TextRegion)">
                         @manuscriptSection.Body
