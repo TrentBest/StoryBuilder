@@ -10,16 +10,15 @@ public enum VisualAssetKind
     MotionStudy
 }
 
-/// <summary>The review state of one immutable visual asset revision.</summary>
-public enum VisualAssetRevisionStatus
+/// <summary>The decision recorded by an author or designated reviewer for one exact asset revision.</summary>
+public enum VisualAssetReviewDecision
 {
-    Proposed,
-    InReview,
     Approved,
-    Rejected
+    Rejected,
+    ChangesRequested
 }
 
-/// <summary>A versioned visual artifact. Revisions are append-only; approval belongs to one exact revision.</summary>
+/// <summary>A versioned visual artifact. Revisions are append-only; review decisions are separate records.</summary>
 public sealed record VisualAssetRecord
 {
     public Guid Id { get; init; } = Guid.NewGuid();
@@ -43,8 +42,16 @@ public sealed record VisualAssetRevision
     public string? ContentSha256 { get; init; }
     public string? CreationPrompt { get; init; }
     public string? ProductionNotes { get; init; }
-    public VisualAssetRevisionStatus Status { get; init; } = VisualAssetRevisionStatus.Proposed;
-    public string? ReviewedBy { get; init; }
-    public DateTimeOffset? ReviewedAtUtc { get; init; }
-    public string? ReviewNotes { get; init; }
+}
+
+/// <summary>An append-only review decision tied to one exact asset revision.</summary>
+public sealed record VisualAssetReview
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid AssetId { get; init; }
+    public Guid RevisionId { get; init; }
+    public VisualAssetReviewDecision Decision { get; init; }
+    public string Reviewer { get; init; } = string.Empty;
+    public DateTimeOffset ReviewedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public string? Notes { get; init; }
 }
