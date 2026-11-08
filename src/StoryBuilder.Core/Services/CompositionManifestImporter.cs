@@ -108,11 +108,21 @@ public static class CompositionManifestImporter
 
         foreach (var entry in sections)
         {
-            session.CreateVisualAsset(
+            var illustration = session.CreateVisualAsset(
                 $"Illustration — {entry.Key}",
                 VisualAssetKind.PageIllustration,
                 manuscriptSectionId: entry.Value,
                 sourceIds: [source.Id]);
+            session.Workspace.AddPageComposition(new PageComposition
+            {
+                ManuscriptSectionId = entry.Value,
+                VisualAssetId = illustration.Id,
+                Name = $"Page composition — {entry.Key}",
+                Orientation = PageCompositionOrientation.Portrait,
+                ImageFit = PageCompositionFit.Cover,
+                ImageRegion = new PageCompositionRegion { X = 0.04, Y = 0.04, Width = 0.92, Height = 0.66 },
+                TextRegion = new PageCompositionRegion { X = 0.08, Y = 0.74, Width = 0.84, Height = 0.2 }
+            });
         }
 
         return session;
