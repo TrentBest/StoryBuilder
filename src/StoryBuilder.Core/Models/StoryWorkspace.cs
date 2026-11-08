@@ -133,6 +133,7 @@ public sealed class StoryWorkspace
     private readonly List<SourceRecord> _sources = [];
     private readonly List<ContinuityIssue> _continuityIssues = [];
     private readonly List<VisualAssetRecord> _visualAssets = [];
+    private readonly List<VisualAssetReview> _visualAssetReviews = [];
 
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
@@ -155,6 +156,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
     public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
     public IReadOnlyList<VisualAssetRecord> VisualAssets => _visualAssets.AsReadOnly();
+    public IReadOnlyList<VisualAssetReview> VisualAssetReviews => _visualAssetReviews.AsReadOnly();
 
     public void AddTimeline(TimelineDefinition timeline)
     {
@@ -355,7 +357,18 @@ public sealed class StoryWorkspace
         _visualAssets.Add(asset);
     }
 
-    /// <summary>Appends a new revision; existing revisions and their approvals remain unchanged.</summary>
+    public void AddVisualAssetReview(VisualAssetReview review)
+    {
+        ArgumentNullException.ThrowIfNull(review);
+        EnsureUnique(_visualAssetReviews.Select(x => x.Id), review.Id, nameof(review));
+        var asset = _visualAssets.FirstOrDefault(item => item.Id == review.AssetId)
+            ?? throw new KeyNotFoundException($"Visual asset '{review.AssetId}' does not exist.");
+        if (!asset.Revisions.Any(item => item.Id == review.RevisionId))
+            throw new KeyNotFoundException($"Visual asset revision '{review.RevisionId}' does not exist on asset '{review.AssetId}'.");
+        _visualAssetReviews.Add(review);
+    }
+
+    /// <summary>Appends a new revision; existing revisions and their review history remain unchanged.</summary>
     public void AddVisualAssetRevision(Guid assetId, VisualAssetRevision revision)
     {
         ArgumentNullException.ThrowIfNull(revision);
