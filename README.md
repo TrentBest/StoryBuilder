@@ -80,6 +80,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [Character Creation](docs/CHARACTER_CREATION.md) — defaults, prompts, templates, and editable character profiles.
 - [Scene Capture](docs/SCENE_CAPTURE.md) — playing scenes, beat capture, pose sequences, and narration drafts.
 - [Vocabulary and Provenance](docs/VOCABULARY_AND_PROVENANCE.md) — synonym usage, attribution, source records, and canon status.
+- [Little Lenny Composition Pilot](docs/LENNY_COMPOSITION_PILOT.md) — the first author-respecting path from manuscript and StoryBuilder composition through visual assets, animation, and a GitHub Pages reading edition.
 - [Gallery](docs/Gallery.md) — runnable recipes and honest evidence of current behavior.
 - [Development Status](docs/DEVELOPMENT_STATUS.md) — implemented scope and remaining operational gaps.
 - [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) — evidence-based gates for the first public source Alpha.
