@@ -132,6 +132,7 @@ public sealed class StoryWorkspace
     private readonly List<ParticipantAction> _participantActions = [];
     private readonly List<SourceRecord> _sources = [];
     private readonly List<ContinuityIssue> _continuityIssues = [];
+    private readonly List<VisualAssetRecord> _visualAssets = [];
 
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
@@ -153,6 +154,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
     public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
+    public IReadOnlyList<VisualAssetRecord> VisualAssets => _visualAssets.AsReadOnly();
 
     public void AddTimeline(TimelineDefinition timeline)
     {
@@ -340,6 +342,31 @@ public sealed class StoryWorkspace
         ArgumentNullException.ThrowIfNull(issue);
         EnsureUnique(_continuityIssues.Select(x => x.Id), issue.Id, nameof(issue));
         _continuityIssues.Add(issue);
+    }
+
+    public void AddVisualAsset(VisualAssetRecord asset)
+    {
+        ArgumentNullException.ThrowIfNull(asset);
+        EnsureUnique(_visualAssets.Select(x => x.Id), asset.Id, nameof(asset));
+        if (asset.Revisions.Select(item => item.RevisionNumber).Distinct().Count() != asset.Revisions.Count || asset.Revisions.Any(item => item.RevisionNumber < 1))
+            throw new InvalidOperationException("Visual asset revision numbers must be unique positive integers.");
+        if (asset.Revisions.Select(item => item.Id).Distinct().Count() != asset.Revisions.Count)
+            throw new InvalidOperationException("Visual asset revision identities must be unique.");
+        _visualAssets.Add(asset);
+    }
+
+    /// <summary>Appends a new revision; existing revisions and their approvals remain unchanged.</summary>
+    public void AddVisualAssetRevision(Guid assetId, VisualAssetRevision revision)
+    {
+        ArgumentNullException.ThrowIfNull(revision);
+        var index = _visualAssets.FindIndex(item => item.Id == assetId);
+        if (index < 0) throw new KeyNotFoundException($"Visual asset '{assetId}' does not exist.");
+        var asset = _visualAssets[index];
+        if (revision.RevisionNumber != asset.Revisions.Count + 1)
+            throw new InvalidOperationException("A visual asset revision must be appended using the next sequential revision number.");
+        if (asset.Revisions.Any(item => item.Id == revision.Id))
+            throw new InvalidOperationException($"Visual asset revision '{revision.Id}' already exists.");
+        _visualAssets[index] = asset with { Revisions = [.. asset.Revisions, revision] };
     }
 
     private static void ReplaceById<T>(List<T> records, Guid id, T replacement, string parameterName)
