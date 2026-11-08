@@ -250,6 +250,15 @@ public sealed class StoryBuilderSession
         return asset;
     }
 
+    /// <summary>Updates a page layout while preserving its stable identity and linked story records.</summary>
+    public PageComposition UpdatePageComposition(PageComposition composition)
+    {
+        ArgumentNullException.ThrowIfNull(composition);
+        Workspace.ReplacePageComposition(composition);
+        NotifyChanged();
+        return composition;
+    }
+
     /// <summary>Appends a new immutable revision to an existing visual asset.</summary>
     public VisualAssetRevision AddVisualAssetRevision(Guid assetId, VisualAssetRevision revision)
     {
