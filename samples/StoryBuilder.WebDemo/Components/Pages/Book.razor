@@ -112,14 +112,7 @@
                         @if (FindComposition(section.Id) is { } composition)
                         {
                             var illustration = FindCompositionImage(composition);
-                            <div class="book-composition @(composition.Orientation.ToString().ToLowerInvariant())">
-                                @if (illustration is not null)
-                                {
-                                    <img src="@illustration.AssetLocation" alt="Illustration for @section.Title"
-                                         style="@($"{RegionStyle(composition.ImageRegion)};object-fit:{composition.ImageFit.ToString().ToLowerInvariant()}")" />
-                                }
-                                <div class="book-composition-text" style="@RegionStyle(composition.TextRegion)">@section.Body</div>
-                            </div>
+                            <PageCompositionView Composition="composition" Section="section" Illustration="illustration" CssClass="book-composition" />
                         }
                         else if (string.IsNullOrWhiteSpace(section.Body))
                         {
@@ -217,9 +210,6 @@
         composition.VisualAssetId is Guid assetId
             ? Session.Workspace.VisualAssets.FirstOrDefault(item => item.Id == assetId)?.Revisions.LastOrDefault()
             : null;
-
-    private static string RegionStyle(PageCompositionRegion region) =>
-        $"left:{region.X * 100:0.####}%;top:{region.Y * 100:0.####}%;width:{region.Width * 100:0.####}%;height:{region.Height * 100:0.####}%";
 
     private ManuscriptEdition? CurrentManuscript =>
         Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == selectedManuscriptId)
