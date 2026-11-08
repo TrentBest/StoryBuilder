@@ -16,6 +16,11 @@ public sealed record PageComposition
     public PageCompositionRegion ImageRegion { get; init; } = new() { X = 0.05, Y = 0.05, Width = 0.9, Height = 0.62 };
     public string? FocalPoint { get; init; }
     public int LayerOrder { get; init; }
+    /// <summary>Optional normalized region that readers must discover to advance this page interactively.</summary>
+    public PageCompositionRegion? DiscoveryRegion { get; init; }
+    public string? DiscoveryPrompt { get; init; }
+    /// <summary>Seconds before the discovery target begins its gentle breathing hint.</summary>
+    public int DiscoveryHintDelaySeconds { get; init; } = 12;
 }
 
 public sealed record PageCompositionRegion
