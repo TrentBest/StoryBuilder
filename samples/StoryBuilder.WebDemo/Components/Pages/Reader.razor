@@ -1,3 +1,4 @@
+@using Microsoft.AspNetCore.Components.Web
 @page "/reader"
 @implements IDisposable
 @inject StoryBuilderSession Session
@@ -42,7 +43,7 @@ else
             <span style="width:@($"{(currentIndex + 1) * 100d / Sections.Count:0.##}%")"></span>
         </div>
 
-        <article class="reader-page" @key="CurrentSection.Id">
+        <article class="reader-page" @key="CurrentSection.Id" tabindex="0" @onkeydown="HandlePageKey" aria-label="Page @((currentIndex + 1)) of @Sections.Count: @CurrentSection.Title">
             @if (FindComposition(CurrentSection.Id) is { } composition)
             {
                 var illustration = FindCompositionImage(composition);
@@ -63,6 +64,15 @@ else
 
         <div class="reader-controls">
             <button class="secondary" @onclick="Previous" disabled="@(currentIndex == 0)">← Previous</button>
+            <label class="reader-page-jump">
+                <span class="muted">Page</span>
+                <select value="@currentIndex" @onchange="JumpToPage" aria-label="Jump to page">
+                    @for (var index = 0; index < Sections.Count; index++)
+                    {
+                        <option value="@index">@(index + 1) · @Sections[index].Kind — @Sections[index].Title</option>
+                    }
+                </select>
+            </label>
             <div class="reader-counter"><strong>@(currentIndex + 1)</strong><span>of @Sections.Count</span></div>
             <button @onclick="Next" disabled="@(currentIndex >= Sections.Count - 1)">Next →</button>
         </div>
@@ -109,6 +119,31 @@ else
 
     private void Previous() => currentIndex = Math.Max(0, currentIndex - 1);
     private void Next() => currentIndex = Math.Min(Sections.Count - 1, currentIndex + 1);
+
+    private void JumpToPage(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out var index))
+            currentIndex = Math.Clamp(index, 0, Math.Max(0, Sections.Count - 1));
+    }
+
+    private void HandlePageKey(KeyboardEventArgs args)
+    {
+        switch (args.Key)
+        {
+            case "ArrowLeft":
+                Previous();
+                break;
+            case "ArrowRight":
+                Next();
+                break;
+            case "Home":
+                currentIndex = 0;
+                break;
+            case "End":
+                currentIndex = Math.Max(0, Sections.Count - 1);
+                break;
+        }
+    }
 
     private void OnSessionChanged()
     {
