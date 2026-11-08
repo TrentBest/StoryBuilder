@@ -47,7 +47,7 @@ else
             @if (FindComposition(CurrentSection.Id) is { } composition)
             {
                 var illustration = FindCompositionImage(composition);
-                <PageCompositionView Composition="composition" Section="CurrentSection" Illustration="illustration" CssClass="reader-composition" />
+                <PageCompositionView Composition="composition" Section="CurrentSection" Illustration="illustration" CssClass="reader-composition" OnDiscoveryFound="AdvanceFromDiscovery" />
             }
             else
             {
@@ -74,7 +74,7 @@ else
                 </select>
             </label>
             <div class="reader-counter"><strong>@(currentIndex + 1)</strong><span>of @Sections.Count</span></div>
-            <button @onclick="Next" disabled="@(currentIndex >= Sections.Count - 1)">Next →</button>
+            <button class="reader-page-turn" @onclick="Next" disabled="@(!CanAdvance)">@(HasDiscovery && !discoveryFound ? "Find it on the page" : "Turn the page →")</button>
         </div>
         <div class="reader-footer">
             <span>@CurrentSection.Kind · @CurrentSection.Sequence</span>
@@ -86,6 +86,7 @@ else
 @code {
     private Guid? selectedManuscriptId;
     private int currentIndex;
+    private bool discoveryFound;
 
     private ManuscriptEdition? CurrentManuscript =>
         Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == selectedManuscriptId)
@@ -95,6 +96,9 @@ else
         CurrentManuscript?.Sections.OrderBy(item => item.Sequence).ToList() ?? [];
 
     private ManuscriptSection CurrentSection => Sections[Math.Clamp(currentIndex, 0, Sections.Count - 1)];
+    private PageComposition? CurrentComposition => FindComposition(CurrentSection.Id);
+    private bool HasDiscovery => CurrentComposition?.DiscoveryRegion is not null;
+    private bool CanAdvance => currentIndex < Sections.Count - 1 && (!HasDiscovery || discoveryFound);
 
     private PageComposition? FindComposition(Guid sectionId) =>
         Session.Workspace.PageCompositions.FirstOrDefault(item => item.ManuscriptSectionId == sectionId);
@@ -115,15 +119,34 @@ else
         if (Guid.TryParse(args.Value?.ToString(), out var id))
             selectedManuscriptId = id;
         currentIndex = 0;
+        discoveryFound = false;
     }
 
-    private void Previous() => currentIndex = Math.Max(0, currentIndex - 1);
-    private void Next() => currentIndex = Math.Min(Sections.Count - 1, currentIndex + 1);
+    private void Previous()
+    {
+        currentIndex = Math.Max(0, currentIndex - 1);
+        discoveryFound = false;
+    }
+
+    private void Next()
+    {
+        if (!CanAdvance) return;
+        currentIndex = Math.Min(Sections.Count - 1, currentIndex + 1);
+        discoveryFound = false;
+    }
+
+    private void AdvanceFromDiscovery()
+    {
+        if (!HasDiscovery || currentIndex >= Sections.Count - 1) return;
+        discoveryFound = true;
+        Next();
+    }
 
     private void JumpToPage(ChangeEventArgs args)
     {
         if (int.TryParse(args.Value?.ToString(), out var index))
             currentIndex = Math.Clamp(index, 0, Math.Max(0, Sections.Count - 1));
+        discoveryFound = false;
     }
 
     private void HandlePageKey(KeyboardEventArgs args)
@@ -138,9 +161,12 @@ else
                 break;
             case "Home":
                 currentIndex = 0;
+                discoveryFound = false;
                 break;
             case "End":
-                currentIndex = Math.Max(0, Sections.Count - 1);
+                if (!HasDiscovery || discoveryFound)
+                    currentIndex = Math.Max(0, Sections.Count - 1);
+                discoveryFound = false;
                 break;
         }
     }
@@ -148,6 +174,7 @@ else
     private void OnSessionChanged()
     {
         currentIndex = Math.Clamp(currentIndex, 0, Math.Max(0, Sections.Count - 1));
+        discoveryFound = false;
         _ = InvokeAsync(StateHasChanged);
     }
 
