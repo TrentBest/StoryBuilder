@@ -11,7 +11,7 @@
   ],
   "branch_count": 2,
   "status": "COMPLIANT",
-  "evaluated_at": "2026-11-08T20:49:00Z",
-  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/42522016834",
-  "triggering_commit": "48041d03c2903ecb1ae2f8be545d07415dfab576"
+  "evaluated_at": "2026-11-08T20:49:09Z",
+  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/42522022359",
+  "triggering_commit": "6eeca93f01e3a764a9d4051dfaa404ed46ef23a7"
 }
