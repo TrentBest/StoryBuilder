@@ -142,7 +142,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
     .reader-toolbar { align-items: flex-start; flex-direction: column; }
     .reader-book-select { width: 100%; }
     .reader-controls { grid-template-columns: 1fr 1fr; }
-    .reader-page-jump { grid-column: 1 / -1; grid-row: 1; }
+    .reader-page-jump { grid-column: 1 / -1; }
     .reader-counter { justify-self: center; }
     .reader-text-page { min-height: 65vh; padding: 2rem 1.4rem; }
     .reader-footer { flex-direction: column; gap: .25rem; }
