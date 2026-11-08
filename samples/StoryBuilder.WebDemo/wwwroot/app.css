@@ -141,3 +141,18 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
     .reader-text-page { min-height: 65vh; padding: 2rem 1.4rem; }
     .reader-footer { flex-direction: column; gap: .25rem; }
 }
+
+
+/* One renderer owns page geometry across studio, book preview, and reader. */
+.page-composition-view { position: relative; overflow: hidden; }
+.page-composition-view.portrait { aspect-ratio: 3 / 4; }
+.page-composition-view.landscape { aspect-ratio: 4 / 3; }
+.page-composition-view.square { aspect-ratio: 1; }
+.page-composition-image { position: absolute; display: block; max-width: none; max-height: none; }
+.page-composition-text { position: absolute; overflow: auto; white-space: pre-wrap; font-family: Georgia, serif; }
+.composition-preview.page-composition-view { width: min(100%, 620px); margin: 0 auto; border: 1px solid var(--line); border-radius: .7rem; background: #f4f0e7; color: #20252b; }
+.composition-preview .page-composition-text { font-size: clamp(.7rem, 1.5vw, 1rem); line-height: 1.45; }
+.book-composition.page-composition-view { width: min(100%, 620px); margin: 1rem auto; border: 1px solid var(--line); border-radius: .35rem; background: #f4f0e7; color: #20252b; box-shadow: 0 12px 28px #00000030; }
+.book-composition .page-composition-text { font-size: clamp(.72rem, 1.45vw, 1rem); line-height: 1.45; }
+.reader-composition.page-composition-view { width: min(100%, 700px); margin: 0 auto; border: 1px solid #d6d0c4; border-radius: .2rem; background: #f4f0e7; color: #20252b; box-shadow: 0 16px 40px #00000035; }
+.reader-composition .page-composition-text { font-size: clamp(.78rem, 1.55vw, 1.05rem); line-height: 1.55; }
