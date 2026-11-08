@@ -355,8 +355,7 @@ public sealed class StoryWorkspacePersistenceTests
                 {
                     RevisionNumber = 1,
                     AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v1.png",
-                    CreationPrompt = "Provisional character design; do not infer unspecified traits as canon.",
-                    Status = VisualAssetRevisionStatus.Proposed
+                    CreationPrompt = "Provisional character design; do not infer unspecified traits as canon."
                 }
             ]
         };
@@ -364,11 +363,16 @@ public sealed class StoryWorkspacePersistenceTests
         session.Workspace.AddVisualAssetRevision(asset.Id, new VisualAssetRevision
         {
             RevisionNumber = 2,
-            AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v2.png",
-            Status = VisualAssetRevisionStatus.Approved,
-            ReviewedBy = "Author",
+            AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v2.png"
+        });
+        session.Workspace.AddVisualAssetReview(new VisualAssetReview
+        {
+            AssetId = asset.Id,
+            RevisionId = asset.Revisions[1].Id,
+            Decision = VisualAssetReviewDecision.Approved,
+            Reviewer = "Author",
             ReviewedAtUtc = DateTimeOffset.Parse("2026-11-08T07:00:00Z"),
-            ReviewNotes = "Approved character design."
+            Notes = "Approved character design."
         });
 
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
@@ -384,10 +388,12 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(section.Sections[0].Id, restoredAsset.ManuscriptSectionId);
         Assert.Equal(source.Id, Assert.Single(restoredAsset.SourceIds));
         Assert.Equal(2, restoredAsset.Revisions.Count);
-        Assert.Equal(VisualAssetRevisionStatus.Proposed, restoredAsset.Revisions[0].Status);
-        Assert.Equal(VisualAssetRevisionStatus.Approved, restoredAsset.Revisions[1].Status);
-        Assert.Equal("Author", restoredAsset.Revisions[1].ReviewedBy);
-        Assert.Equal(DateTimeOffset.Parse("2026-11-08T07:00:00Z"), restoredAsset.Revisions[1].ReviewedAtUtc);
+        var review = Assert.Single(restored.Workspace.VisualAssetReviews);
+        Assert.Equal(asset.Id, review.AssetId);
+        Assert.Equal(restoredAsset.Revisions[1].Id, review.RevisionId);
+        Assert.Equal(VisualAssetReviewDecision.Approved, review.Decision);
+        Assert.Equal("Author", review.Reviewer);
+        Assert.Equal(DateTimeOffset.Parse("2026-11-08T07:00:00Z"), review.ReviewedAtUtc);
     }
 
 }
