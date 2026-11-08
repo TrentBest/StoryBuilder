@@ -81,6 +81,34 @@ else
                     <label>Width <input type="number" min="0.01" max="1" step="0.01" @bind="imageWidth" /></label>
                     <label>Height <input type="number" min="0.01" max="1" step="0.01" @bind="imageHeight" /></label>
                 </div>
+                <hr />
+                <div class="eyebrow">Discovery interaction · optional</div>
+                <div class="field">
+                    <label for="discovery-enabled">Page turn discovery</label>
+                    <select id="discovery-enabled" @bind="discoveryEnabled">
+                        <option value="false">Off · ordinary page turn</option>
+                        <option value="true">On · reader must find the target</option>
+                    </select>
+                </div>
+                @if (discoveryEnabled)
+                {
+                    <div class="field">
+                        <label for="discovery-prompt">Discovery hint text</label>
+                        <input id="discovery-prompt" @bind="discoveryPrompt" placeholder="Something on this beach needs your help..." />
+                    </div>
+                    <div class="field">
+                        <label for="discovery-delay">Seconds before the target breathes</label>
+                        <input id="discovery-delay" type="number" min="0" max="120" @bind="discoveryDelay" />
+                    </div>
+                    <div class="eyebrow">Target region · normalized page coordinates</div>
+                    <div class="geometry-grid">
+                        <label>X <input type="number" min="0" max="1" step="0.01" @bind="discoveryX" /></label>
+                        <label>Y <input type="number" min="0" max="1" step="0.01" @bind="discoveryY" /></label>
+                        <label>Width <input type="number" min="0.01" max="1" step="0.01" @bind="discoveryWidth" /></label>
+                        <label>Height <input type="number" min="0.01" max="1" step="0.01" @bind="discoveryHeight" /></label>
+                    </div>
+                    <p class="muted">Place this region over the object in the illustration. The reader will be able to find it even before the breathing hint appears.</p>
+                }
                 <div class="field">
                     <label for="focal">Focal point note (optional)</label>
                     <input id="focal" @bind="focalPoint" placeholder="e.g. Lenny's expression" />
@@ -114,6 +142,10 @@ else
     private string imageFit = nameof(PageCompositionFit.Contain);
     private string visualAssetId = string.Empty;
     private string focalPoint = string.Empty;
+    private bool discoveryEnabled;
+    private string discoveryPrompt = string.Empty;
+    private int discoveryDelay = 12;
+    private double discoveryX = 0.42, discoveryY = 0.42, discoveryWidth = 0.16, discoveryHeight = 0.12;
     private double textX, textY, textWidth, textHeight, imageX, imageY, imageWidth, imageHeight;
     private string saveMessage = string.Empty;
     private string saveError = string.Empty;
@@ -151,6 +183,14 @@ else
         imageFit = item.ImageFit.ToString();
         visualAssetId = item.VisualAssetId?.ToString() ?? string.Empty;
         focalPoint = item.FocalPoint ?? string.Empty;
+        discoveryEnabled = item.DiscoveryRegion is not null;
+        discoveryPrompt = item.DiscoveryPrompt ?? string.Empty;
+        discoveryDelay = item.DiscoveryHintDelaySeconds;
+        if (item.DiscoveryRegion is { } target)
+        {
+            discoveryX = target.X; discoveryY = target.Y;
+            discoveryWidth = target.Width; discoveryHeight = target.Height;
+        }
         textX = item.TextRegion.X; textY = item.TextRegion.Y;
         textWidth = item.TextRegion.Width; textHeight = item.TextRegion.Height;
         imageX = item.ImageRegion.X; imageY = item.ImageRegion.Y;
@@ -172,6 +212,11 @@ else
                 ImageFit = parsedFit,
                 VisualAssetId = Guid.TryParse(visualAssetId, out var assetId) ? assetId : null,
                 FocalPoint = string.IsNullOrWhiteSpace(focalPoint) ? null : focalPoint.Trim(),
+                DiscoveryRegion = discoveryEnabled
+                    ? new PageCompositionRegion { X = discoveryX, Y = discoveryY, Width = discoveryWidth, Height = discoveryHeight }
+                    : null,
+                DiscoveryPrompt = discoveryEnabled && !string.IsNullOrWhiteSpace(discoveryPrompt) ? discoveryPrompt.Trim() : null,
+                DiscoveryHintDelaySeconds = Math.Clamp(discoveryDelay, 0, 120),
                 TextRegion = new PageCompositionRegion { X = textX, Y = textY, Width = textWidth, Height = textHeight },
                 ImageRegion = new PageCompositionRegion { X = imageX, Y = imageY, Width = imageWidth, Height = imageHeight }
             };
