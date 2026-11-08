@@ -134,6 +134,7 @@ public sealed class StoryWorkspace
     private readonly List<ContinuityIssue> _continuityIssues = [];
     private readonly List<VisualAssetRecord> _visualAssets = [];
     private readonly List<VisualAssetReview> _visualAssetReviews = [];
+    private readonly List<PageComposition> _pageCompositions = [];
 
     public Guid Id { get; init; } = Guid.NewGuid();
     public string Name { get; set; } = "StoryBuilder";
@@ -157,6 +158,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
     public IReadOnlyList<VisualAssetRecord> VisualAssets => _visualAssets.AsReadOnly();
     public IReadOnlyList<VisualAssetReview> VisualAssetReviews => _visualAssetReviews.AsReadOnly();
+    public IReadOnlyList<PageComposition> PageCompositions => _pageCompositions.AsReadOnly();
 
     public void AddTimeline(TimelineDefinition timeline)
     {
@@ -356,6 +358,23 @@ public sealed class StoryWorkspace
             throw new InvalidOperationException("Visual asset revision identities must be unique.");
         _visualAssets.Add(asset);
     }
+
+    public void AddPageComposition(PageComposition composition)
+    {
+        ArgumentNullException.ThrowIfNull(composition);
+        EnsureUnique(_pageCompositions.Select(item => item.Id), composition.Id, nameof(composition));
+        if (composition.ManuscriptSectionId == Guid.Empty)
+            throw new InvalidOperationException("A page composition must reference a manuscript section.");
+        if (!IsNormalized(composition.TextRegion) || !IsNormalized(composition.ImageRegion))
+            throw new InvalidOperationException("Page composition regions must fit within normalized page bounds (0..1).");
+        _pageCompositions.Add(composition);
+    }
+
+    private static bool IsNormalized(PageCompositionRegion region) =>
+        double.IsFinite(region.X) && double.IsFinite(region.Y) &&
+        double.IsFinite(region.Width) && double.IsFinite(region.Height) &&
+        region.X >= 0 && region.Y >= 0 && region.Width > 0 && region.Height > 0 &&
+        region.X + region.Width <= 1 && region.Y + region.Height <= 1;
 
     public void AddVisualAssetReview(VisualAssetReview review)
     {
