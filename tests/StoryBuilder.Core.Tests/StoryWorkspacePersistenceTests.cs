@@ -340,7 +340,7 @@ public sealed class StoryWorkspacePersistenceTests
         var source = new SourceRecord { Title = "Lenny source manuscript", SourceType = "Author manuscript" };
         session.Workspace.AddSource(source);
         var manuscript = session.CreateManuscript("Lenny");
-        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Page, "Page 1");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Page 1");
 
         var asset = new VisualAssetRecord
         {
