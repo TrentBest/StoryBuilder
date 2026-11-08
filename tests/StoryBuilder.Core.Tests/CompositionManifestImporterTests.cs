@@ -47,6 +47,14 @@ public sealed class CompositionManifestImporterTests
             asset => Assert.NotNull(asset.ManuscriptSectionId));
         Assert.All(session.Workspace.Characters, character =>
             Assert.Contains("provisional", character.Notes["Visual design"], StringComparison.OrdinalIgnoreCase));
+        Assert.Equal(33, session.Workspace.PageCompositions.Count);
+        Assert.All(session.Workspace.PageCompositions, composition =>
+        {
+            Assert.Contains(ordered, section => section.Id == composition.ManuscriptSectionId);
+            Assert.Contains(session.Workspace.VisualAssets, asset => asset.Id == composition.VisualAssetId);
+            Assert.InRange(composition.ImageRegion.X, 0, 1);
+            Assert.InRange(composition.ImageRegion.X + composition.ImageRegion.Width, 0, 1);
+        });
         Assert.Single(session.Workspace.Sources);
     }
 
