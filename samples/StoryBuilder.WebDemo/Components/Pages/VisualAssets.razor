@@ -1,0 +1,268 @@
+@page "/visual-assets"
+@implements IDisposable
+@inject StoryBuilderSession Session
+
+<PageTitle>Visual Assets · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Composition studio · Visual provenance</div>
+    <h1>Give every image a story identity.</h1>
+    <p class="lede">Track the artwork that belongs to a character, scene, or manuscript page. Revisions are append-only; author decisions are recorded against the exact revision they reviewed. This workbench records metadata and repository paths—the image files themselves live in your asset tree.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">Create a visual asset</div>
+        <div class="field">
+            <label for="asset-title">Asset title</label>
+            <input id="asset-title" @bind="assetTitle" placeholder="Lenny character turnaround" />
+        </div>
+        <div class="field">
+            <label for="asset-kind">Asset kind</label>
+            <select id="asset-kind" @bind="assetKind">
+                @foreach (var kind in Enum.GetValues<VisualAssetKind>())
+                {
+                    <option value="@kind">@kind</option>
+                }
+            </select>
+        </div>
+        <div class="field">
+            <label for="asset-character">Character (optional)</label>
+            <select id="asset-character" @bind="assetCharacterId">
+                <option value="">Not character-specific</option>
+                @foreach (var character in Session.Workspace.Characters)
+                {
+                    <option value="@character.Id">@character.Name</option>
+                }
+            </select>
+        </div>
+        <div class="field">
+            <label for="asset-scene">Scene (optional)</label>
+            <select id="asset-scene" @bind="assetSceneId">
+                <option value="">Not scene-specific</option>
+                @foreach (var scene in Session.Workspace.Scenes)
+                {
+                    <option value="@scene.Id">@scene.Title</option>
+                }
+            </select>
+        </div>
+        <div class="field">
+            <label for="asset-section">Manuscript section (optional)</label>
+            <select id="asset-section" @bind="assetSectionId">
+                <option value="">Not page-specific</option>
+                @foreach (var manuscript in Session.Workspace.Manuscripts)
+                {
+                    @foreach (var section in manuscript.Sections.OrderBy(item => item.Sequence))
+                    {
+                        <option value="@section.Id">@manuscript.Title · @section.Title</option>
+                    }
+                }
+            </select>
+        </div>
+        <button @onclick="CreateAsset">Create asset record</button>
+        <p class="muted">Unspecified character traits remain unspecified. A proposed illustration does not become character canon just because it looks convincing.</p>
+
+        <hr />
+        <div class="eyebrow">Workspace visual assets · @Session.Workspace.VisualAssets.Count</div>
+        @if (Session.Workspace.VisualAssets.Count == 0)
+        {
+            <div class="empty">No visual assets yet. Start with a character turnaround or an environment guide.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var asset in Session.Workspace.VisualAssets)
+                {
+                    <button class="list-item @(SelectedAsset?.Id == asset.Id ? "selected" : "")" @onclick="() => SelectAsset(asset.Id)">
+                        <strong>@asset.Title</strong>
+                        <span>@asset.Kind · @asset.Revisions.Count revision(s)</span>
+                        <span>@ReviewSummary(asset.Id)</span>
+                    </button>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="panel stack">
+        @if (SelectedAsset is null)
+        {
+            <div class="eyebrow">Revision workshop</div>
+            <h2>Select an asset</h2>
+            <p class="empty">Choose an asset record to add a revision and record an author review.</p>
+        }
+        else
+        {
+            <div class="eyebrow">Asset identity · @SelectedAsset.Kind</div>
+            <h2>@SelectedAsset.Title</h2>
+            <p class="muted">Stable ID: @SelectedAsset.Id</p>
+            <div class="eyebrow">Create the next immutable revision</div>
+            <div class="field">
+                <label for="revision-location">Repository-relative path or durable URI</label>
+                <input id="revision-location" @bind="revisionLocation" placeholder="experiences/Lenny/Visuals/lenny-turnaround-v1.png" />
+            </div>
+            <div class="field">
+                <label for="revision-media">Media type</label>
+                <input id="revision-media" @bind="revisionMediaType" />
+            </div>
+            <div class="field">
+                <label for="revision-prompt">Creation prompt / visual brief</label>
+                <textarea id="revision-prompt" @bind="revisionPrompt" rows="4" placeholder="Record the prompt or instructions used to create this revision."></textarea>
+            </div>
+            <div class="field">
+                <label for="revision-notes">Production notes</label>
+                <textarea id="revision-notes" @bind="revisionNotes" rows="2" placeholder="Continuity notes, source references, or changes from the previous revision."></textarea>
+            </div>
+            <button @onclick="AddRevision" disabled="@string.IsNullOrWhiteSpace(revisionLocation)">Append revision @(SelectedAsset.Revisions.Count + 1)</button>
+
+            <hr />
+            <div class="eyebrow">Revision history · immutable</div>
+            @if (SelectedAsset.Revisions.Count == 0)
+            {
+                <div class="empty">This asset has no media revision yet.</div>
+            }
+            else
+            {
+                @foreach (var revision in SelectedAsset.Revisions.OrderBy(item => item.RevisionNumber))
+                {
+                    <article class="list-item">
+                        <strong>Revision @revision.RevisionNumber</strong>
+                        <span>@revision.AssetLocation</span>
+                        <span>@revision.MediaType · @revision.Id</span>
+                        @if (!string.IsNullOrWhiteSpace(revision.CreationPrompt))
+                        {
+                            <p>@revision.CreationPrompt</p>
+                        }
+                        @if (Session.Workspace.VisualAssetReviews.Any(item => item.RevisionId == revision.Id))
+                        {
+                            @foreach (var review in Session.Workspace.VisualAssetReviews.Where(item => item.RevisionId == revision.Id).OrderBy(item => item.ReviewedAtUtc))
+                            {
+                                <span>Review: @review.Decision · @review.Reviewer · @review.ReviewedAtUtc.ToLocalTime().ToString("g")</span>
+                                @if (!string.IsNullOrWhiteSpace(review.Notes))
+                                {
+                                    <span>@review.Notes</span>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <span class="muted">No review recorded for this revision.</span>
+                        }
+                    </article>
+                }
+            }
+
+            @if (SelectedAsset.Revisions.Count > 0)
+            {
+                <hr />
+                <div class="eyebrow">Record an author decision</div>
+                <div class="field">
+                    <label for="review-revision">Exact revision</label>
+                    <select id="review-revision" @bind="reviewRevisionId">
+                        @foreach (var revision in SelectedAsset.Revisions.OrderByDescending(item => item.RevisionNumber))
+                        {
+                            <option value="@revision.Id">Revision @revision.RevisionNumber</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="review-decision">Decision</label>
+                    <select id="review-decision" @bind="reviewDecision">
+                        @foreach (var decision in Enum.GetValues<VisualAssetReviewDecision>())
+                        {
+                            <option value="@decision">@decision</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="reviewer">Reviewer</label>
+                    <input id="reviewer" @bind="reviewer" placeholder="Author or reviewer name" />
+                </div>
+                <div class="field">
+                    <label for="review-notes">Review notes</label>
+                    <textarea id="review-notes" @bind="reviewNotes" rows="3" placeholder="What is approved, what needs to change, or why is it rejected?"></textarea>
+                </div>
+                <button @onclick="RecordReview" disabled="@string.IsNullOrWhiteSpace(reviewer)">Append review decision</button>
+            }
+        }
+    </section>
+</div>
+
+@code {
+    private string assetTitle = string.Empty;
+    private string assetKind = nameof(VisualAssetKind.CharacterDesign);
+    private string assetCharacterId = string.Empty;
+    private string assetSceneId = string.Empty;
+    private string assetSectionId = string.Empty;
+    private Guid? selectedAssetId;
+    private string revisionLocation = string.Empty;
+    private string revisionMediaType = "image/png";
+    private string revisionPrompt = string.Empty;
+    private string revisionNotes = string.Empty;
+    private string reviewRevisionId = string.Empty;
+    private string reviewDecision = nameof(VisualAssetReviewDecision.Approved);
+    private string reviewer = string.Empty;
+    private string reviewNotes = string.Empty;
+
+    private VisualAssetRecord? SelectedAsset =>
+        Session.Workspace.VisualAssets.FirstOrDefault(item => item.Id == selectedAssetId);
+
+    protected override void OnInitialized() => Session.Changed += OnSessionChanged;
+
+    private void CreateAsset()
+    {
+        var kind = Enum.TryParse<VisualAssetKind>(assetKind, out var parsed) ? parsed : VisualAssetKind.PageIllustration;
+        var asset = Session.CreateVisualAsset(assetTitle, kind,
+            Guid.TryParse(assetCharacterId, out var characterId) ? characterId : null,
+            Guid.TryParse(assetSceneId, out var sceneId) ? sceneId : null,
+            Guid.TryParse(assetSectionId, out var sectionId) ? sectionId : null);
+        selectedAssetId = asset.Id;
+        assetTitle = string.Empty;
+    }
+
+    private void SelectAsset(Guid id)
+    {
+        selectedAssetId = id;
+        reviewRevisionId = SelectedAsset?.Revisions.OrderByDescending(item => item.RevisionNumber).FirstOrDefault()?.Id.ToString() ?? string.Empty;
+    }
+
+    private void AddRevision()
+    {
+        if (SelectedAsset is null || string.IsNullOrWhiteSpace(revisionLocation))
+            return;
+        var revision = new VisualAssetRevision
+        {
+            RevisionNumber = SelectedAsset.Revisions.Count + 1,
+            AssetLocation = revisionLocation.Trim(),
+            MediaType = string.IsNullOrWhiteSpace(revisionMediaType) ? "application/octet-stream" : revisionMediaType.Trim(),
+            CreationPrompt = string.IsNullOrWhiteSpace(revisionPrompt) ? null : revisionPrompt.Trim(),
+            ProductionNotes = string.IsNullOrWhiteSpace(revisionNotes) ? null : revisionNotes.Trim()
+        };
+        Session.AddVisualAssetRevision(SelectedAsset.Id, revision);
+        reviewRevisionId = revision.Id.ToString();
+        revisionLocation = string.Empty;
+        revisionPrompt = string.Empty;
+        revisionNotes = string.Empty;
+    }
+
+    private void RecordReview()
+    {
+        if (SelectedAsset is null || !Guid.TryParse(reviewRevisionId, out var revisionId) ||
+            !Enum.TryParse<VisualAssetReviewDecision>(reviewDecision, out var decision) ||
+            string.IsNullOrWhiteSpace(reviewer))
+            return;
+        Session.ReviewVisualAssetRevision(SelectedAsset.Id, revisionId, decision, reviewer, reviewNotes);
+        reviewNotes = string.Empty;
+    }
+
+    private string ReviewSummary(Guid assetId)
+    {
+        var reviews = Session.Workspace.VisualAssetReviews.Where(item => item.AssetId == assetId).ToArray();
+        if (reviews.Length == 0) return "Awaiting review";
+        var latest = reviews.OrderByDescending(item => item.ReviewedAtUtc).First();
+        return $"{latest.Decision} · {latest.Reviewer}";
+    }
+
+    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}
