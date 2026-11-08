@@ -59,6 +59,8 @@ Approval should be attached to a specific asset revision and its source/provenan
 
 ## Visual production pipeline
 
+StoryBuilder already has first-class visual asset records, immutable revisions, prompt/production metadata, and review decisions tied to exact revisions. The Visual Assets workbench can create records, append revisions, and record author decisions. It does not itself generate images or provide a complete page-layout composition surface. Those are the gaps this pilot should prove and help implement.
+
 The first art pass should be deliberately small:
 
 1. **Character sheet:** Lenny, Dad, and the lead dolphin, with front/side/three-quarter views and a compact expression set.
@@ -111,18 +113,20 @@ GitHub Pages should publish from GitHub Actions using the repository's supported
 - Add source/provenance links to the author's manuscript transcription. Explicitly mark the earlier PDF illustrations as excluded concept material; do not index or use them as visual references or production assets.
 - Verify save/restore, deterministic book output, and immutable publication hashing.
 
-### Slice 2 — Visual asset provenance
+### Slice 2 — Visual asset workflow completion
 
-- Add first-class visual asset and asset-revision records to StoryBuilder.
-- Record prompt/source provenance, page/scene links, approval state, and continuity roles.
-- Provide a review surface for accepting/rejecting a revision without losing history.
-- Keep actual image bytes in the Experience's static asset tree or an explicit asset store; the workspace stores stable references and metadata.
+- Reuse the existing `VisualAssetRecord`, `VisualAssetRevision`, and `VisualAssetReview` model; do not create a competing asset model.
+- Verify Lenny's imported workspace can create and persist character, environment, and page illustration records with stable links.
+- Close the gap between metadata and actual media: add a durable asset-ingestion/preview workflow so creators can attach, inspect, and revise real image files rather than typing paths only.
+- Ensure content hashes are calculated from actual bytes and validated on restore/export.
+- Keep author review tied to the exact revision; rejected and superseded revisions remain in history.
 
 ### Slice 3 — Living page composition
 
-- Add page-level composition data: text region, image region, focal point, crop/fit, and optional layered assets.
+- Add a first-class page composition model: text region, image region, focal point, crop/fit, and optional layered assets.
 - Preview the same page model in the authoring surface and public reader.
 - Validate contrast, text readability, alt text, and mobile layouts.
+- Preserve a clear separation between generated image pixels and the author's selectable manuscript text.
 
 ### Slice 4 — Restrained animation
 
@@ -154,4 +158,4 @@ GitHub Pages should publish from GitHub Actions using the repository's supported
 
 The Lenny Experience has a 33-page structured manuscript, a working text-only reader, and an original visual plan. The earlier concept illustrations are explicitly excluded. New character and environment designs must be developed and approved through StoryBuilder. StoryBuilder's current development branch already has casting, scene capture, manuscript composition, deterministic book output, immutable publication snapshots, persistence, and a local authoring workbench.
 
-The next engineering work is to create the Lenny workspace through those current APIs, then add the missing first-class visual asset/revision model. Animation and Pages publication follow after those foundations are verifiable.
+The next engineering work is to import Lenny into the existing workspace/session model, prove the current visual-asset record/revision/review workflow with original concepts, and identify the concrete gaps in real media ingestion and page composition. Do not rebuild capabilities that already exist. Animation and Pages publication follow after those foundations are verifiable.
