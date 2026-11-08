@@ -840,7 +840,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, value.ProductionNotes);
         BinaryCodec.WriteEnum(stream, value.Status);
         BinaryCodec.WriteString(stream, value.ReviewedBy);
-        BinaryCodec.WriteBoolean(stream, value.ReviewedAtUtc is not null);
+        BinaryCodec.WriteInt32(stream, value.ReviewedAtUtc is not null ? 1 : 0);
         if (value.ReviewedAtUtc is DateTimeOffset reviewedAt)
             BinaryCodec.WriteDateTimeOffset(stream, reviewedAt);
         BinaryCodec.WriteString(stream, value.ReviewNotes);
@@ -857,7 +857,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var productionNotes = BinaryCodec.ReadString(stream);
         var status = BinaryCodec.ReadEnum<VisualAssetRevisionStatus>(stream);
         var reviewedBy = BinaryCodec.ReadString(stream);
-        var reviewedAt = BinaryCodec.ReadBoolean(stream) ? BinaryCodec.ReadDateTimeOffset(stream) : null;
+        var reviewedAt = BinaryCodec.ReadInt32(stream) == 1 ? BinaryCodec.ReadDateTimeOffset(stream) : (DateTimeOffset?)null;
         var reviewNotes = BinaryCodec.ReadString(stream);
         return new VisualAssetRevision
         {
