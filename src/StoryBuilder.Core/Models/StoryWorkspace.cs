@@ -363,8 +363,10 @@ public sealed class StoryWorkspace
     {
         ArgumentNullException.ThrowIfNull(composition);
         EnsureUnique(_pageCompositions.Select(item => item.Id), composition.Id, nameof(composition));
-        if (composition.ManuscriptSectionId == Guid.Empty)
-            throw new InvalidOperationException("A page composition must reference a manuscript section.");
+        if (!_manuscripts.SelectMany(item => item.Sections).Any(item => item.Id == composition.ManuscriptSectionId))
+            throw new KeyNotFoundException($"Manuscript section '{composition.ManuscriptSectionId}' does not exist.");
+        if (composition.VisualAssetId is Guid assetId && !_visualAssets.Any(item => item.Id == assetId))
+            throw new KeyNotFoundException($"Visual asset '{assetId}' does not exist.");
         if (!IsNormalized(composition.TextRegion) || !IsNormalized(composition.ImageRegion))
             throw new InvalidOperationException("Page composition regions must fit within normalized page bounds (0..1).");
         _pageCompositions.Add(composition);
