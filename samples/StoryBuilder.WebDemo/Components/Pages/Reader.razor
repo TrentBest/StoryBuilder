@@ -1,0 +1,130 @@
+@page "/reader"
+@implements IDisposable
+@inject StoryBuilderSession Session
+
+<PageTitle>Read · StoryBuilder</PageTitle>
+
+<div class="page-head reader-heading">
+    <div class="eyebrow">Reader · Working edition</div>
+    <h1>Read the story.</h1>
+    <p class="lede">A quiet, page-by-page reading surface. It reads the same manuscript sections and saved page compositions used by the authoring tools.</p>
+</div>
+
+@if (CurrentManuscript is null)
+{
+    <section class="panel empty">There is no manuscript in this workspace yet. Create one in Book Preview to begin reading.</section>
+}
+else if (Sections.Count == 0)
+{
+    <section class="panel empty">“@CurrentManuscript.Title” has no sections yet.</section>
+}
+else
+{
+    <section class="reader-shell" aria-label="Book reader">
+        <div class="reader-toolbar">
+            <div>
+                <div class="eyebrow">@CurrentManuscript.Title</div>
+                <div class="reader-section-title">@CurrentSection.Title</div>
+            </div>
+            <label class="reader-book-select">
+                <span class="muted">Book</span>
+                <select value="@CurrentManuscript.Id" @onchange="ChangeManuscript">
+                    @foreach (var manuscript in Session.Workspace.Manuscripts)
+                    {
+                        <option value="@manuscript.Id">@manuscript.Title</option>
+                    }
+                </select>
+            </label>
+        </div>
+
+        <div class="reader-progress" role="progressbar" aria-label="Reading progress"
+             aria-valuemin="1" aria-valuemax="@Sections.Count" aria-valuenow="@(currentIndex + 1)">
+            <span style="width:@($"{(currentIndex + 1) * 100d / Sections.Count:0.##}%")"></span>
+        </div>
+
+        <article class="reader-page" @key="CurrentSection.Id">
+            @if (FindComposition(CurrentSection.Id) is { } composition)
+            {
+                var illustration = FindCompositionImage(composition);
+                <div class="reader-composition @(composition.Orientation.ToString().ToLowerInvariant())">
+                    @if (illustration is not null)
+                    {
+                        <img src="@illustration.AssetLocation" alt="Illustration for @CurrentSection.Title"
+                             style="@($"{RegionStyle(composition.ImageRegion)};object-fit:{composition.ImageFit.ToString().ToLowerInvariant()}")" />
+                    }
+                    <div class="reader-composition-text" style="@RegionStyle(composition.TextRegion)">@CurrentSection.Body</div>
+                </div>
+            }
+            else
+            {
+                <div class="reader-text-page">
+                    <div class="eyebrow">@CurrentSection.Kind</div>
+                    <h2>@CurrentSection.Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(CurrentSection.Body))
+                    {
+                        <p>@CurrentSection.Body</p>
+                    }
+                </div>
+            }
+        </article>
+
+        <div class="reader-controls">
+            <button class="secondary" @onclick="Previous" disabled="@(currentIndex == 0)">← Previous</button>
+            <div class="reader-counter"><strong>@(currentIndex + 1)</strong><span>of @Sections.Count</span></div>
+            <button @onclick="Next" disabled="@(currentIndex >= Sections.Count - 1)">Next →</button>
+        </div>
+        <div class="reader-footer">
+            <span>@CurrentSection.Kind · @CurrentSection.Sequence</span>
+            <span>@(currentIndex == Sections.Count - 1 ? "End of this edition" : "Continue when you're ready")</span>
+        </div>
+    </section>
+}
+
+@code {
+    private Guid? selectedManuscriptId;
+    private int currentIndex;
+
+    private ManuscriptEdition? CurrentManuscript =>
+        Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == selectedManuscriptId)
+        ?? Session.Workspace.Manuscripts.FirstOrDefault();
+
+    private List<ManuscriptSection> Sections =>
+        CurrentManuscript?.Sections.OrderBy(item => item.Sequence).ToList() ?? [];
+
+    private ManuscriptSection CurrentSection => Sections[Math.Clamp(currentIndex, 0, Sections.Count - 1)];
+
+    private PageComposition? FindComposition(Guid sectionId) =>
+        Session.Workspace.PageCompositions.FirstOrDefault(item => item.ManuscriptSectionId == sectionId);
+
+    private VisualAssetRevision? FindCompositionImage(PageComposition composition) =>
+        composition.VisualAssetId is Guid assetId
+            ? Session.Workspace.VisualAssets.FirstOrDefault(item => item.Id == assetId)?.Revisions.LastOrDefault()
+            : null;
+
+    private static string RegionStyle(PageCompositionRegion region) =>
+        $"left:{region.X * 100:0.####}%;top:{region.Y * 100:0.####}%;width:{region.Width * 100:0.####}%;height:{region.Height * 100:0.####}%";
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += OnSessionChanged;
+        selectedManuscriptId = Session.Workspace.Manuscripts.FirstOrDefault()?.Id;
+    }
+
+    private void ChangeManuscript(ChangeEventArgs args)
+    {
+        if (Guid.TryParse(args.Value?.ToString(), out var id))
+            selectedManuscriptId = id;
+        currentIndex = 0;
+    }
+
+    private void Previous() => currentIndex = Math.Max(0, currentIndex - 1);
+    private void Next() => currentIndex = Math.Min(Sections.Count - 1, currentIndex + 1);
+
+    private void OnSessionChanged()
+    {
+        currentIndex = Math.Clamp(currentIndex, 0, Math.Max(0, Sections.Count - 1));
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}
