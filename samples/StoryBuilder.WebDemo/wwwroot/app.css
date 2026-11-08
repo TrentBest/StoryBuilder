@@ -162,3 +162,34 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
 .book-composition .page-composition-text { font-size: clamp(.72rem, 1.45vw, 1rem); line-height: 1.45; }
 .reader-composition.page-composition-view { width: min(100%, 700px); margin: 0 auto; border: 1px solid #d6d0c4; border-radius: .2rem; background: #f4f0e7; color: #20252b; box-shadow: 0 16px 40px #00000035; }
 .reader-composition .page-composition-text { font-size: clamp(.78rem, 1.55vw, 1.05rem); line-height: 1.55; }
+
+
+/* Discover-to-advance interaction: a quiet target that begins breathing after its authored delay. */
+.page-discovery-target {
+    position: absolute; z-index: 5; display: grid; place-items: center;
+    min-width: 0; min-height: 0; padding: 0; border: 0; border-radius: 999px;
+    background: transparent; color: inherit; opacity: .12;
+    animation: page-discovery-breathe 2.8s ease-in-out var(--discovery-delay, 12s) infinite;
+    animation-fill-mode: backwards; cursor: pointer;
+}
+.page-discovery-target:hover, .page-discovery-target:focus-visible { opacity: 1; outline: 2px solid #fff; outline-offset: 3px; }
+.page-discovery-target-mark {
+    display: block; width: 42%; height: 42%; min-width: 14px; min-height: 14px;
+    border: 2px solid #fff8dc; border-radius: 50%;
+    box-shadow: 0 0 0 5px #fff8dc38, 0 0 22px #fff8dcaa; pointer-events: none;
+}
+@keyframes page-discovery-breathe {
+    0%, 100% { opacity: .12; transform: scale(.94); }
+    50% { opacity: .95; transform: scale(1.07); }
+}
+.reader-page-turn { min-width: 9rem; border-radius: 2rem; transition: transform .2s ease, box-shadow .2s ease; }
+.reader-page-turn:not(:disabled) { animation: reader-turn-breathe 3s ease-in-out infinite; }
+@keyframes reader-turn-breathe {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 #a9d8c800; }
+    50% { transform: scale(1.035); box-shadow: 0 0 0 7px #a9d8c81c; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .page-discovery-target, .reader-page-turn:not(:disabled) { animation: none; }
+    .page-discovery-target { opacity: .8; }
+    .reader-page-turn { transition: none; }
+}
