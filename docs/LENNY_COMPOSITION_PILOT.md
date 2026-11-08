@@ -40,7 +40,7 @@ Use stable IDs and links rather than copying story facts into disconnected docum
 | Each of the 33 printed story pages | Ordered manuscript sections | Preserve page number, exact source wording, and reading order. |
 | Page-specific visual action | Scene records and ordered SceneBeat records | Break a page into compositional beats only when useful; do not create new plot events. |
 | Story events that recur across pages | Canonical timeline events | One event may be portrayed by multiple scene beats and manuscript sections. |
-| Original PDF and author-approved references | Source records / provenance | Record which source supports each design decision. |
+| Original supplied PDF artwork and author-approved references | Source records / provenance | Record physical PDF page, printed story page, extracted asset revision, and which source supports each design decision. |
 | Character turnaround, environment guide, page illustration | Visual asset records (to be added) | Stable asset ID, revision, role, source, approval state, and file path. |
 | Camera, movement, expression, transition, timing | Animation/gesture track (to be added) | Keep animation as portrayal of an existing scene, not a new story event. |
 | Public reading edition | Immutable publication edition | Publish only the reviewed snapshot and its referenced assets. |
@@ -108,7 +108,7 @@ GitHub Pages should publish from GitHub Actions using the repository's supported
 - Preserve source manuscript and page numbering.
 - Create the initial cast and place records with stable IDs.
 - Create one manuscript section per printed story page, linked to its scene/beat records.
-- Add source/provenance links to the manuscript transcription and, when supplied, the original PDF.
+- Add source/provenance links to the manuscript transcription and the already-supplied 35-page original PDF. Index its existing illustrations: 29 story pages contain artwork; pages 4, 13, 19, and 23 are text-only in the source edition.
 - Verify save/restore, deterministic book output, and immutable publication hashing.
 
 ### Slice 2 — Visual asset provenance
@@ -152,6 +152,6 @@ GitHub Pages should publish from GitHub Actions using the repository's supported
 
 ## Current status
 
-The Lenny Experience already has a 33-page structured manuscript, a working text-only reader, and a visual plan. StoryBuilder's current development branch already has casting, scene capture, manuscript composition, deterministic book output, immutable publication snapshots, persistence, and a local authoring workbench.
+The Lenny Experience already has a 33-page structured manuscript, a working text-only reader, a visual plan, and access to the original illustrated PDF. The supplied artwork—not a newly invented character design—is the continuity baseline. StoryBuilder's current development branch already has casting, scene capture, manuscript composition, deterministic book output, immutable publication snapshots, persistence, and a local authoring workbench.
 
 The next engineering work is to create the Lenny workspace through those current APIs, then add the missing first-class visual asset/revision model. Animation and Pages publication follow after those foundations are verifiable.
