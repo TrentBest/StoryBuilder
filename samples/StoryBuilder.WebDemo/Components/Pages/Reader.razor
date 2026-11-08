@@ -46,14 +46,7 @@ else
             @if (FindComposition(CurrentSection.Id) is { } composition)
             {
                 var illustration = FindCompositionImage(composition);
-                <div class="reader-composition @(composition.Orientation.ToString().ToLowerInvariant())">
-                    @if (illustration is not null)
-                    {
-                        <img src="@illustration.AssetLocation" alt="Illustration for @CurrentSection.Title"
-                             style="@($"{RegionStyle(composition.ImageRegion)};object-fit:{composition.ImageFit.ToString().ToLowerInvariant()}")" />
-                    }
-                    <div class="reader-composition-text" style="@RegionStyle(composition.TextRegion)">@CurrentSection.Body</div>
-                </div>
+                <PageCompositionView Composition="composition" Section="CurrentSection" Illustration="illustration" CssClass="reader-composition" />
             }
             else
             {
@@ -100,9 +93,6 @@ else
         composition.VisualAssetId is Guid assetId
             ? Session.Workspace.VisualAssets.FirstOrDefault(item => item.Id == assetId)?.Revisions.LastOrDefault()
             : null;
-
-    private static string RegionStyle(PageCompositionRegion region) =>
-        $"left:{region.X * 100:0.####}%;top:{region.Y * 100:0.####}%;width:{region.Width * 100:0.####}%;height:{region.Height * 100:0.####}%";
 
     protected override void OnInitialized()
     {
