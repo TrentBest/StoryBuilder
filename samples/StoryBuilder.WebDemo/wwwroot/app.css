@@ -92,3 +92,14 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
 .asset-preview img { display: block; width: 100%; max-height: 420px; object-fit: contain; }
 .asset-preview figcaption { margin-top: .5rem; color: var(--muted); font-size: .75rem; overflow-wrap: anywhere; }
 .error { color: #ff9b9b; font-size: .9rem; }
+
+
+.geometry-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .65rem; }
+.geometry-grid label { display: grid; gap: .3rem; color: var(--muted); font-size: .78rem; }
+.geometry-grid input { width: 100%; min-width: 0; }
+.composition-preview { position: relative; width: min(100%, 620px); aspect-ratio: 3 / 4; margin: 0 auto; overflow: hidden; border: 1px solid var(--line); border-radius: .7rem; background: #f4f0e7; color: #20252b; }
+.composition-preview.landscape { aspect-ratio: 4 / 3; }
+.composition-preview.square { aspect-ratio: 1; }
+.composition-preview-image { position: absolute; display: block; max-width: none; max-height: none; }
+.composition-preview-text { position: absolute; overflow: auto; white-space: pre-wrap; font-family: Georgia, serif; font-size: clamp(.7rem, 1.5vw, 1rem); line-height: 1.45; }
+@media (max-width: 760px) { .geometry-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
