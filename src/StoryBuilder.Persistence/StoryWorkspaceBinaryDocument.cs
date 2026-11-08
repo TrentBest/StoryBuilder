@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 13;
+    private const int FormatVersion = 14;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -141,6 +141,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, workspace.LegacyProjectSourceJson);
         BinaryCodec.WriteList(stream, workspace.PublishedEditions, WritePublishedEdition);
         BinaryCodec.WriteList(stream, workspace.VisualAssets, WriteVisualAsset);
+        BinaryCodec.WriteList(stream, workspace.VisualAssetReviews, WriteVisualAssetReview);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
@@ -165,6 +166,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var legacyProjectSourceJson = version >= 9 ? BinaryCodec.ReadString(stream) : null;
         var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, item => ReadPublishedEdition(item, version)) : [];
         var visualAssets = version >= 13 ? BinaryCodec.ReadList(stream, ReadVisualAsset) : [];
+        var visualAssetReviews = version >= 14 ? BinaryCodec.ReadList(stream, ReadVisualAssetReview) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -184,6 +186,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in sources) workspace.AddSource(item);
         foreach (var item in issues) workspace.AddContinuityIssue(item);
         foreach (var item in visualAssets) workspace.AddVisualAsset(item);
+        foreach (var item in visualAssetReviews) workspace.AddVisualAssetReview(item);
         return workspace;
     }
 
@@ -838,34 +841,40 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, value.ContentSha256);
         BinaryCodec.WriteString(stream, value.CreationPrompt);
         BinaryCodec.WriteString(stream, value.ProductionNotes);
-        BinaryCodec.WriteEnum(stream, value.Status);
-        BinaryCodec.WriteString(stream, value.ReviewedBy);
-        BinaryCodec.WriteInt32(stream, value.ReviewedAtUtc is not null ? 1 : 0);
-        if (value.ReviewedAtUtc is DateTimeOffset reviewedAt)
-            BinaryCodec.WriteDateTimeOffset(stream, reviewedAt);
-        BinaryCodec.WriteString(stream, value.ReviewNotes);
     }
 
-    private static VisualAssetRevision ReadVisualAssetRevision(IBinaryStream stream)
+    private static VisualAssetRevision ReadVisualAssetRevision(IBinaryStream stream) => new()
     {
-        var id = BinaryCodec.ReadGuid(stream);
-        var revisionNumber = BinaryCodec.ReadInt32(stream);
-        var assetLocation = BinaryCodec.ReadRequiredString(stream, nameof(VisualAssetRevision.AssetLocation));
-        var mediaType = BinaryCodec.ReadRequiredString(stream, nameof(VisualAssetRevision.MediaType));
-        var contentSha256 = BinaryCodec.ReadString(stream);
-        var creationPrompt = BinaryCodec.ReadString(stream);
-        var productionNotes = BinaryCodec.ReadString(stream);
-        var status = BinaryCodec.ReadEnum<VisualAssetRevisionStatus>(stream);
-        var reviewedBy = BinaryCodec.ReadString(stream);
-        var reviewedAt = BinaryCodec.ReadInt32(stream) == 1 ? BinaryCodec.ReadDateTimeOffset(stream) : (DateTimeOffset?)null;
-        var reviewNotes = BinaryCodec.ReadString(stream);
-        return new VisualAssetRevision
-        {
-            Id = id, RevisionNumber = revisionNumber, AssetLocation = assetLocation, MediaType = mediaType,
-            ContentSha256 = contentSha256, CreationPrompt = creationPrompt, ProductionNotes = productionNotes,
-            Status = status, ReviewedBy = reviewedBy, ReviewedAtUtc = reviewedAt, ReviewNotes = reviewNotes
-        };
+        Id = BinaryCodec.ReadGuid(stream),
+        RevisionNumber = BinaryCodec.ReadInt32(stream),
+        AssetLocation = BinaryCodec.ReadRequiredString(stream, nameof(VisualAssetRevision.AssetLocation)),
+        MediaType = BinaryCodec.ReadRequiredString(stream, nameof(VisualAssetRevision.MediaType)),
+        ContentSha256 = BinaryCodec.ReadString(stream),
+        CreationPrompt = BinaryCodec.ReadString(stream),
+        ProductionNotes = BinaryCodec.ReadString(stream)
+    };
+
+    private static void WriteVisualAssetReview(IBinaryStream stream, VisualAssetReview value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.AssetId);
+        BinaryCodec.WriteGuid(stream, value.RevisionId);
+        BinaryCodec.WriteEnum(stream, value.Decision);
+        BinaryCodec.WriteString(stream, value.Reviewer);
+        BinaryCodec.WriteDateTimeOffset(stream, value.ReviewedAtUtc);
+        BinaryCodec.WriteString(stream, value.Notes);
     }
+
+    private static VisualAssetReview ReadVisualAssetReview(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        AssetId = BinaryCodec.ReadGuid(stream),
+        RevisionId = BinaryCodec.ReadGuid(stream),
+        Decision = BinaryCodec.ReadEnum<VisualAssetReviewDecision>(stream),
+        Reviewer = BinaryCodec.ReadRequiredString(stream, nameof(VisualAssetReview.Reviewer)),
+        ReviewedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        Notes = BinaryCodec.ReadString(stream)
+    };
 
     private static void WriteVocabularyConcept(IBinaryStream stream, VocabularyConcept value)
     {
