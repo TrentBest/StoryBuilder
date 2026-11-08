@@ -1,0 +1,17 @@
+{
+  "repository": "TrentBest/StoryBuilder",
+  "policy": "exactly-master-and-development",
+  "required_branches": [
+    "development",
+    "master"
+  ],
+  "actual_branches": [
+    "development",
+    "master"
+  ],
+  "branch_count": 2,
+  "status": "COMPLIANT",
+  "evaluated_at": "2026-11-08T07:53:38Z",
+  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/42460615889",
+  "triggering_commit": "adf920364f6b6d1b5cd1343cf5f830e16323a4d0"
+}
