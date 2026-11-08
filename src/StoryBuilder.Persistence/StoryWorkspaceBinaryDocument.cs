@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 14;
+    private const int FormatVersion = 15;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -142,6 +142,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.PublishedEditions, WritePublishedEdition);
         BinaryCodec.WriteList(stream, workspace.VisualAssets, WriteVisualAsset);
         BinaryCodec.WriteList(stream, workspace.VisualAssetReviews, WriteVisualAssetReview);
+        BinaryCodec.WriteList(stream, workspace.PageCompositions, WritePageComposition);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
@@ -167,6 +168,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, item => ReadPublishedEdition(item, version)) : [];
         var visualAssets = version >= 13 ? BinaryCodec.ReadList(stream, ReadVisualAsset) : [];
         var visualAssetReviews = version >= 14 ? BinaryCodec.ReadList(stream, ReadVisualAssetReview) : [];
+        var pageCompositions = version >= 15 ? BinaryCodec.ReadList(stream, ReadPageComposition) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -187,6 +189,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in issues) workspace.AddContinuityIssue(item);
         foreach (var item in visualAssets) workspace.AddVisualAsset(item);
         foreach (var item in visualAssetReviews) workspace.AddVisualAssetReview(item);
+        foreach (var item in pageCompositions) workspace.AddPageComposition(item);
         return workspace;
     }
 
@@ -874,6 +877,50 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Reviewer = BinaryCodec.ReadRequiredString(stream, nameof(VisualAssetReview.Reviewer)),
         ReviewedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
         Notes = BinaryCodec.ReadString(stream)
+    };
+
+    private static void WritePageComposition(IBinaryStream stream, PageComposition value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.ManuscriptSectionId);
+        BinaryCodec.WriteNullableGuid(stream, value.VisualAssetId);
+        BinaryCodec.WriteString(stream, value.Name);
+        BinaryCodec.WriteEnum(stream, value.Orientation);
+        BinaryCodec.WriteEnum(stream, value.ImageFit);
+        WritePageCompositionRegion(stream, value.TextRegion);
+        WritePageCompositionRegion(stream, value.ImageRegion);
+        BinaryCodec.WriteString(stream, value.FocalPoint);
+        BinaryCodec.WriteInt32(stream, value.LayerOrder);
+    }
+
+    private static PageComposition ReadPageComposition(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        ManuscriptSectionId = BinaryCodec.ReadGuid(stream),
+        VisualAssetId = BinaryCodec.ReadNullableGuid(stream),
+        Name = BinaryCodec.ReadRequiredString(stream, nameof(PageComposition.Name)),
+        Orientation = BinaryCodec.ReadEnum<PageCompositionOrientation>(stream),
+        ImageFit = BinaryCodec.ReadEnum<PageCompositionFit>(stream),
+        TextRegion = ReadPageCompositionRegion(stream),
+        ImageRegion = ReadPageCompositionRegion(stream),
+        FocalPoint = BinaryCodec.ReadString(stream),
+        LayerOrder = BinaryCodec.ReadInt32(stream)
+    };
+
+    private static void WritePageCompositionRegion(IBinaryStream stream, PageCompositionRegion value)
+    {
+        BinaryCodec.WriteDouble(stream, value.X);
+        BinaryCodec.WriteDouble(stream, value.Y);
+        BinaryCodec.WriteDouble(stream, value.Width);
+        BinaryCodec.WriteDouble(stream, value.Height);
+    }
+
+    private static PageCompositionRegion ReadPageCompositionRegion(IBinaryStream stream) => new()
+    {
+        X = BinaryCodec.ReadDouble(stream),
+        Y = BinaryCodec.ReadDouble(stream),
+        Width = BinaryCodec.ReadDouble(stream),
+        Height = BinaryCodec.ReadDouble(stream)
     };
 
     private static void WriteVocabularyConcept(IBinaryStream stream, VocabularyConcept value)
