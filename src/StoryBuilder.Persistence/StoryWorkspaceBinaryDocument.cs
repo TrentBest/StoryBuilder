@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 15;
+    private const int FormatVersion = 16;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not 15 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -168,7 +168,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, item => ReadPublishedEdition(item, version)) : [];
         var visualAssets = version >= 13 ? BinaryCodec.ReadList(stream, ReadVisualAsset) : [];
         var visualAssetReviews = version >= 14 ? BinaryCodec.ReadList(stream, ReadVisualAssetReview) : [];
-        var pageCompositions = version >= 15 ? BinaryCodec.ReadList(stream, ReadPageComposition) : [];
+        var pageCompositions = version >= 15 ? BinaryCodec.ReadList(stream, item => ReadPageComposition(item, version)) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -891,9 +891,13 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         WritePageCompositionRegion(stream, value.ImageRegion);
         BinaryCodec.WriteString(stream, value.FocalPoint);
         BinaryCodec.WriteInt32(stream, value.LayerOrder);
+        BinaryCodec.WriteBoolean(stream, value.DiscoveryRegion is not null);
+        if (value.DiscoveryRegion is not null) WritePageCompositionRegion(stream, value.DiscoveryRegion);
+        BinaryCodec.WriteString(stream, value.DiscoveryPrompt);
+        BinaryCodec.WriteInt32(stream, value.DiscoveryHintDelaySeconds);
     }
 
-    private static PageComposition ReadPageComposition(IBinaryStream stream) => new()
+    private static PageComposition ReadPageComposition(IBinaryStream stream, int version) => new()
     {
         Id = BinaryCodec.ReadGuid(stream),
         ManuscriptSectionId = BinaryCodec.ReadGuid(stream),
@@ -904,7 +908,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         TextRegion = ReadPageCompositionRegion(stream),
         ImageRegion = ReadPageCompositionRegion(stream),
         FocalPoint = BinaryCodec.ReadString(stream),
-        LayerOrder = BinaryCodec.ReadInt32(stream)
+        LayerOrder = BinaryCodec.ReadInt32(stream),
+        DiscoveryRegion = version >= 16 && BinaryCodec.ReadBoolean(stream) ? ReadPageCompositionRegion(stream) : null,
+        DiscoveryPrompt = version >= 16 ? BinaryCodec.ReadString(stream) : null,
+        DiscoveryHintDelaySeconds = version >= 16 ? BinaryCodec.ReadInt32(stream) : 12
     };
 
     private static void WritePageCompositionRegion(IBinaryStream stream, PageCompositionRegion value)
