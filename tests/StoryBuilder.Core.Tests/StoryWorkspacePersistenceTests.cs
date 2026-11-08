@@ -342,38 +342,30 @@ public sealed class StoryWorkspacePersistenceTests
         var manuscript = session.CreateManuscript("Lenny");
         var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Page 1");
 
-        var asset = new VisualAssetRecord
+        var asset = session.CreateVisualAsset(
+            "Lenny character turnaround",
+            VisualAssetKind.CharacterDesign,
+            characterId: character.Id,
+            manuscriptSectionId: section.Sections[0].Id,
+            sourceIds: [source.Id]);
+        var firstRevision = session.AddVisualAssetRevision(asset.Id, new VisualAssetRevision
         {
-            Title = "Lenny character turnaround",
-            Kind = VisualAssetKind.CharacterDesign,
-            CharacterId = character.Id,
-            ManuscriptSectionId = section.Sections[0].Id,
-            SourceIds = [source.Id],
-            Revisions =
-            [
-                new VisualAssetRevision
-                {
-                    RevisionNumber = 1,
-                    AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v1.png",
-                    CreationPrompt = "Provisional character design; do not infer unspecified traits as canon."
-                }
-            ]
-        };
-        session.Workspace.AddVisualAsset(asset);
-        session.Workspace.AddVisualAssetRevision(asset.Id, new VisualAssetRevision
+            RevisionNumber = 1,
+            AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v1.png",
+            CreationPrompt = "Provisional character design; do not infer unspecified traits as canon."
+        });
+        var secondRevision = session.AddVisualAssetRevision(asset.Id, new VisualAssetRevision
         {
             RevisionNumber = 2,
             AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v2.png"
         });
-        session.Workspace.AddVisualAssetReview(new VisualAssetReview
-        {
-            AssetId = asset.Id,
-            RevisionId = asset.Revisions[1].Id,
-            Decision = VisualAssetReviewDecision.Approved,
-            Reviewer = "Author",
-            ReviewedAtUtc = DateTimeOffset.Parse("2026-11-08T07:00:00Z"),
-            Notes = "Approved character design."
-        });
+        session.ReviewVisualAssetRevision(
+            asset.Id,
+            secondRevision.Id,
+            VisualAssetReviewDecision.Approved,
+            "Author",
+            "Approved character design.",
+            DateTimeOffset.Parse("2026-11-08T07:00:00Z"));
 
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
         using var output = new MemoryBinaryStream();
@@ -390,7 +382,7 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(2, restoredAsset.Revisions.Count);
         var review = Assert.Single(restored.Workspace.VisualAssetReviews);
         Assert.Equal(asset.Id, review.AssetId);
-        Assert.Equal(restoredAsset.Revisions[1].Id, review.RevisionId);
+        Assert.Equal(secondRevision.Id, review.RevisionId);
         Assert.Equal(VisualAssetReviewDecision.Approved, review.Decision);
         Assert.Equal("Author", review.Reviewer);
         Assert.Equal(DateTimeOffset.Parse("2026-11-08T07:00:00Z"), review.ReviewedAtUtc);
