@@ -331,4 +331,63 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Contains("containment cycle", exception.Message, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void VisualAssetRevisionsRoundTripWithProvenanceAndApprovalEvidence()
+    {
+        var session = new StoryBuilderSession("Lenny visual composition");
+        var character = session.CreateCharacter("Lenny", "Child");
+        var source = new SourceRecord { Title = "Lenny source manuscript", SourceType = "Author manuscript" };
+        session.Workspace.AddSource(source);
+        var manuscript = session.CreateManuscript("Lenny");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Page, "Page 1");
+
+        var asset = new VisualAssetRecord
+        {
+            Title = "Lenny character turnaround",
+            Kind = VisualAssetKind.CharacterDesign,
+            CharacterId = character.Id,
+            ManuscriptSectionId = section.Sections[0].Id,
+            SourceIds = [source.Id],
+            Revisions =
+            [
+                new VisualAssetRevision
+                {
+                    RevisionNumber = 1,
+                    AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v1.png",
+                    CreationPrompt = "Provisional character design; do not infer unspecified traits as canon.",
+                    Status = VisualAssetRevisionStatus.Proposed
+                }
+            ]
+        };
+        session.Workspace.AddVisualAsset(asset);
+        session.Workspace.AddVisualAssetRevision(asset.Id, new VisualAssetRevision
+        {
+            RevisionNumber = 2,
+            AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v2.png",
+            Status = VisualAssetRevisionStatus.Approved,
+            ReviewedBy = "Author",
+            ReviewedAtUtc = DateTimeOffset.Parse("2026-11-08T07:00:00Z"),
+            ReviewNotes = "Approved character design."
+        });
+
+        Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        using var input = new MemoryBinaryStream(output.ToArray());
+        var restored = new StoryWorkspaceBinaryDocument();
+        restored.Unpack(input);
+
+        var restoredAsset = Assert.Single(restored.Workspace.VisualAssets);
+        Assert.Equal(asset.Id, restoredAsset.Id);
+        Assert.Equal(character.Id, restoredAsset.CharacterId);
+        Assert.Equal(section.Sections[0].Id, restoredAsset.ManuscriptSectionId);
+        Assert.Equal(source.Id, Assert.Single(restoredAsset.SourceIds));
+        Assert.Equal(2, restoredAsset.Revisions.Count);
+        Assert.Equal(VisualAssetRevisionStatus.Proposed, restoredAsset.Revisions[0].Status);
+        Assert.Equal(VisualAssetRevisionStatus.Approved, restoredAsset.Revisions[1].Status);
+        Assert.Equal("Author", restoredAsset.Revisions[1].ReviewedBy);
+        Assert.Equal(DateTimeOffset.Parse("2026-11-08T07:00:00Z"), restoredAsset.Revisions[1].ReviewedAtUtc);
+    }
+
 }
