@@ -1,0 +1,22 @@
+@namespace StoryBuilder.WebDemo.Components.Shared
+
+<div class="page-composition-view @CssClass @Composition.Orientation.ToString().ToLowerInvariant()"
+     role="group" aria-label="Page composition: @Section.Title">
+    @if (Illustration is not null)
+    {
+        <img class="page-composition-image" src="@Illustration.AssetLocation"
+             alt="Illustration for @Section.Title"
+             style="@($"{RegionStyle(Composition.ImageRegion)};object-fit:{Composition.ImageFit.ToString().ToLowerInvariant()}")" />
+    }
+    <div class="page-composition-text" style="@RegionStyle(Composition.TextRegion)">@Section.Body</div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public PageComposition Composition { get; set; } = default!;
+    [Parameter, EditorRequired] public ManuscriptSection Section { get; set; } = default!;
+    [Parameter] public VisualAssetRevision? Illustration { get; set; }
+    [Parameter] public string CssClass { get; set; } = string.Empty;
+
+    private static string RegionStyle(PageCompositionRegion region) =>
+        $"left:{region.X * 100:0.####}%;top:{region.Y * 100:0.####}%;width:{region.Width * 100:0.####}%;height:{region.Height * 100:0.####}%";
+}
