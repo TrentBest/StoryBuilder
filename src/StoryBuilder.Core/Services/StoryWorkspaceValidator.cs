@@ -29,9 +29,11 @@ public static class StoryWorkspaceValidator
         var knowledgeRecords = workspace.ObserverKnowledge.Select(x => x.Id).ToHashSet();
         var participantActions = workspace.ParticipantActions.Select(x => x.Id).ToHashSet();
         var continuityIssues = workspace.ContinuityIssues.Select(x => x.Id).ToHashSet();
+        var visualAssets = workspace.VisualAssets.Select(x => x.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
             .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(sources).Concat(campaigns).Concat(premises)
-            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places)
+            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(visualAssets)
+            .Concat(workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id))
             .Concat(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => item.Id))
             .Concat(workspace.Scenes.SelectMany(item => item.Beats).Select(item => item.Id))
             .Append(workspace.Experience.Id)
@@ -70,6 +72,8 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.ObserverKnowledge, item => item.Id, nameof(ObserverKnowledgeRecord));
         DuplicateIds(workspace.ParticipantActions, item => item.Id, nameof(ParticipantAction));
         DuplicateIds(workspace.ContinuityIssues, item => item.Id, nameof(ContinuityIssue));
+        DuplicateIds(workspace.VisualAssets, item => item.Id, nameof(VisualAssetRecord));
+        DuplicateIds(workspace.VisualAssets.SelectMany(item => item.Revisions), item => item.Id, nameof(VisualAssetRevision));
         DuplicateIds(workspace.Manuscripts.SelectMany(item => item.Sections), item => item.Id, nameof(ManuscriptSection));
         DuplicateIds(workspace.Scenes.SelectMany(item => item.Beats), item => item.Id, nameof(SceneBeat));
 
@@ -96,6 +100,8 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.ObserverKnowledge.Select(item => (item.Id, nameof(ObserverKnowledgeRecord))));
         typedIds.AddRange(workspace.ParticipantActions.Select(item => (item.Id, nameof(ParticipantAction))));
         typedIds.AddRange(workspace.ContinuityIssues.Select(item => (item.Id, nameof(ContinuityIssue))));
+        typedIds.AddRange(workspace.VisualAssets.Select(item => (item.Id, nameof(VisualAssetRecord))));
+        typedIds.AddRange(workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => (item.Id, nameof(VisualAssetRevision))));
 
         foreach (var collision in typedIds.GroupBy(item => item.Id)
             .Where(group => group.Select(item => item.Type).Distinct().Count() > 1))
@@ -211,6 +217,31 @@ public static class StoryWorkspaceValidator
                     Missing(nameof(SceneBeat), beat.Id, "actor character", actorId, characters);
                 foreach (var id in beat.EventIds)
                     Missing(nameof(SceneBeat), beat.Id, "event", id, events);
+            }
+        }
+
+        foreach (var asset in workspace.VisualAssets)
+        {
+            if (asset.CharacterId is Guid characterId) Missing(nameof(VisualAssetRecord), asset.Id, "character", characterId, characters);
+            if (asset.SceneId is Guid sceneId) Missing(nameof(VisualAssetRecord), asset.Id, "scene", sceneId, scenes);
+            if (asset.ManuscriptSectionId is Guid sectionId && !workspace.Manuscripts.Any(item => item.Sections.Any(section => section.Id == sectionId)))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(VisualAssetRecord), asset.Id, "manuscript section", sectionId,
+                    $"Visual asset '{asset.Id}' references missing manuscript section '{sectionId}'."));
+            foreach (var sourceId in asset.SourceIds) Missing(nameof(VisualAssetRecord), asset.Id, "source", sourceId, sources);
+            var ordered = asset.Revisions.OrderBy(item => item.RevisionNumber).ToArray();
+            for (var index = 0; index < ordered.Length; index++)
+                if (ordered[index].RevisionNumber != index + 1)
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(VisualAssetRecord), asset.Id, "revision sequence", ordered[index].Id,
+                        $"Visual asset '{asset.Id}' revisions must be sequential starting at 1."));
+            foreach (var revision in asset.Revisions)
+            {
+                if (revision.Status == VisualAssetRevisionStatus.Approved &&
+                    (string.IsNullOrWhiteSpace(revision.ReviewedBy) || revision.ReviewedAtUtc is null))
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(VisualAssetRevision), revision.Id, "approval evidence", revision.Id,
+                        $"Approved visual revision '{revision.Id}' must record who approved it and when."));
+                if (revision.ContentSha256 is not null && (revision.ContentSha256.Length != 64 || revision.ContentSha256.Any(character => !Uri.IsHexDigit(character))))
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(VisualAssetRevision), revision.Id, "content hash", revision.Id,
+                        $"Visual revision '{revision.Id}' has an invalid SHA-256 hash."));
             }
         }
 
