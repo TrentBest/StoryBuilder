@@ -1,13 +1,15 @@
 @page "/visual-assets"
 @implements IDisposable
 @inject StoryBuilderSession Session
+@inject IWebHostEnvironment Environment
+@using Microsoft.AspNetCore.Components.Forms
 
 <PageTitle>Visual Assets · StoryBuilder</PageTitle>
 
 <div class="page-head">
     <div class="eyebrow">Composition studio · Visual provenance</div>
     <h1>Give every image a story identity.</h1>
-    <p class="lede">Track the artwork that belongs to a character, scene, or manuscript page. Revisions are append-only; author decisions are recorded against the exact revision they reviewed. This workbench records metadata and repository paths—the image files themselves live in your asset tree.</p>
+    <p class="lede">Track the artwork that belongs to a character, scene, or manuscript page. Revisions are append-only; author decisions are recorded against the exact revision they reviewed. Upload PNG, JPEG, or WebP files directly. StoryBuilder stores the media, calculates its SHA-256, previews the image, and records an immutable revision.</p>
 </div>
 
 <div class="workbench-grid">
@@ -95,7 +97,15 @@
             <div class="eyebrow">Asset identity · @SelectedAsset.Kind</div>
             <h2>@SelectedAsset.Title</h2>
             <p class="muted">Stable ID: @SelectedAsset.Id</p>
-            <div class="eyebrow">Create the next immutable revision</div>
+            <div class="eyebrow">Add actual artwork</div>
+<div class="field"><label for="revision-upload">Upload an image (PNG, JPEG, WebP · up to 15 MB)</label>
+<InputFile id="revision-upload" OnChange="UploadRevision" accept="image/png,image/jpeg,image/webp" /></div>
+@if (!string.IsNullOrWhiteSpace(uploadMessage)) { <p class="muted" role="status">@uploadMessage</p> }
+@if (!string.IsNullOrWhiteSpace(uploadError)) { <p class="error" role="alert">@uploadError</p> }
+@if (SelectedAsset.Revisions.LastOrDefault() is { } latest && latest.AssetLocation.StartsWith("/visual-assets/", StringComparison.Ordinal))
+{ <figure class="asset-preview"><img src="@latest.AssetLocation" alt="Preview of @SelectedAsset.Title, revision @latest.RevisionNumber" />
+<figcaption>Latest uploaded revision · SHA-256: @latest.ContentSha256</figcaption></figure> }
+<hr /><div class="eyebrow">Or link an existing durable asset</div>
             <div class="field">
                 <label for="revision-location">Repository-relative path or durable URI</label>
                 <input id="revision-location" @bind="revisionLocation" placeholder="experiences/Lenny/Visuals/lenny-turnaround-v1.png" />
@@ -202,6 +212,9 @@
     private string reviewDecision = nameof(VisualAssetReviewDecision.Approved);
     private string reviewer = string.Empty;
     private string reviewNotes = string.Empty;
+    private string uploadMessage = string.Empty;
+    private string uploadError = string.Empty;
+    private const long MaximumUploadBytes = 15 * 1024 * 1024;
 
     private VisualAssetRecord? SelectedAsset =>
         Session.Workspace.VisualAssets.FirstOrDefault(item => item.Id == selectedAssetId);
@@ -224,6 +237,60 @@
         selectedAssetId = id;
         reviewRevisionId = SelectedAsset?.Revisions.OrderByDescending(item => item.RevisionNumber).FirstOrDefault()?.Id.ToString() ?? string.Empty;
     }
+
+    private async Task UploadRevision(InputFileChangeEventArgs args)
+    {
+        uploadError = string.Empty;
+        uploadMessage = string.Empty;
+        if (SelectedAsset is null) return;
+        var file = args.File;
+        var extension = file.ContentType switch
+        {
+            "image/png" => ".png",
+            "image/jpeg" => ".jpg",
+            "image/webp" => ".webp",
+            _ => null
+        };
+        if (extension is null) { uploadError = "Unsupported image type. Choose PNG, JPEG, or WebP."; return; }
+        if (file.Size <= 0 || file.Size > MaximumUploadBytes) { uploadError = "The image must be larger than zero bytes and no larger than 15 MB."; return; }
+        try
+        {
+            await using var input = file.OpenReadStream(MaximumUploadBytes);
+            using var buffer = new MemoryStream();
+            await input.CopyToAsync(buffer);
+            var bytes = buffer.ToArray();
+            if (!HasExpectedImageSignature(bytes, extension)) { uploadError = "The file contents do not match the selected image format."; return; }
+            var root = Environment.WebRootPath ?? Path.Combine(Environment.ContentRootPath, "wwwroot");
+            var directory = Path.Combine(root, "visual-assets");
+            Directory.CreateDirectory(directory);
+            var fileName = Guid.NewGuid().ToString("N") + extension;
+            await File.WriteAllBytesAsync(Path.Combine(directory, fileName), bytes);
+            var revision = new VisualAssetRevision
+            {
+                RevisionNumber = SelectedAsset.Revisions.Count + 1,
+                AssetLocation = "/visual-assets/" + fileName,
+                MediaType = file.ContentType,
+                ContentSha256 = Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant(),
+                CreationPrompt = string.IsNullOrWhiteSpace(revisionPrompt) ? null : revisionPrompt.Trim(),
+                ProductionNotes = string.IsNullOrWhiteSpace(revisionNotes) ? null : revisionNotes.Trim()
+            };
+            Session.AddVisualAssetRevision(SelectedAsset.Id, revision);
+            reviewRevisionId = revision.Id.ToString();
+            uploadMessage = "Uploaded " + file.Name + " · " + bytes.Length.ToString("N0") + " bytes · SHA-256 verified.";
+            revisionPrompt = string.Empty;
+            revisionNotes = string.Empty;
+        }
+        catch (IOException exception) { uploadError = "Image upload failed: " + exception.Message; }
+        catch (UnauthorizedAccessException) { uploadError = "The application does not have permission to store visual assets."; }
+    }
+
+    private static bool HasExpectedImageSignature(byte[] bytes, string extension) => extension switch
+    {
+        ".png" => bytes.Length >= 8 && bytes.AsSpan(0, 8).SequenceEqual(new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 }),
+        ".jpg" => bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF,
+        ".webp" => bytes.Length >= 12 && bytes.AsSpan(0, 4).SequenceEqual("RIFF"u8) && bytes.AsSpan(8, 4).SequenceEqual("WEBP"u8),
+        _ => false
+    };
 
     private void AddRevision()
     {
