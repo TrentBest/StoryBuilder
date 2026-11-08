@@ -97,16 +97,7 @@ else
 
                 <hr />
                 <div class="eyebrow">Live page preview</div>
-                <div class="composition-preview @(orientation.ToLowerInvariant())">
-                    @if (PreviewImage is { } image)
-                    {
-                        <img class="composition-preview-image" src="@image.AssetLocation" alt="Latest illustration for @manuscriptSection.Title"
-                             style="@($"{RegionStyle(SelectedComposition!.ImageRegion)};object-fit:{SelectedComposition.ImageFit.ToString().ToLowerInvariant()}")" />
-                    }
-                    <div class="composition-preview-text" style="@RegionStyle(SelectedComposition!.TextRegion)">
-                        @manuscriptSection.Body
-                    </div>
-                </div>
+                <PageCompositionView Composition="selected" Section="manuscriptSection" Illustration="PreviewImage" CssClass="composition-preview" />
                 <p class="muted">Preview uses the current saved composition. Text is sourced directly from the linked manuscript section.</p>
             }
             else
@@ -194,9 +185,6 @@ else
             saveMessage = string.Empty;
         }
     }
-
-    private static string RegionStyle(PageCompositionRegion region) =>
-        $"left:{region.X * 100}%;top:{region.Y * 100}%;width:{region.Width * 100}%;height:{region.Height * 100}%";
 
     private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
     public void Dispose() => Session.Changed -= OnSessionChanged;
