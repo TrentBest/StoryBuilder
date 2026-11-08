@@ -1,0 +1,203 @@
+@page "/page-compositions"
+@implements IDisposable
+@inject StoryBuilderSession Session
+
+<PageTitle>Page Compositions · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Lenny composition studio · Shared layout records</div>
+    <h1>Compose the page, not a mockup.</h1>
+    <p class="lede">Edit the same page-composition records that the importer creates. The preview reads the linked manuscript text and latest approved visual revision; layout changes never rewrite the manuscript.</p>
+</div>
+
+@if (Session.Workspace.PageCompositions.Count == 0)
+{
+    <section class="panel">
+        <h2>No page compositions loaded</h2>
+        <p class="muted">Import a composition manifest into this workspace to populate the page sequence.</p>
+    </section>
+}
+else
+{
+    <div class="workbench-grid">
+        <section class="panel stack">
+            <div class="eyebrow">Page sequence · @Session.Workspace.PageCompositions.Count pages</div>
+            <div class="list">
+                @foreach (var composition in OrderedCompositions)
+                {
+                    var section = FindSection(composition.ManuscriptSectionId);
+                    <button class="list-item @(SelectedComposition?.Id == composition.Id ? "selected" : "")" @onclick="() => Select(composition.Id)">
+                        <strong>@(section?.Title ?? composition.Name)</strong>
+                        <span>@composition.Orientation · @composition.ImageFit</span>
+                    </button>
+                }
+            </div>
+        </section>
+
+        <section class="panel stack">
+            @if (SelectedComposition is { } selected && SelectedSection is { } manuscriptSection)
+            {
+                <div class="eyebrow">Page layout · @selected.Id</div>
+                <h2>@manuscriptSection.Title</h2>
+                <div class="field">
+                    <label for="orientation">Orientation</label>
+                    <select id="orientation" @bind="orientation">
+                        @foreach (var item in Enum.GetValues<PageCompositionOrientation>())
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="fit">Image fit</label>
+                    <select id="fit" @bind="imageFit">
+                        @foreach (var item in Enum.GetValues<PageCompositionFit>())
+                        {
+                            <option value="@item">@item</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="asset">Illustration asset</label>
+                    <select id="asset" @bind="visualAssetId">
+                        <option value="">No illustration linked</option>
+                        @foreach (var asset in Session.Workspace.VisualAssets.Where(item => item.Kind == VisualAssetKind.PageIllustration))
+                        {
+                            <option value="@asset.Id">@asset.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="eyebrow">Text region · normalized page coordinates</div>
+                <div class="geometry-grid">
+                    <label>X <input type="number" min="0" max="1" step="0.01" @bind="textX" /></label>
+                    <label>Y <input type="number" min="0" max="1" step="0.01" @bind="textY" /></label>
+                    <label>Width <input type="number" min="0.01" max="1" step="0.01" @bind="textWidth" /></label>
+                    <label>Height <input type="number" min="0.01" max="1" step="0.01" @bind="textHeight" /></label>
+                </div>
+                <div class="eyebrow">Image region · normalized page coordinates</div>
+                <div class="geometry-grid">
+                    <label>X <input type="number" min="0" max="1" step="0.01" @bind="imageX" /></label>
+                    <label>Y <input type="number" min="0" max="1" step="0.01" @bind="imageY" /></label>
+                    <label>Width <input type="number" min="0.01" max="1" step="0.01" @bind="imageWidth" /></label>
+                    <label>Height <input type="number" min="0.01" max="1" step="0.01" @bind="imageHeight" /></label>
+                </div>
+                <div class="field">
+                    <label for="focal">Focal point note (optional)</label>
+                    <input id="focal" @bind="focalPoint" placeholder="e.g. Lenny's expression" />
+                </div>
+                <button @onclick="SaveComposition">Save page layout</button>
+                @if (!string.IsNullOrWhiteSpace(saveMessage))
+                {
+                    <p class="muted" role="status">@saveMessage</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(saveError))
+                {
+                    <p class="error" role="alert">@saveError</p>
+                }
+
+                <hr />
+                <div class="eyebrow">Live page preview</div>
+                <div class="composition-preview @(orientation.ToLowerInvariant())">
+                    @if (PreviewImage is { } image)
+                    {
+                        <img class="composition-preview-image" src="@image.AssetLocation" alt="Latest illustration for @manuscriptSection.Title"
+                             style="@RegionStyle(SelectedComposition!.ImageRegion)" />
+                    }
+                    <div class="composition-preview-text" style="@RegionStyle(SelectedComposition!.TextRegion)">
+                        @manuscriptSection.Body
+                    </div>
+                </div>
+                <p class="muted">Preview uses the current saved composition. Text is sourced directly from the linked manuscript section.</p>
+            }
+            else
+            {
+                <p class="empty">Select a page to edit its composition.</p>
+            }
+        </section>
+    </div>
+}
+
+@code {
+    private Guid? selectedId;
+    private string orientation = nameof(PageCompositionOrientation.Portrait);
+    private string imageFit = nameof(PageCompositionFit.Contain);
+    private string visualAssetId = string.Empty;
+    private string focalPoint = string.Empty;
+    private double textX, textY, textWidth, textHeight, imageX, imageY, imageWidth, imageHeight;
+    private string saveMessage = string.Empty;
+    private string saveError = string.Empty;
+
+    private IEnumerable<PageComposition> OrderedCompositions =>
+        Session.Workspace.PageCompositions.OrderBy(item => FindSection(item.ManuscriptSectionId)?.Sequence ?? int.MaxValue);
+
+    private PageComposition? SelectedComposition =>
+        Session.Workspace.PageCompositions.FirstOrDefault(item => item.Id == selectedId);
+
+    private ManuscriptSection? SelectedSection =>
+        SelectedComposition is { } item ? FindSection(item.ManuscriptSectionId) : null;
+
+    private VisualAssetRevision? PreviewImage =>
+        SelectedComposition?.VisualAssetId is Guid id
+            ? Session.Workspace.VisualAssets.FirstOrDefault(asset => asset.Id == id)?.Revisions.LastOrDefault()
+            : null;
+
+    protected override void OnInitialized()
+    {
+        Session.Changed += OnSessionChanged;
+        var first = OrderedCompositions.FirstOrDefault();
+        if (first is not null) Select(first.Id);
+    }
+
+    private ManuscriptSection? FindSection(Guid id) =>
+        Session.Workspace.Manuscripts.SelectMany(item => item.Sections).FirstOrDefault(item => item.Id == id);
+
+    private void Select(Guid id)
+    {
+        selectedId = id;
+        var item = SelectedComposition;
+        if (item is null) return;
+        orientation = item.Orientation.ToString();
+        imageFit = item.ImageFit.ToString();
+        visualAssetId = item.VisualAssetId?.ToString() ?? string.Empty;
+        focalPoint = item.FocalPoint ?? string.Empty;
+        textX = item.TextRegion.X; textY = item.TextRegion.Y;
+        textWidth = item.TextRegion.Width; textHeight = item.TextRegion.Height;
+        imageX = item.ImageRegion.X; imageY = item.ImageRegion.Y;
+        imageWidth = item.ImageRegion.Width; imageHeight = item.ImageRegion.Height;
+        saveMessage = saveError = string.Empty;
+    }
+
+    private void SaveComposition()
+    {
+        if (SelectedComposition is not { } item) return;
+        try
+        {
+            if (!Enum.TryParse<PageCompositionOrientation>(orientation, out var parsedOrientation) ||
+                !Enum.TryParse<PageCompositionFit>(imageFit, out var parsedFit))
+                throw new InvalidOperationException("Choose a valid page orientation and image fit.");
+            var updated = item with
+            {
+                Orientation = parsedOrientation,
+                ImageFit = parsedFit,
+                VisualAssetId = Guid.TryParse(visualAssetId, out var assetId) ? assetId : null,
+                FocalPoint = string.IsNullOrWhiteSpace(focalPoint) ? null : focalPoint.Trim(),
+                TextRegion = new PageCompositionRegion { X = textX, Y = textY, Width = textWidth, Height = textHeight },
+                ImageRegion = new PageCompositionRegion { X = imageX, Y = imageY, Width = imageWidth, Height = imageHeight }
+            };
+            Session.UpdatePageComposition(updated);
+            saveMessage = "Page layout saved.";
+            saveError = string.Empty;
+        }
+        catch (Exception exception) when (exception is InvalidOperationException or KeyNotFoundException or ArgumentException)
+        {
+            saveError = exception.Message;
+            saveMessage = string.Empty;
+        }
+    }
+
+    private static string RegionStyle(PageCompositionRegion region) =>
+        $"left:{region.X * 100}%;top:{region.Y * 100}%;width:{region.Width * 100}%;height:{region.Height * 100}%";
+
+    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}
