@@ -366,6 +366,12 @@ public sealed class StoryWorkspacePersistenceTests
             "Author",
             "Approved character design.",
             DateTimeOffset.Parse("2026-11-08T07:00:00Z"));
+        var thirdRevision = session.AddVisualAssetRevision(asset.Id, new VisualAssetRevision
+        {
+            RevisionNumber = 3,
+            AssetLocation = "experiences/Lenny/Visuals/lenny-turnaround-v3.png",
+            CreationPrompt = "Refinement after the earlier approved revision."
+        });
 
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
         using var output = new MemoryBinaryStream();
@@ -379,10 +385,12 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(character.Id, restoredAsset.CharacterId);
         Assert.Equal(section.Sections[0].Id, restoredAsset.ManuscriptSectionId);
         Assert.Equal(source.Id, Assert.Single(restoredAsset.SourceIds));
-        Assert.Equal(2, restoredAsset.Revisions.Count);
+        Assert.Equal(3, restoredAsset.Revisions.Count);
+        Assert.Equal(thirdRevision.Id, restoredAsset.Revisions[2].Id);
         var review = Assert.Single(restored.Workspace.VisualAssetReviews);
         Assert.Equal(asset.Id, review.AssetId);
         Assert.Equal(secondRevision.Id, review.RevisionId);
+        Assert.NotEqual(thirdRevision.Id, review.RevisionId);
         Assert.Equal(VisualAssetReviewDecision.Approved, review.Decision);
         Assert.Equal("Author", review.Reviewer);
         Assert.Equal(DateTimeOffset.Parse("2026-11-08T07:00:00Z"), review.ReviewedAtUtc);
