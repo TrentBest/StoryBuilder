@@ -109,7 +109,19 @@
                     <section class="book-section">
                         <div class="eyebrow">@section.Kind · Section @section.Sequence</div>
                         <h3>@section.Title</h3>
-                        @if (string.IsNullOrWhiteSpace(section.Body))
+                        @if (FindComposition(section.Id) is { } composition)
+                        {
+                            var illustration = FindCompositionImage(composition);
+                            <div class="book-composition @(composition.Orientation.ToString().ToLowerInvariant())">
+                                @if (illustration is not null)
+                                {
+                                    <img src="@illustration.AssetLocation" alt="Illustration for @section.Title"
+                                         style="@($"{RegionStyle(composition.ImageRegion)};object-fit:{composition.ImageFit.ToString().ToLowerInvariant()}")" />
+                                }
+                                <div class="book-composition-text" style="@RegionStyle(composition.TextRegion)">@section.Body</div>
+                            </div>
+                        }
+                        else if (string.IsNullOrWhiteSpace(section.Body))
                         {
                             <p class="empty">This section has no text yet.</p>
                         }
@@ -197,6 +209,17 @@
     private Guid? selectedManuscriptId;
     private Guid? selectedSectionId;
     private RenderedBookArtifact? renderedBook;
+
+    private PageComposition? FindComposition(Guid sectionId) =>
+        Session.Workspace.PageCompositions.FirstOrDefault(item => item.ManuscriptSectionId == sectionId);
+
+    private VisualAssetRevision? FindCompositionImage(PageComposition composition) =>
+        composition.VisualAssetId is Guid assetId
+            ? Session.Workspace.VisualAssets.FirstOrDefault(item => item.Id == assetId)?.Revisions.LastOrDefault()
+            : null;
+
+    private static string RegionStyle(PageCompositionRegion region) =>
+        $"left:{region.X * 100:0.####}%;top:{region.Y * 100:0.####}%;width:{region.Width * 100:0.####}%;height:{region.Height * 100:0.####}%";
 
     private ManuscriptEdition? CurrentManuscript =>
         Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == selectedManuscriptId)
