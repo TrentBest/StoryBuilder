@@ -97,3 +97,7 @@ The domain core, FSM_API lifecycle adapter, FSM_COS-composable MicroBundle, vers
 ## License
 
 StoryBuilder is licensed under the [MIT License](LICENSE). You may use, modify, distribute, and build on it under the license terms. The aim is to make adoption easy and encourage a community around the tools.
+
+## Additional engineering references
+
+- [Composition manifest import](docs/COMPOSITION_MANIFEST_IMPORT.md) — import source-linked manuscripts into the canonical `StoryWorkspace` model.
