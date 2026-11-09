@@ -225,14 +225,22 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender) return;
+        try
+        {
             placementModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/PageCompositions.razor.js");
+        }
+        catch (JSException)
+        {
+            // Keyboard placement remains available if the optional pointer helper cannot load.
+            placementModule = null;
+        }
     }
 
     private async Task PlaceDiscoveryTarget(MouseEventArgs args)
     {
-        if (!discoveryEnabled || placementModule is null) return;
-        var point = args.Detail == 0
+        if (!discoveryEnabled) return;
+        var point = args.Detail == 0 || placementModule is null
             ? new NormalizedPoint(0.5, 0.5)
             : await placementModule.InvokeAsync<NormalizedPoint>("getNormalizedPoint", previewElement, args.ClientX, args.ClientY);
         discoveryX = Math.Clamp(point.X - discoveryWidth / 2, 0, 1 - discoveryWidth);
