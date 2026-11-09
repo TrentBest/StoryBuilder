@@ -2,6 +2,7 @@
 @implements IDisposable
 @inject StoryBuilderSession Session
 @inject IConfiguration Configuration
+@inject IWebHostEnvironment Environment
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Security.Cryptography
 
@@ -263,7 +264,7 @@
             if (!HasExpectedImageSignature(bytes, extension)) { uploadError = "The file contents do not match the selected image format."; return; }
             var directory = Path.GetFullPath(
                 Configuration["StoryBuilder:VisualAssets:StoragePath"]
-                ?? Path.Combine("App_Data", "visual-assets"));
+                ?? Path.Combine(Environment.ContentRootPath, "App_Data", "visual-assets"));
             Directory.CreateDirectory(directory);
             var fileName = Guid.NewGuid().ToString("N") + extension;
             await File.WriteAllBytesAsync(Path.Combine(directory, fileName), bytes);
