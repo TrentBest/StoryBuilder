@@ -239,15 +239,6 @@ else
         saveError = string.Empty;
     }
 
-    private void PlaceDiscoveryTargetFromKeyboard(KeyboardEventArgs args)
-    {
-        if (!discoveryEnabled || (args.Key != "Enter" && args.Key != " ")) return;
-        discoveryX = (1 - discoveryWidth) / 2;
-        discoveryY = (1 - discoveryHeight) / 2;
-        saveMessage = "Target positioned at the center of the live preview. Save the page layout to keep it.";
-        saveError = string.Empty;
-    }
-
     private sealed record NormalizedPoint(double X, double Y);
 
     private void SaveComposition()
