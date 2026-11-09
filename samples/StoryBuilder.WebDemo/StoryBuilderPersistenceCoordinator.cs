@@ -110,12 +110,10 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
                 if (!string.IsNullOrWhiteSpace(encoded))
                 {
                     var bytes = Convert.FromBase64String(encoded);
-                    using var stream = new MemoryStream(bytes, writable: false);
                     var document = new StoryWorkspaceBinaryDocument();
                     document.Unpack(new TheSingularityWorkshop.FSM_Serialization.MemoryBinaryStream(bytes));
                     document.RestoreInto(_session);
                     _removeLegacySnapshotAfterSave = true;
-                    await SaveAsync();
                 }
             }
         }
@@ -129,8 +127,10 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
             IsLoaded = true;
             NotifyStateChanged();
         }
-    }
 
+        if (_removeLegacySnapshotAfterSave && LoadError is null)
+            await SaveAsync();
+    }
     private void OnSessionChanged()
     {
         if (IsLoaded && LoadError is null && !_disposed)
