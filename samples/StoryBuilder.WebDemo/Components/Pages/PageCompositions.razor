@@ -130,7 +130,7 @@ else
                     <PageCompositionView Composition="PreviewComposition" Section="manuscriptSection" Illustration="PreviewImage" CssClass="composition-preview" ShowDiscoveryTarget="true" />
                     @if (discoveryEnabled)
                     {
-                        <div class="discovery-placement-surface" @ref="previewElement" @onclick="PlaceDiscoveryTarget" role="button" tabindex="0" aria-label="Click the page preview to position the discovery target">
+                        <div class="discovery-placement-surface" @ref="previewElement" @onclick="PlaceDiscoveryTarget" @onkeydown="PlaceDiscoveryTargetFromKeyboard" role="button" tabindex="0" aria-label="Click the page preview to position the discovery target. Press Enter or Space to place it at the center.">
                             <span class="discovery-placement-instruction">Click the page to place the discovery target</span>
                         </div>
                     }
@@ -236,6 +236,15 @@ else
         discoveryX = Math.Clamp(point.X - discoveryWidth / 2, 0, 1 - discoveryWidth);
         discoveryY = Math.Clamp(point.Y - discoveryHeight / 2, 0, 1 - discoveryHeight);
         saveMessage = "Target positioned in the live preview. Save the page layout to keep it.";
+        saveError = string.Empty;
+    }
+
+    private void PlaceDiscoveryTargetFromKeyboard(KeyboardEventArgs args)
+    {
+        if (!discoveryEnabled || (args.Key != "Enter" && args.Key != " ")) return;
+        discoveryX = (1 - discoveryWidth) / 2;
+        discoveryY = (1 - discoveryHeight) / 2;
+        saveMessage = "Target positioned at the center of the live preview. Save the page layout to keep it.";
         saveError = string.Empty;
     }
 
