@@ -91,7 +91,8 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
 
         _disposed = true;
         _session.Changed -= OnSessionChanged;
-        _saveGate.Dispose();
+        // A save may already be running from the session Changed event. Do not dispose
+        // the semaphore while that asynchronous operation may still need to release it.
     }
 
     private async Task LoadCoreAsync()
