@@ -130,9 +130,9 @@ else
                     <PageCompositionView Composition="PreviewComposition" Section="manuscriptSection" Illustration="PreviewImage" CssClass="composition-preview" ShowDiscoveryTarget="true" />
                     @if (discoveryEnabled)
                     {
-                        <div class="discovery-placement-surface" @ref="previewElement" @onclick="PlaceDiscoveryTarget" @onkeydown="PlaceDiscoveryTargetFromKeyboard" role="button" tabindex="0" aria-label="Click the page preview to position the discovery target. Press Enter or Space to place it at the center.">
-                            <span class="discovery-placement-instruction">Click the page to place the discovery target</span>
-                        </div>
+                        <button type="button" class="discovery-placement-surface" @ref="previewElement" @onclick="PlaceDiscoveryTarget" aria-label="Place the discovery target at the center of the page preview.">
+                            <span class="discovery-placement-instruction">Click the page to place the discovery target · Enter or Space places at center</span>
+                        </button>
                     }
                 </div>
                 <p class="muted">Preview uses your current edits. Click anywhere on the page to center the discovery target there; fine-tune its size and exact position with the coordinate fields.</p>
