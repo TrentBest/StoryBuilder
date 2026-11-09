@@ -396,4 +396,42 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(DateTimeOffset.Parse("2026-11-08T07:00:00Z"), review.ReviewedAtUtc);
     }
 
+
+    [Fact]
+    public void PageDiscoverySettingsRoundTripWithWorkspaceBinaryDocument()
+    {
+        var session = new StoryBuilderSession("Discovery persistence");
+        var manuscript = session.CreateManuscript("A small discovery story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "The beach");
+        var composition = new PageComposition
+        {
+            ManuscriptSectionId = section.Sections[0].Id,
+            Name = "Find the shell",
+            DiscoveryRegion = new PageCompositionRegion
+            {
+                X = 0.62,
+                Y = 0.38,
+                Width = 0.16,
+                Height = 0.12
+            },
+            DiscoveryPrompt = "Can you find the shell?",
+            DiscoveryHintDelaySeconds = 27
+        };
+        session.Workspace.AddPageComposition(composition);
+
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        using var input = new MemoryBinaryStream(output.ToArray());
+        var restored = new StoryWorkspaceBinaryDocument();
+        restored.Unpack(input);
+
+        var restoredComposition = Assert.Single(restored.Workspace.PageCompositions);
+        Assert.Equal(composition.Id, restoredComposition.Id);
+        Assert.Equal(composition.ManuscriptSectionId, restoredComposition.ManuscriptSectionId);
+        Assert.Equal(composition.DiscoveryRegion, restoredComposition.DiscoveryRegion);
+        Assert.Equal("Can you find the shell?", restoredComposition.DiscoveryPrompt);
+        Assert.Equal(27, restoredComposition.DiscoveryHintDelaySeconds);
+    }
+
+
 }
