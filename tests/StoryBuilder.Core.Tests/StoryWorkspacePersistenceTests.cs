@@ -476,4 +476,41 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Null(Assert.Single(session.Workspace.PageCompositions).DiscoveryRegion);
     }
 
+
+    [Theory]
+    [InlineData(-1)]
+    [InlineData(121)]
+    public void PageCompositionRejectsDiscoveryHintDelayOutsideSupportedRange(int delaySeconds)
+    {
+        var session = new StoryBuilderSession("Invalid discovery delay");
+        var manuscript = session.CreateManuscript("A discovery story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Beach");
+        var composition = new PageComposition
+        {
+            ManuscriptSectionId = section.Sections[0].Id,
+            DiscoveryHintDelaySeconds = delaySeconds
+        };
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            session.Workspace.AddPageComposition(composition));
+
+        Assert.Contains("between 0 and 120 seconds", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void PageCompositionReplacementRejectsUnsupportedDiscoveryHintDelay()
+    {
+        var session = new StoryBuilderSession("Invalid discovery delay replacement");
+        var manuscript = session.CreateManuscript("A discovery story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Beach");
+        var composition = new PageComposition { ManuscriptSectionId = section.Sections[0].Id };
+        session.Workspace.AddPageComposition(composition);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            session.Workspace.ReplacePageComposition(composition with { DiscoveryHintDelaySeconds = 121 }));
+
+        Assert.Contains("between 0 and 120 seconds", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(12, Assert.Single(session.Workspace.PageCompositions).DiscoveryHintDelaySeconds);
+    }
+
 }
