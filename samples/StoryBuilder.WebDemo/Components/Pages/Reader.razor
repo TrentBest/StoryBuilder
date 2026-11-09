@@ -47,7 +47,7 @@ else
             @if (FindComposition(CurrentSection.Id) is { } composition)
             {
                 var illustration = FindCompositionImage(composition);
-                <PageCompositionView Composition="composition" Section="CurrentSection" Illustration="illustration" CssClass="reader-composition" OnDiscoveryFound="AdvanceFromDiscovery" />
+                <PageCompositionView Composition="composition" Section="CurrentSection" Illustration="illustration" CssClass="reader-composition" OnDiscoveryFound="AdvanceFromDiscovery" ShowDiscoveryTarget="true" />
             }
             else
             {
