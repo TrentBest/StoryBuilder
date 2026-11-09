@@ -25,6 +25,10 @@ Open http://localhost:5080.
 - **Book Preview:** author actual manuscript text in ordered chapters, scenes, and passages, link sections to world-event identities, and render a deterministic Markdown digital-book artifact.
 - **Observer Lens:** accept knowledge records, evaluate a claim at an event anchor, and render a GUI.SVG view containing only accepted, causally available observer knowledge.
 
+## Visual asset storage
+
+Uploaded PNG, JPEG, and WebP files are stored outside browser localStorage in the WebDemo host filesystem. The default directory is `App_Data/visual-assets` beneath the WebDemo content root and is served at `/visual-assets` for previews. Set `StoryBuilder:VisualAssets:StoragePath` in host configuration to select another directory (an absolute path is recommended for deployment). The workspace stores the asset URI and SHA-256 metadata; it does not contain the media bytes. Browser-local workspace data and filesystem media therefore need separate backup/restore handling. This is persistent host-local storage when the host volume is persistent, not cloud/object storage or multi-host shared storage.
+
 ## Current boundary
 
-The workspace is scoped to the current browser and autosaves as a versioned binary document in localStorage. Refreshing the page restores characters, scenes, claims, sources, campaigns, participant actions, and synonym mappings. This demo is not yet integrated into the WebPage host, does not synchronize data across devices or users, and does not provide physics simulation or a fully visual claymation stage. Those are explicit next steps, not implied features.
+The workspace is scoped to the current browser and autosaves as a versioned binary document in localStorage. Refreshing the page restores characters, scenes, claims, sources, campaigns, participant actions, and synonym mappings. Uploaded media is host-local and is not automatically synchronized with the browser workspace across devices or users. This demo is not yet integrated into the WebPage host and does not provide physics simulation or a fully visual claymation stage. Those are explicit next steps, not implied features.
