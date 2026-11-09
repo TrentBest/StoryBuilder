@@ -193,3 +193,18 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
     .page-discovery-target { opacity: .8; }
     .reader-page-turn { transition: none; }
 }
+
+
+/* Click-to-place authoring overlay for discovery hotspots. */
+.discovery-placement-wrap { position: relative; width: 100%; }
+.discovery-placement-surface {
+    position: absolute; inset: 0; z-index: 6; cursor: crosshair;
+    background: transparent; border: 1px dashed #a9d8c855; border-radius: .7rem;
+}
+.discovery-placement-instruction {
+    position: absolute; left: 50%; bottom: .6rem; transform: translateX(-50%);
+    padding: .35rem .65rem; border: 1px solid #5d8e7d; border-radius: 99px;
+    background: #111821e8; color: #edf0f5; font-size: .72rem; white-space: nowrap;
+    pointer-events: none;
+}
+.discovery-placement-surface:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
