@@ -97,7 +97,7 @@ else
 
     private ManuscriptSection CurrentSection => Sections[Math.Clamp(currentIndex, 0, Sections.Count - 1)];
     private PageComposition? CurrentComposition => FindComposition(CurrentSection.Id);
-    private bool HasDiscovery => CurrentComposition?.DiscoveryRegion is not null;
+    private bool HasDiscovery => currentIndex < Sections.Count - 1 && CurrentComposition?.DiscoveryRegion is not null;
     private bool CanAdvance => currentIndex < Sections.Count - 1 && (!HasDiscovery || discoveryFound);
 
     private PageComposition? FindComposition(Guid sectionId) =>
@@ -144,6 +144,7 @@ else
 
     private void JumpToPage(ChangeEventArgs args)
     {
+        if (HasDiscovery && !discoveryFound) return;
         if (int.TryParse(args.Value?.ToString(), out var index))
             currentIndex = Math.Clamp(index, 0, Math.Max(0, Sections.Count - 1));
         discoveryFound = false;
@@ -160,8 +161,11 @@ else
                 Next();
                 break;
             case "Home":
-                currentIndex = 0;
-                discoveryFound = false;
+                if (!HasDiscovery || discoveryFound)
+                {
+                    currentIndex = 0;
+                    discoveryFound = false;
+                }
                 break;
             case "End":
                 if (!HasDiscovery || discoveryFound)
