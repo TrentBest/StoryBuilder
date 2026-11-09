@@ -2,7 +2,8 @@ using Microsoft.Extensions.FileProviders;
 using StoryBuilder.MicroBundle;
 using StoryBuilder.Core.Services;
 using StoryBuilder.FSM;
-using StoryBuilder.FSM_COS;\nusing StoryBuilder.Persistence;
+using StoryBuilder.FSM_COS;
+using StoryBuilder.Persistence;
 using StoryBuilder.WebDemo;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,13 @@ builder.Services.AddScoped<StoryBuilderPersistenceCoordinator>();
 builder.Services.AddScoped<StoryBuilderSession>(services =>
     services.GetRequiredService<StoryBuilderHostedExperience>().Experience.Session);
 
-var workspacePath = Path.GetFullPath(\n    builder.Configuration["StoryBuilder:Workspaces:StoragePath"]\n    ?? Path.Combine(builder.Environment.ContentRootPath, "App_Data", "workspaces"));\nDirectory.CreateDirectory(workspacePath);\nbuilder.Services.AddSingleton(new LocalStoryWorkspaceRepository(workspacePath));\n\nvar visualAssetPath = Path.GetFullPath(
+var workspacePath = Path.GetFullPath(
+    builder.Configuration["StoryBuilder:Workspaces:StoragePath"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "App_Data", "workspaces"));
+Directory.CreateDirectory(workspacePath);
+builder.Services.AddSingleton(new LocalStoryWorkspaceRepository(workspacePath));
+
+var visualAssetPath = Path.GetFullPath(
     builder.Configuration["StoryBuilder:VisualAssets:StoragePath"]
     ?? Path.Combine(builder.Environment.ContentRootPath, "App_Data", "visual-assets"));
 Directory.CreateDirectory(visualAssetPath);
