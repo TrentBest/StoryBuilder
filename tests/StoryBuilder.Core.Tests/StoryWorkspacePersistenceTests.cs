@@ -434,4 +434,46 @@ public sealed class StoryWorkspacePersistenceTests
     }
 
 
+
+    [Theory]
+    [InlineData(-0.01, 0.2, 0.1, 0.1)]
+    [InlineData(0.95, 0.2, 0.1, 0.1)]
+    [InlineData(0.2, 0.2, 0, 0.1)]
+    [InlineData(double.NaN, 0.2, 0.1, 0.1)]
+    public void PageCompositionRejectsInvalidDiscoveryRegion(double x, double y, double width, double height)
+    {
+        var session = new StoryBuilderSession("Invalid discovery geometry");
+        var manuscript = session.CreateManuscript("A discovery story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Beach");
+
+        var composition = new PageComposition
+        {
+            ManuscriptSectionId = section.Sections[0].Id,
+            DiscoveryRegion = new PageCompositionRegion { X = x, Y = y, Width = width, Height = height }
+        };
+
+        var exception = Assert.Throws<InvalidOperationException>(() => session.Workspace.AddPageComposition(composition));
+
+        Assert.Contains("normalized page bounds", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void PageCompositionReplacementRejectsInvalidDiscoveryRegion()
+    {
+        var session = new StoryBuilderSession("Invalid discovery replacement");
+        var manuscript = session.CreateManuscript("A discovery story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Beach");
+        var composition = new PageComposition { ManuscriptSectionId = section.Sections[0].Id };
+        session.Workspace.AddPageComposition(composition);
+
+        var exception = Assert.Throws<InvalidOperationException>(() =>
+            session.Workspace.ReplacePageComposition(composition with
+            {
+                DiscoveryRegion = new PageCompositionRegion { X = 0.9, Y = 0.2, Width = 0.2, Height = 0.1 }
+            }));
+
+        Assert.Contains("normalized page bounds", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Null(Assert.Single(session.Workspace.PageCompositions).DiscoveryRegion);
+    }
+
 }
