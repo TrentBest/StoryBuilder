@@ -1,6 +1,6 @@
 # StoryBuilder Web Demo
 
-This local Blazor host is the first clickable authoring surface for the StoryBuilder domain. It consumes a session created by StoryBuilderAuthoringBundle, which keeps the host on the same MicroBundle boundary exercised by the FSM_COS integration test.
+This local Blazor host is the first clickable authoring surface for the StoryBuilder domain. It consumes a session created by StoryBuilderAuthoringBundle, which keeps the host on the same MicroBundle boundary exercised by the FSM_COS integration test. The demo autosaves its working workspace to a host-local versioned binary repository; existing browser-local snapshots are migrated on first load when no host workspace exists.
 
 ## Run
 
@@ -29,6 +29,8 @@ Open http://localhost:5080.
 
 Uploaded PNG, JPEG, and WebP files are stored outside browser localStorage in the WebDemo host filesystem. The default directory is `App_Data/visual-assets` beneath the WebDemo content root and is served at `/visual-assets` for previews. Set `StoryBuilder:VisualAssets:StoragePath` in host configuration to select another directory (an absolute path is recommended for deployment). The workspace stores the asset URI and SHA-256 metadata; it does not contain the media bytes. Browser-local workspace data and filesystem media therefore need separate backup/restore handling. This is persistent host-local storage when the host volume is persistent, not cloud/object storage or multi-host shared storage.
 
-## Current boundary
+## Workspace storage
 
-The workspace is scoped to the current browser and autosaves as a versioned binary document in localStorage. Refreshing the page restores characters, scenes, claims, sources, campaigns, participant actions, and synonym mappings. Uploaded media is host-local and is not automatically synchronized with the browser workspace across devices or users. This demo is not yet integrated into the WebPage host and does not provide physics simulation or a fully visual claymation stage. Those are explicit next steps, not implied features.
+Workspace snapshots are stored as versioned `.sbws` binary documents under `App_Data/workspaces` beneath the WebDemo content root. Set `StoryBuilder:Workspaces:StoragePath` to choose another host directory. The WebDemo uses a single workspace slot and does not yet provide account isolation, multi-user collaboration, cloud synchronization, or backup. A browser-local snapshot from an earlier build is imported only when no host snapshot exists; it is removed only after the host save succeeds. Uploaded media remains in the separate `App_Data/visual-assets` directory (configurable with `StoryBuilder:VisualAssets:StoragePath`), so both directories must be included in host backups.
+
+This demo is not yet integrated into the WebPage host and does not provide physics simulation or a fully visual claymation stage. Those are explicit next steps, not implied features.
