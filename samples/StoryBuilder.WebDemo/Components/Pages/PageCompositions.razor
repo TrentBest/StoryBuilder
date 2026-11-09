@@ -1,6 +1,7 @@
 @page "/page-compositions"
-@implements IDisposable
+@implements IAsyncDisposable
 @inject StoryBuilderSession Session
+@inject IJSRuntime JS
 
 <PageTitle>Page Compositions · StoryBuilder</PageTitle>
 
@@ -125,8 +126,16 @@ else
 
                 <hr />
                 <div class="eyebrow">Live page preview</div>
-                <PageCompositionView Composition="selected" Section="manuscriptSection" Illustration="PreviewImage" CssClass="composition-preview" ShowDiscoveryTarget="true" />
-                <p class="muted">Preview uses the current saved composition. Text is sourced directly from the linked manuscript section.</p>
+                <div class="discovery-placement-wrap">
+                    <PageCompositionView Composition="PreviewComposition" Section="manuscriptSection" Illustration="PreviewImage" CssClass="composition-preview" ShowDiscoveryTarget="true" />
+                    @if (discoveryEnabled)
+                    {
+                        <div class="discovery-placement-surface" @ref="previewElement" @onclick="PlaceDiscoveryTarget" role="button" tabindex="0" aria-label="Click the page preview to position the discovery target">
+                            <span class="discovery-placement-instruction">Click the page to place the discovery target</span>
+                        </div>
+                    }
+                </div>
+                <p class="muted">Preview uses your current edits. Click anywhere on the page to center the discovery target there; fine-tune its size and exact position with the coordinate fields.</p>
             }
             else
             {
@@ -149,6 +158,22 @@ else
     private double textX, textY, textWidth, textHeight, imageX, imageY, imageWidth, imageHeight;
     private string saveMessage = string.Empty;
     private string saveError = string.Empty;
+    private ElementReference previewElement;
+    private IJSObjectReference? placementModule;
+
+    private PageComposition PreviewComposition => SelectedComposition is { } item
+        ? item with
+        {
+            Orientation = Enum.TryParse<PageCompositionOrientation>(orientation, out var previewOrientation) ? previewOrientation : item.Orientation,
+            ImageFit = Enum.TryParse<PageCompositionFit>(imageFit, out var previewFit) ? previewFit : item.ImageFit,
+            VisualAssetId = Guid.TryParse(visualAssetId, out var previewAssetId) ? previewAssetId : null,
+            TextRegion = new PageCompositionRegion { X = textX, Y = textY, Width = textWidth, Height = textHeight },
+            ImageRegion = new PageCompositionRegion { X = imageX, Y = imageY, Width = imageWidth, Height = imageHeight },
+            DiscoveryRegion = discoveryEnabled ? new PageCompositionRegion { X = discoveryX, Y = discoveryY, Width = discoveryWidth, Height = discoveryHeight } : null,
+            DiscoveryPrompt = discoveryPrompt,
+            DiscoveryHintDelaySeconds = Math.Clamp(discoveryDelay, 0, 120)
+        }
+        : default!;
 
     private IEnumerable<PageComposition> OrderedCompositions =>
         Session.Workspace.PageCompositions.OrderBy(item => FindSection(item.ManuscriptSectionId)?.Sequence ?? int.MaxValue);
@@ -198,6 +223,24 @@ else
         saveMessage = saveError = string.Empty;
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            placementModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/PageCompositions.razor.js");
+    }
+
+    private async Task PlaceDiscoveryTarget(MouseEventArgs args)
+    {
+        if (!discoveryEnabled || placementModule is null) return;
+        var point = await placementModule.InvokeAsync<NormalizedPoint>("getNormalizedPoint", previewElement, args.ClientX, args.ClientY);
+        discoveryX = Math.Clamp(point.X - discoveryWidth / 2, 0, 1 - discoveryWidth);
+        discoveryY = Math.Clamp(point.Y - discoveryHeight / 2, 0, 1 - discoveryHeight);
+        saveMessage = "Target positioned in the live preview. Save the page layout to keep it.";
+        saveError = string.Empty;
+    }
+
+    private sealed record NormalizedPoint(double X, double Y);
+
     private void SaveComposition()
     {
         if (SelectedComposition is not { } item) return;
@@ -232,5 +275,13 @@ else
     }
 
     private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
-    public void Dispose() => Session.Changed -= OnSessionChanged;
+    public async ValueTask DisposeAsync()
+    {
+        Session.Changed -= OnSessionChanged;
+        if (placementModule is not null)
+        {
+            try { await placementModule.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+    }
 }
