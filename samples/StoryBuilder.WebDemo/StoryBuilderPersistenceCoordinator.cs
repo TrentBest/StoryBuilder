@@ -1,27 +1,32 @@
-using System.Text;
 using Microsoft.JSInterop;
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
 using StoryBuilder.Persistence;
-using TheSingularityWorkshop.FSM_Serialization;
 
 namespace StoryBuilder.WebDemo;
 
 /// <summary>
-/// Browser-local persistence coordinator. It stores a versioned binary document as Base64 in localStorage;
-/// no JSON or server-side shared workspace is involved.
+/// Host-persistent workspace coordinator. Existing browser-local snapshots are imported once
+/// when no host workspace exists, then removed only after the host save succeeds.
 /// </summary>
 public sealed class StoryBuilderPersistenceCoordinator : IDisposable
 {
+    private const ulong WorkspaceId = 1;
     private readonly StoryBuilderSession _session;
+    private readonly LocalStoryWorkspaceRepository _repository;
     private readonly IJSRuntime _javascript;
     private readonly SemaphoreSlim _saveGate = new(1, 1);
     private Task? _loadTask;
     private bool _disposed;
+    private bool _removeLegacySnapshotAfterSave;
 
-    public StoryBuilderPersistenceCoordinator(StoryBuilderSession session, IJSRuntime javascript)
+    public StoryBuilderPersistenceCoordinator(
+        StoryBuilderSession session,
+        LocalStoryWorkspaceRepository repository,
+        IJSRuntime javascript)
     {
         _session = session ?? throw new ArgumentNullException(nameof(session));
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _javascript = javascript ?? throw new ArgumentNullException(nameof(javascript));
         _session.Changed += OnSessionChanged;
     }
@@ -42,17 +47,19 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
         await _saveGate.WaitAsync();
         try
         {
-            var document = StoryWorkspaceBinaryDocument.FromSession(_session);
-            using var stream = new MemoryBinaryStream();
-            document.Pack(stream);
-            var encoded = Convert.ToBase64String(stream.ToArray());
-            await _javascript.InvokeVoidAsync("storyBuilderStorage.set", encoded);
+            await _repository.SaveAsync(WorkspaceId, _session);
             LastSavedAtUtc = DateTimeOffset.UtcNow;
             SaveError = null;
+
+            if (_removeLegacySnapshotAfterSave)
+            {
+                await _javascript.InvokeVoidAsync("storyBuilderStorage.clear");
+                _removeLegacySnapshotAfterSave = false;
+            }
         }
         catch (Exception ex) when (IsExpectedPersistenceFailure(ex))
         {
-            SaveError = $"Could not save this workspace in browser storage: {ex.Message}";
+            SaveError = $"Could not save this workspace to host storage: {ex.Message}";
         }
         finally
         {
@@ -61,18 +68,18 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
         }
     }
 
-    /// <summary>Explicitly discards an unreadable browser-local snapshot and starts a fresh workspace.</summary>
+    /// <summary>Explicitly replaces the current workspace with a fresh empty workspace.</summary>
     public async Task ClearAndStartFreshAsync()
     {
         if (_disposed)
             return;
 
-        await _javascript.InvokeVoidAsync("storyBuilderStorage.clear");
         _session.RestoreFrom(new StoryWorkspace { Name = "StoryBuilder Web Demo" }, Array.Empty<VocabularyConcept>());
         LoadError = null;
         SaveError = null;
         LastSavedAtUtc = null;
         IsLoaded = true;
+        _removeLegacySnapshotAfterSave = true;
         NotifyStateChanged();
         await SaveAsync();
     }
@@ -84,25 +91,37 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
 
         _disposed = true;
         _session.Changed -= OnSessionChanged;
+        _saveGate.Dispose();
     }
 
     private async Task LoadCoreAsync()
     {
         try
         {
-            var encoded = await _javascript.InvokeAsync<string?>("storyBuilderStorage.get");
-            if (!string.IsNullOrWhiteSpace(encoded))
+            var savedSession = await _repository.LoadAsync(WorkspaceId);
+            if (savedSession is not null)
             {
-                var bytes = Convert.FromBase64String(encoded);
-                using var stream = new MemoryBinaryStream(bytes);
-                var document = new StoryWorkspaceBinaryDocument();
-                document.Unpack(stream);
-                document.RestoreInto(_session);
+                _session.RestoreFrom(savedSession.Workspace, savedSession.Vocabulary.ExportConcepts());
+            }
+            else
+            {
+                // Backward-compatible import for workspaces saved by older browser-only builds.
+                var encoded = await _javascript.InvokeAsync<string?>("storyBuilderStorage.get");
+                if (!string.IsNullOrWhiteSpace(encoded))
+                {
+                    var bytes = Convert.FromBase64String(encoded);
+                    using var stream = new MemoryStream(bytes, writable: false);
+                    var document = new StoryWorkspaceBinaryDocument();
+                    document.Unpack(new TheSingularityWorkshop.FSM_Serialization.MemoryBinaryStream(bytes));
+                    document.RestoreInto(_session);
+                    _removeLegacySnapshotAfterSave = true;
+                    await SaveAsync();
+                }
             }
         }
         catch (Exception ex) when (IsExpectedPersistenceFailure(ex))
         {
-            // Preserve the unreadable saved value until the user explicitly chooses to reset it.
+            // Do not overwrite an unreadable host or browser snapshot automatically.
             LoadError = $"The saved workspace could not be loaded and has been left untouched: {ex.Message}";
         }
         finally
@@ -126,5 +145,6 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
             or InvalidDataException
             or ArgumentException
             or FormatException
-            or InvalidOperationException;
+            or InvalidOperationException
+            or UnauthorizedAccessException;
 }
