@@ -15,7 +15,7 @@
                 style="@($"{RegionStyle(target)};--discovery-delay:{Math.Clamp(Composition.DiscoveryHintDelaySeconds, 0, 120)}s")"
                 aria-label="Find this detail to turn the page: @(Composition.DiscoveryPrompt ?? Section.Title)"
                 title="Find this detail to turn the page"
-                @onclick="OnDiscoveryFound">
+                @onclick="OnDiscoveryFound" @onclick:stopPropagation="true">
             <span class="page-discovery-target-mark" aria-hidden="true"></span>
         </button>
     }
