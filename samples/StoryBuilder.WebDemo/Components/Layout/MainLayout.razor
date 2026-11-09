@@ -38,11 +38,11 @@
         }
         else if (Persistence.LastSavedAtUtc is DateTimeOffset savedAt)
         {
-            <span>Saved in this browser · @savedAt.ToLocalTime().ToString("HH:mm:ss")</span>
+            <span>Saved on host · @savedAt.ToLocalTime().ToString("HH:mm:ss")</span>
         }
         else
         {
-            <span>Browser-local autosave is ready. Your words remain yours to revise.</span>
+            <span>Host workspace autosave is ready. Your words remain yours to revise.</span>
         }
     </div>
 
@@ -63,7 +63,7 @@
 
     <footer class="footer">
         <span>Drafts are editable. Suggestions are not canon.</span>
-        <span>Versioned binary save · stored in this browser</span>
+        <span>Versioned binary save · stored on host</span>
     </footer>
 </div>
 
