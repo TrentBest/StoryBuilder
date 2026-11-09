@@ -369,6 +369,8 @@ public sealed class StoryWorkspace
         if (!IsNormalized(composition.TextRegion) || !IsNormalized(composition.ImageRegion) ||
             (composition.DiscoveryRegion is not null && !IsNormalized(composition.DiscoveryRegion)))
             throw new InvalidOperationException("Page composition regions must fit within normalized page bounds (0..1).");
+        if (composition.DiscoveryHintDelaySeconds is < 0 or > 120)
+            throw new InvalidOperationException("Discovery hint delay must be between 0 and 120 seconds.");
         ReplaceById(_pageCompositions, composition.Id, composition, nameof(composition));
     }
 
@@ -383,6 +385,8 @@ public sealed class StoryWorkspace
         if (!IsNormalized(composition.TextRegion) || !IsNormalized(composition.ImageRegion) ||
             (composition.DiscoveryRegion is not null && !IsNormalized(composition.DiscoveryRegion)))
             throw new InvalidOperationException("Page composition regions must fit within normalized page bounds (0..1).");
+        if (composition.DiscoveryHintDelaySeconds is < 0 or > 120)
+            throw new InvalidOperationException("Discovery hint delay must be between 0 and 120 seconds.");
         _pageCompositions.Add(composition);
     }
 
