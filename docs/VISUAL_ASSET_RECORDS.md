@@ -29,7 +29,7 @@ Workspace validation checks:
 - valid review-to-asset and review-to-revision ownership links;
 - reviewer attribution on every review record.
 
-The workspace stores durable relative paths or URIs, never temporary machine-local paths. Media bytes are deliberately kept outside the binary workspace document.
+The workspace stores durable relative paths or URIs, never temporary machine-local paths. Media bytes are deliberately kept outside the binary workspace document. The WebDemo writes uploads to a configurable host-filesystem directory (`StoryBuilder:VisualAssets:StoragePath`); by default this is `App_Data/visual-assets` beneath the WebDemo content root. It serves that directory at `/visual-assets` for preview. This survives browser refreshes and process restarts when the host filesystem is persistent, but it is not cloud storage, shared storage, or a backup strategy. Production hosts should configure a durable volume or provide an object-storage-backed asset service.
 
 ## Lenny production sequence
 
