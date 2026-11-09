@@ -232,7 +232,9 @@ else
     private async Task PlaceDiscoveryTarget(MouseEventArgs args)
     {
         if (!discoveryEnabled || placementModule is null) return;
-        var point = await placementModule.InvokeAsync<NormalizedPoint>("getNormalizedPoint", previewElement, args.ClientX, args.ClientY);
+        var point = args.Detail == 0
+            ? new NormalizedPoint(0.5, 0.5)
+            : await placementModule.InvokeAsync<NormalizedPoint>("getNormalizedPoint", previewElement, args.ClientX, args.ClientY);
         discoveryX = Math.Clamp(point.X - discoveryWidth / 2, 0, 1 - discoveryWidth);
         discoveryY = Math.Clamp(point.Y - discoveryHeight / 2, 0, 1 - discoveryHeight);
         saveMessage = "Target positioned in the live preview. Save the page layout to keep it.";
