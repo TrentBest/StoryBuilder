@@ -9,7 +9,7 @@
              style="@($"{RegionStyle(Composition.ImageRegion)};object-fit:{Composition.ImageFit.ToString().ToLowerInvariant()}")" />
     }
     <div class="page-composition-text" style="@RegionStyle(Composition.TextRegion)">@Section.Body</div>
-    @if (Composition.DiscoveryRegion is { } target)
+    @if (ShowDiscoveryTarget && Composition.DiscoveryRegion is { } target)
     {
         <button type="button" class="page-discovery-target"
                 style="@($"{RegionStyle(target)};--discovery-delay:{Math.Clamp(Composition.DiscoveryHintDelaySeconds, 0, 120)}s")"
@@ -27,6 +27,7 @@
     [Parameter] public VisualAssetRevision? Illustration { get; set; }
     [Parameter] public string CssClass { get; set; } = string.Empty;
     [Parameter] public EventCallback OnDiscoveryFound { get; set; }
+    [Parameter] public bool ShowDiscoveryTarget { get; set; }
 
     private static string RegionStyle(PageCompositionRegion region) =>
         $"left:{region.X * 100:0.####}%;top:{region.Y * 100:0.####}%;width:{region.Width * 100:0.####}%;height:{region.Height * 100:0.####}%";
