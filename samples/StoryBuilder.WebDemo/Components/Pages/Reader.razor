@@ -66,7 +66,7 @@ else
             <button class="secondary" @onclick="Previous" disabled="@(currentIndex == 0)">← Previous</button>
             <label class="reader-page-jump">
                 <span class="muted">Page</span>
-                <select value="@currentIndex" @onchange="JumpToPage" aria-label="Jump to page">
+                <select value="@currentIndex" @onchange="JumpToPage" aria-label="Jump to page" disabled="@(HasDiscovery && !discoveryFound)">
                     @for (var index = 0; index < Sections.Count; index++)
                     {
                         <option value="@index">@(index + 1) · @Sections[index].Kind — @Sections[index].Title</option>
