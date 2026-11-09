@@ -1,3 +1,4 @@
+using Microsoft.Extensions.FileProviders;
 using StoryBuilder.MicroBundle;
 using StoryBuilder.Core.Services;
 using StoryBuilder.FSM;
@@ -15,6 +16,11 @@ builder.Services.AddScoped<StoryBuilderPersistenceCoordinator>();
 builder.Services.AddScoped<StoryBuilderSession>(services =>
     services.GetRequiredService<StoryBuilderHostedExperience>().Experience.Session);
 
+var visualAssetPath = Path.GetFullPath(
+    builder.Configuration["StoryBuilder:VisualAssets:StoragePath"]
+    ?? Path.Combine(builder.Environment.ContentRootPath, "App_Data", "visual-assets"));
+Directory.CreateDirectory(visualAssetPath);
+
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -24,6 +30,11 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(visualAssetPath),
+    RequestPath = "/visual-assets"
+});
 app.UseAntiforgery();
 app.MapRazorComponents<StoryBuilder.WebDemo.Components.App>()
     .AddInteractiveServerRenderMode();
