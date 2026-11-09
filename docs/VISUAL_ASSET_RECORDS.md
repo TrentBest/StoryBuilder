@@ -19,7 +19,7 @@ The asset record's source links establish which manuscript or reference material
 
 ## Persistence and integrity
 
-The binary workspace format is version 14. Earlier versions remain readable; versions 1–12 restore with no visual assets, and version 13 restores its assets with no review history. Version 14 serializes assets, immutable revisions, and append-only review decisions explicitly.
+The binary workspace format is version 16. Earlier versions remain readable; versions 1–12 restore with no visual assets, and version 13 restores its assets with no review history. Version 14 serializes assets, immutable revisions, and append-only review decisions explicitly. Formats 15–16 add page-composition data and optional discovery-interaction settings while retaining the existing asset and review records. Older formats restore those newer composition fields with their documented defaults.
 
 Workspace validation checks:
 - workspace-wide identity uniqueness, including revision identities;
