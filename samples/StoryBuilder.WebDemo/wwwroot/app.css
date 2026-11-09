@@ -198,6 +198,7 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.2rem 0; }
 /* Click-to-place authoring overlay for discovery hotspots. */
 .discovery-placement-wrap { position: relative; width: 100%; }
 .discovery-placement-surface {
+    appearance: none; padding: 0; color: inherit; font: inherit; text-align: inherit;
     position: absolute; inset: 0; z-index: 6; cursor: crosshair;
     background: transparent; border: 1px dashed #a9d8c855; border-radius: .7rem;
 }
