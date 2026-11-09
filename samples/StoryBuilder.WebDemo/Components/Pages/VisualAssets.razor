@@ -1,7 +1,7 @@
 @page "/visual-assets"
 @implements IDisposable
 @inject StoryBuilderSession Session
-@inject IWebHostEnvironment Environment
+@inject IConfiguration Configuration
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Security.Cryptography
 
@@ -261,8 +261,9 @@
             await input.CopyToAsync(buffer);
             var bytes = buffer.ToArray();
             if (!HasExpectedImageSignature(bytes, extension)) { uploadError = "The file contents do not match the selected image format."; return; }
-            var root = Environment.WebRootPath ?? Path.Combine(Environment.ContentRootPath, "wwwroot");
-            var directory = Path.Combine(root, "visual-assets");
+            var directory = Path.GetFullPath(
+                Configuration["StoryBuilder:VisualAssets:StoragePath"]
+                ?? Path.Combine("App_Data", "visual-assets"));
             Directory.CreateDirectory(directory);
             var fileName = Guid.NewGuid().ToString("N") + extension;
             await File.WriteAllBytesAsync(Path.Combine(directory, fileName), bytes);
