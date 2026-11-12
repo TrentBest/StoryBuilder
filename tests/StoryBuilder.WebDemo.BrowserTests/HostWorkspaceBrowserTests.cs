@@ -37,6 +37,9 @@ public sealed class HostWorkspaceBrowserTests
 
             await page.GetByLabel("New book title").FillAsync(manuscriptTitle);
             await page.GetByRole(AriaRole.Button, new() { Name = "Create book" }).ClickAsync();
+            var manuscriptId = await page.Locator(".workbench-grid .panel").First
+                .Locator(".list-item").First.Locator("span").Nth(1).InnerTextAsync();
+            Assert.False(string.IsNullOrWhiteSpace(manuscriptId));
             await page.GetByLabel("Section title").FillAsync(sectionTitle);
             await page.GetByRole(AriaRole.Button, new() { Name = "Add section" }).ClickAsync();
             await page.GetByLabel("Actual manuscript text").FillAsync(manuscriptText);
@@ -45,7 +48,7 @@ public sealed class HostWorkspaceBrowserTests
             await page.GetByRole(AriaRole.Button, new() { Name = "Save and refresh product preview" }).ClickAsync();
             await WaitForHostSaveAsync(workspaceFile, previousWrite);
 
-            await ExpectWorkspaceContentAsync(page, manuscriptTitle, sectionTitle, manuscriptText);
+            await ExpectWorkspaceContentAsync(page, manuscriptTitle, manuscriptId, sectionTitle, manuscriptText);
 
             await page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
             await ExpectWorkspaceContentAsync(page, manuscriptTitle, sectionTitle, manuscriptText);
@@ -65,9 +68,10 @@ public sealed class HostWorkspaceBrowserTests
         }
     }
 
-    private static async Task ExpectWorkspaceContentAsync(IPage page, string title, string section, string body)
+    private static async Task ExpectWorkspaceContentAsync(IPage page, string title, string manuscriptId, string section, string body)
     {
         await page.GetByRole(AriaRole.Heading, new() { Name = title }).WaitForAsync();
+        await page.GetByText(manuscriptId, new PageGetByTextOptions { Exact = true }).WaitForAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = section }).WaitForAsync();
         await page.GetByText(body, new PageGetByTextOptions { Exact = true }).WaitForAsync();
     }
