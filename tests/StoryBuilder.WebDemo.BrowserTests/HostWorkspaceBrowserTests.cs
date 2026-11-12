@@ -55,7 +55,7 @@ public sealed class HostWorkspaceBrowserTests
 
             StopHost(host);
             host = StartHost(appDll, repositoryRoot, workspacePath, address);
-            await NavigateWhenReadyAsync(page, address);
+            await NavigateWhenReadyAsync(page, $"{address}/book");
             await ExpectWorkspaceContentAsync(page, manuscriptTitle, manuscriptId, sectionTitle, manuscriptText);
         }
         finally
