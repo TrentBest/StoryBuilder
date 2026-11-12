@@ -8,7 +8,7 @@ The scoped coordinator restores and autosaves a StoryBuilder workspace through `
 
 ## Lifecycle
 
-The layout loads the host workspace when the interactive session starts. Session changes trigger serialized saves. If no host workspace exists, the coordinator checks for a legacy browser-local snapshot, imports it, writes the host copy, and clears the browser copy only after that write succeeds. An unreadable host or legacy snapshot is preserved and reported rather than silently overwritten; the user must explicitly choose to discard it and start fresh.
+The layout loads the host workspace when the interactive session starts. Session changes trigger serialized saves. If no host workspace exists, the coordinator checks for a legacy browser-local snapshot, imports it, writes the host copy, and clears the browser copy only after that write succeeds. An unreadable host or legacy snapshot is preserved and reported rather than silently overwritten; the user must explicitly choose to discard it and start fresh. If the host save succeeds but browser-local cleanup is denied, the coordinator reports that distinction: the durable host save succeeded, while the obsolete browser copy could not be cleared.
 
 ## Boundary
 
