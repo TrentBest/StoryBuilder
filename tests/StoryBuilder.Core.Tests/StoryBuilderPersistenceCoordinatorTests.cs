@@ -168,7 +168,7 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
     public async Task CoordinatorPreservesLegacySnapshotWhenBrowserStorageIsDenied()
     {
         var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
-        var javascript = new FakeJsRuntime { ThrowOnGet = true };
+        var javascript = new FakeJsRuntime { ThrowOnGet = true, ThrowOnClear = true };
         try
         {
             var session = new StoryBuilderSession("Initial");
@@ -229,6 +229,7 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
     {
         public string? SavedValue { get; set; }
         public bool ThrowOnGet { get; set; }
+        public bool ThrowOnClear { get; set; }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
             InvokeAsync<TValue>(identifier, CancellationToken.None, args);
@@ -247,6 +248,8 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
                     result = SavedValue;
                     break;
                 case "storyBuilderStorage.clear":
+                    if (ThrowOnClear)
+                        throw new JSException("Browser storage access was denied.");
                     SavedValue = null;
                     result = default(TValue);
                     break;
