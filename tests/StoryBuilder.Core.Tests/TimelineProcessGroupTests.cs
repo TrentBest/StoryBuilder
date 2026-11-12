@@ -42,6 +42,18 @@ public sealed class TimelineProcessGroupTests
     }
 
     [Fact]
+    public void SessionCreatesCanonicalTimelineAndBranch()
+    {
+        var session = new StoryBuilderSession("Timeline authoring");
+        var original = session.CreateTimeline("Original");
+        var branch = session.CreateTimeline("Changed history", parentTimelineId: original.Id);
+
+        Assert.Equal(2, session.Workspace.Timelines.Count);
+        Assert.Equal(original.Id, branch.ParentTimelineId);
+        Assert.True(branch.IsBranch);
+    }
+
+    [Fact]
     public void DriverRejectsDuplicateProcessGroupIdentity()
     {
         using var group = new TimelineProcessGroup(new TimelineDefinition { Name = "One timeline" });
@@ -58,8 +70,11 @@ public sealed class TimelineProcessGroupTests
         var driver = new StoryProcessGroupDriver();
         var addedDuringPass = new RecordingProcessGroup();
         var removedDuringPass = new RecordingProcessGroup();
-        var first = new RecordingProcessGroup(onUpdate: () =>
+        var first = new RecordingProcessGroup(onUpdate: updateCount =>
         {
+            if (updateCount != 1)
+                return;
+
             Assert.True(driver.Remove(removedDuringPass.Id));
             driver.Insert(addedDuringPass);
         });
@@ -115,7 +130,7 @@ public sealed class TimelineProcessGroupTests
         Assert.Equal(parent.Id, workspace.Timelines[1].ParentTimelineId);
     }
 
-    private sealed class RecordingProcessGroup(Action? onUpdate = null) : IStoryProcessGroup, IDisposable
+    private sealed class RecordingProcessGroup(Action<long>? onUpdate = null) : IStoryProcessGroup, IDisposable
     {
         public Guid Id { get; } = Guid.NewGuid();
         public string Name => "Recording test group";
@@ -126,7 +141,7 @@ public sealed class TimelineProcessGroupTests
         {
             ObjectDisposedException.ThrowIf(IsDisposed, this);
             UpdateCount++;
-            onUpdate?.Invoke();
+            onUpdate?.Invoke(UpdateCount);
         }
 
         public void Dispose() => IsDisposed = true;
