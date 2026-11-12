@@ -46,3 +46,4 @@
 | Build and test | [Development workflow](docs/DEVELOPMENT.md) |
 
 The README is the front door. Source code and tests define current behavior; user guides describe verified behavior and must not promise capabilities that are not available in the running product.
+- [Profiles Integration Boundary](docs/PROFILES_INTEGRATION_BOUNDARY.md) — optional trusted host identity/persona mapping and publication disclosure contract.
