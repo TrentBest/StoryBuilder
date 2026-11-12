@@ -47,6 +47,14 @@ StoryBuilder keeps objective event records separate from the information availab
 
 Knowledge acquired at a particular event is available later only when that acquisition event is in the causal history of the narration point. Knowledge with no acquisition event is treated as already available; if a narration point is supplied, event-scoped acquisition must be reachable through the event's cause links. This is a constraint for drafting and portrayal, not an automatic prose generator or a guarantee that every possible continuity contradiction is detected.
 
+## Author identity and fictional characters
+
+`CharacterProfile` represents a fictional/story-world character. It is not a real-person Profile, account, authenticated principal, publisher persona, or identity link. Its ID must remain local to the story domain.
+
+The `Author` properties on `ManuscriptEdition` and `PublishedBookEdition` are currently plain display strings. The WebDemo does not currently authenticate authors or resolve Profiles personas, so those strings are not trusted identity or authorization evidence. In an authenticated host, a trusted adapter must validate the principal and selected persona, request an observer-specific Profiles representation, and map only explicitly allowlisted display fields into the manuscript/publication. Untrusted form values and arbitrary client-supplied Profile IDs must never establish authorship or permission.
+
+Profiles disclosure is not authorization. Workspace access, editing, campaign participation, and publication require independent host authorization. Private claims, canonical identity links, external identity bindings, credentials, and access records must remain outside StoryBuilder workspaces and published editions. Core, persistence, MicroBundle, and standalone consumers remain Profiles-independent. See [Profiles Integration Boundary](PROFILES_INTEGRATION_BOUNDARY.md) for the host contract and currently unimplemented integration gates.
+
 ## Identity and persistence
 
 Relationships are stored as stable record IDs, not as copied prose. A section's `EventIds` and a beat's event references let tools inspect where an event is portrayed without making the manuscript the authority on world history. Timeline IDs likewise identify timeline records; presentation order and approximate placement should not be mistaken for a precise global chronology.
