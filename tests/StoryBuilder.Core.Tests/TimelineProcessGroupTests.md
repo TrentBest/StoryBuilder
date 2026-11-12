@@ -18,6 +18,7 @@ See [TimelineProcessGroup UML](../../docs/UML/TimelineProcessGroupUML.md), [Stor
 - Prove insertions during an update pass begin on the next pass.
 - Prove removals during a pass do not invalidate the stable snapshot already being updated.
 - Prove Remove detaches a disposable group without disposing it; the host retains lifetime responsibility.
+- Prove disposing a timeline adapter is idempotent, rejects later updates, and leaves another timeline's FSM_API handle operational.
 - Enforce workspace-local branch parent references.
 
 ## Verification boundary
