@@ -53,6 +53,52 @@ public sealed class TimelineProcessGroupTests
     }
 
     [Fact]
+    public void DriverUpdatesSnapshotWhenGroupsChangeDuringPass()
+    {
+        var driver = new StoryProcessGroupDriver();
+        var addedDuringPass = new RecordingProcessGroup();
+        var removedDuringPass = new RecordingProcessGroup();
+        var first = new RecordingProcessGroup(onUpdate: () =>
+        {
+            Assert.True(driver.Remove(removedDuringPass.Id));
+            driver.Insert(addedDuringPass);
+        });
+
+        driver.Insert(first);
+        driver.Insert(removedDuringPass);
+
+        driver.Update();
+
+        Assert.Equal(1L, first.UpdateCount);
+        Assert.Equal(1L, removedDuringPass.UpdateCount);
+        Assert.Equal(0L, addedDuringPass.UpdateCount);
+        Assert.DoesNotContain(driver.Groups, group => group.Id == removedDuringPass.Id);
+        Assert.Contains(driver.Groups, group => group.Id == addedDuringPass.Id);
+
+        driver.Update();
+
+        Assert.Equal(2L, first.UpdateCount);
+        Assert.Equal(1L, removedDuringPass.UpdateCount);
+        Assert.Equal(1L, addedDuringPass.UpdateCount);
+    }
+
+    [Fact]
+    public void DriverRemovalDoesNotDisposeDetachedGroup()
+    {
+        var group = new RecordingProcessGroup();
+        var driver = new StoryProcessGroupDriver();
+        driver.Insert(group);
+
+        Assert.True(driver.Remove(group.Id));
+        Assert.False(group.IsDisposed);
+        Assert.Empty(driver.Groups);
+
+        group.Dispose();
+
+        Assert.True(group.IsDisposed);
+    }
+
+    [Fact]
     public void WorkspaceRequiresBranchParentToExistBeforeBranchIsAdded()
     {
         var workspace = new StoryWorkspace();
@@ -67,5 +113,22 @@ public sealed class TimelineProcessGroupTests
         Assert.Equal(2, workspace.Timelines.Count);
         Assert.True(workspace.Timelines[1].IsBranch);
         Assert.Equal(parent.Id, workspace.Timelines[1].ParentTimelineId);
+    }
+
+    private sealed class RecordingProcessGroup(Action? onUpdate = null) : IStoryProcessGroup, IDisposable
+    {
+        public Guid Id { get; } = Guid.NewGuid();
+        public string Name => "Recording test group";
+        public long UpdateCount { get; private set; }
+        public bool IsDisposed { get; private set; }
+
+        public void Update()
+        {
+            ObjectDisposedException.ThrowIf(IsDisposed, this);
+            UpdateCount++;
+            onUpdate?.Invoke();
+        }
+
+        public void Dispose() => IsDisposed = true;
     }
 }
