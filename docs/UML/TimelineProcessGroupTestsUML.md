@@ -8,6 +8,7 @@ classDiagram
         +DriverRejectsDuplicateProcessGroupIdentity()
         +DriverUpdatesSnapshotWhenGroupsChangeDuringPass()
         +DriverRemovalDoesNotDisposeDetachedGroup()
+        +DisposingTimelineDestroysOnlyItsOwnedHandleAndIsIdempotent()
         +SessionCreatesCanonicalTimelineAndBranch()
         +WorkspaceRequiresBranchParentToExistBeforeBranchIsAdded()
     }
@@ -35,6 +36,7 @@ classDiagram
 - Verify duplicate identities are rejected.
 - Verify a group inserted during an update pass waits until the next pass, while a group removed during that pass may still receive the snapshotted update.
 - Verify removing a disposable group detaches it without disposing it; the host remains responsible for disposal.
+- Verify disposing one timeline adapter is idempotent, rejects subsequent updates, and does not stop an independent timeline adapter.
 - Verify canonical timeline branching requires an existing parent.
 
 ## Verification boundary
