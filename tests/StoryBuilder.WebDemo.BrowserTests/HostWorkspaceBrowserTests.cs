@@ -29,7 +29,7 @@ public sealed class HostWorkspaceBrowserTests
             page.SetDefaultTimeout(10_000);
 
             host = StartHost(appDll, repositoryRoot, workspacePath, address);
-            await NavigateWhenReadyAsync(page, address);
+            await NavigateWhenReadyAsync(page, $"{address}/book");
 
             const string manuscriptTitle = "Browser persistence proof";
             const string sectionTitle = "A stable chapter";
