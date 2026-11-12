@@ -1,73 +1,77 @@
 # Branch Reconciliation
 
-**Policy:** permanent branches are exactly master and development. The repository owner performs manual deletion of surplus branches; no branch is deleted by this work.
+## Policy
 
-## Current verified snapshot — 9 November 2026
+Permanent branches are exactly `master` and `development`.
 
-The branch listing contains exactly:
+- `development` is the active source and integration branch. Continue implementation and validation there; Sith branch policy is a **publication gate**, not a development/execution block.
+- `master` is the stable/release-aligned branch. Do not update it as part of ordinary development.
+- No automation or assistant action deletes branches. The repository owner authorizes any retirement batch.
+- Never reconcile divergent histories by blindly merging, resetting, or force-pushing either canonical branch.
+
+## Current verified snapshot — 12 November 2026
+
+The live branch listing contains exactly:
 
 | Branch | Head | Disposition |
 |---|---|---|
-| development | 661775060b7b1546afa8cdfbedf97e43bea0fb8c | Active integration branch; latest authored documentation commit is ead43f633d2ab86753caad31f9d5355468ed3b47. |
-| master | 6f4100d04faed5d36c4e946ad4af4c6cc5a15d91 | Stable/default target; not updated by this work. |
+| `development` | `297489051e949d8ec700f7d79af99d548bb47be9` | Active source and integration branch |
+| `master` | `e228f62522ecbc812dd3b26f17de72b407ecc4be` | Stable/default branch; unchanged by this audit |
 
-PR [#1](https://github.com/TrentBest/StoryBuilder/pull/1) remains open and unmerged.
+The Sith Policy workflow completed successfully on 12 November 2026: [run 43177940309](https://github.com/TrentBest/StoryBuilder/actions/runs/43177940309). Its evidence reports exactly two branches and `COMPLIANT`.
 
-### Live graph comparison
+## Live graph comparison
 
-The GitHub compare endpoint reports:
-- development is **866 commits ahead** of master.
-- development is **21 commits behind** master.
-- Status: **diverged**.
-- Shared merge base: 3eef29a7b6c8b016db02c6d1acd44170585211c5.
+GitHub compare `master...development` reports:
 
-The 21 master-only commits were enumerated directly from the merge-base-to-master comparison. They are genuine master-side history, not merely a stale PR counter.
+- **873 commits ahead** on `development`.
+- **24 commits behind** on `development` (24 master-only commits).
+- Status: `diverged`.
+- Shared merge base: `3eef29a7b6c8b016db02c6d1acd44170585211c5`.
 
-### Master-only commit inventory
+The current merge-base-to-`master` comparison identifies 13 changed paths:
 
-The 21 commits fall into four coherent groups:
+- `.github/workflows/core-tests.yml`, `.github/workflows/sith-policy.yml`
+- `README.md`, `assets/sith-policy.json`, `assets/sith-policy.svg`
+- `docs/DEPLOYMENT_DECISION.md`, `docs/INTEGRATION_GAPS.md`, `docs/Gallery.md`
+- `src/StoryBuilder.Core/StoryBuilder.Core.csproj`
+- `src/StoryBuilder.Core/StoryProject.cs`, `src/StoryBuilder.Core/LocalProjectStore.cs`
+- `tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj`, `tests/StoryBuilder.Core.Tests/StoryProjectTests.cs`
 
-1. **Host decision (3 commits):** choose AnyApp Windows desktop as StoryBuilder's first runnable host, and align the proof target with it.
-2. **Core domain and local persistence (7 commits):** add the host-neutral StoryBuilder.Core project, StoryProject, stable GUID identities for projects/events/passages, passage-linked timeline events, chronology ordering, schema-versioned JSON persistence, and atomic temporary-file replacement. Add tests for identity, passage linking, chronology, and persistence round-trip.
-3. **Integration and CI evidence (3 commits):** document the verified AnyApp/FSM_COS/GUI boundary and its missing host registration extension point; add dedicated Core CI and pin its actions to immutable revisions.
-4. **Presentation and branch policy (8 commits):** update the Gallery, add Sith badge assets/workflow/README evidence, and refresh policy evidence commits.
+The master-only history includes the explicit **AnyApp Windows desktop first-host decision**, an earlier host-neutral `StoryProject` / local JSON store with stable project/event/passage identities and chronology, dedicated Core tests/CI, integration-gap documentation, and Sith policy evidence. Later master-only commits also refresh the policy evidence. These changes are not safely reconciled by copying files over the richer development workspace model.
 
-Master-only paths:
-- .github/workflows/core-tests.yml, .github/workflows/sith-policy.yml
-- src/StoryBuilder.Core/StoryProject.cs, LocalProjectStore.cs, and the Core project file
-- tests/StoryBuilder.Core.Tests/*
-- docs/DEPLOYMENT_DECISION.md, docs/INTEGRATION_GAPS.md, docs/Gallery.md
-- README.md, assets/sith-policy.json, and assets/sith-policy.svg
+## Architectural reconciliation
 
-### Architectural reconciliation
+The two sides express different generations of the product:
 
-The master-side deployment decision is explicit: **AnyApp desktop is the first host; a hosted WebApp is not a prerequisite.** It also states that this is a target architecture, not evidence that the StoryBuilder runtime or authoring UI already exists. The integration-gap register says AnyApp currently launches known MicroBundles and does not yet expose a general registered Experience surface for StoryBuilder.
+- `master` records the AnyApp desktop-first product decision and an earlier `StoryProject` persistence model.
+- `development` contains the richer canonical StoryWorkspace domain, binary `FSM_Serialization` persistence, FSM_API/FSM_COS adapters, MicroBundle composition, and a Blazor workbench used as a development/demo surface.
 
-The current development branch contains a richer StoryBuilder domain/workspace, binary host-workspace persistence, FSM_API/FSM_COS composition adapters, MicroBundle integration, and a Blazor WebDemo authoring workbench. These are useful implementation assets, but the WebDemo must not silently become the product's required first host. The AnyApp-first decision and the current Blazor workbench can coexist: keep the workbench as a development/demo surface while the production vertical slice is proven through AnyApp.
+These can coexist without making the WebDemo the required first product host. Preserve AnyApp desktop as the intended first host unless the owner explicitly changes that decision. The WebDemo remains useful for authoring and domain proof.
 
-The master-side StoryProject model is not safe to merge by copying its files over the richer development model. Its stable project/event/passage IDs, event timestamps, observer IDs, chronology semantics, and JSON schema-version behavior need an explicit compatibility decision. The right first step is to map those semantics to the canonical workspace and determine whether a one-way legacy JSON importer is warranted. Do not create two competing live authoring models or silently discard old project files.
+Do not create two competing editable project/workspace stores. Before adopting the master-side model, map its stable project/event/passage IDs, timestamps, observer IDs, chronology semantics, and JSON schema behavior into the canonical development workspace. If legacy JSON import is warranted, make it explicit and versioned, preserve identities/timestamps, and fail closed on malformed or unsupported input.
 
-The AnyApp gap is also concrete: AnyApp's current native catalog resolves known bundles, and its render path explicitly handles Moniker and Forge. StoryBuilder needs a deliberate registered Experience/semantic GUI extension point in AnyApp, implemented and tested against the real host contracts. Do not fake this capability inside StoryBuilder or add a direct WPF dependency to the domain.
+AnyApp's real host integration remains a separate requirement: verify the registered Experience/semantic GUI extension point against the current AnyApp contracts. Do not fake host registration inside StoryBuilder or add presentation dependencies to the domain core.
 
-### Reconciliation plan
+## Reconciliation plan
 
-1. **Do not merge PR #1 as-is.** The histories are diverged by 866/21 commits; the PR is not a safe automatic reconciliation.
-2. Preserve the AnyApp-first product decision. Keep Blazor as a useful authoring/demo host without making it a deployment prerequisite.
-3. Map the master Core domain semantics (stable IDs, passage anchors, chronology, timestamps, observer IDs, schema version) to the development-side canonical workspace. Decide explicitly whether a versioned JSON importer is needed; if implemented, preserve IDs/timestamps and reject unsupported schemas or malformed links without replacing data with an empty workspace.
-4. Reconcile local project save/reopen guarantees with the current host workspace persistence. Avoid two independently editable project stores; define one canonical model and explicit import/export boundaries.
-5. Reconcile the AnyApp integration-gap register against current AnyApp contracts; implement the missing host registration and semantic GUI path in the correct host repository, not by pretending an unregistered bundle can launch.
-6. Reconcile Core CI and Sith policy workflows deliberately, with one authoritative implementation of each responsibility and immutable action revisions where appropriate.
-7. Run fresh build/test and policy checks against the final proposed reconciliation head; historical green runs validate only the commits they tested.
-8. Review the exact resolved diff and obtain owner authorization before any merge.
-9. Verify the resulting master contains the intended combined implementation and passing checks.
-10. Confirm the only permanent branches remain master and development; the owner performs any manual branch cleanup.
+1. Keep development work moving on `development`; the satisfied branch-count policy must not block implementation or CI.
+2. Preserve the AnyApp-first deployment decision while treating Blazor as a development/demo authoring surface.
+3. Map the master-side `StoryProject` identity, chronology, observer, and JSON schema semantics to the canonical `StoryWorkspace`; decide whether a one-way legacy importer is needed.
+4. Reconcile host-local persistence guarantees without introducing competing editable stores or silently replacing unreadable data.
+5. Verify the StoryBuilder Experience through the actual AnyApp host and current FSM_COS composition contracts.
+6. Retain one authoritative Core CI workflow and one Sith policy workflow, with immutable action revisions.
+7. Run fresh build/test and policy checks on the exact proposed development head. Historical green runs validate only the commits they tested.
+8. Review the exact resolved diff and obtain explicit owner authorization before updating `master`.
+9. After any authorized reconciliation, verify the intended combined implementation and checks on `master`.
+10. Keep exactly `master` and `development`; the owner performs any manual branch cleanup in one authorized batch.
 
-## Latest verification
+## Current PR disposition
 
-- Sith Policy workflow passed for documentation commit ead43f633d2ab86753caad31f9d5355468ed3b47 (run [42557646073](https://github.com/TrentBest/StoryBuilder/actions/runs/42557646073)).
-- The workflow's policy-evidence refresh produced current development head 661775060b7b1546afa8cdfbedf97e43bea0fb8c.
-- This is a policy check, not a fresh full build/test of the development head.
+PR [#1](https://github.com/TrentBest/StoryBuilder/pull/1) remains open and unmerged. A fresh graph and policy audit was recorded in [PR comment 6818350425](https://github.com/TrentBest/StoryBuilder/pull/1#issuecomment-6818350425).
+
+No review submissions or inline review threads were returned by the current inspection. The latest development head is a policy-evidence refresh commit; the inspected commit-status lookup returned no full build/test checks for that exact head. The Sith policy workflow passing does not substitute for build/test validation.
 
 ## Safety
 
-No merge, release, package publishing, deployment, or branch deletion was performed by this work. Green checks on development do not authorize merging PR #1.
+No merge, release, package publication, deployment, force-push, `master` update, or branch deletion was performed by this audit.
