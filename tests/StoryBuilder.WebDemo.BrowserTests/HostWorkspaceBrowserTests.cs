@@ -40,7 +40,10 @@ public sealed class HostWorkspaceBrowserTests
             await page.GetByLabel("Section title").FillAsync(sectionTitle);
             await page.GetByRole(AriaRole.Button, new() { Name = "Add section" }).ClickAsync();
             await page.GetByLabel("Actual manuscript text").FillAsync(manuscriptText);
+            var workspaceFile = Path.Combine(workspacePath, "bundle-0000000000000001.sbws");
+            var previousWrite = File.GetLastWriteTimeUtc(workspaceFile);
             await page.GetByRole(AriaRole.Button, new() { Name = "Save and refresh product preview" }).ClickAsync();
+            await WaitForHostSaveAsync(workspaceFile, previousWrite);
 
             await ExpectWorkspaceContentAsync(page, manuscriptTitle, sectionTitle, manuscriptText);
 
@@ -67,6 +70,19 @@ public sealed class HostWorkspaceBrowserTests
         await page.GetByRole(AriaRole.Heading, new() { Name = title }).WaitForAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = section }).WaitForAsync();
         await page.GetByText(body, new PageGetByTextOptions { Exact = true }).WaitForAsync();
+    }
+
+    private static async Task WaitForHostSaveAsync(string workspaceFile, DateTime previousWrite)
+    {
+        var deadline = DateTime.UtcNow.AddSeconds(10);
+        while (DateTime.UtcNow < deadline)
+        {
+            if (File.Exists(workspaceFile) && File.GetLastWriteTimeUtc(workspaceFile) > previousWrite)
+                return;
+            await Task.Delay(100);
+        }
+
+        throw new TimeoutException("The host workspace file was not updated after saving the manuscript.");
     }
 
     private static async Task NavigateWhenReadyAsync(IPage page, string address)
