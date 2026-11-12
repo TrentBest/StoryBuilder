@@ -13,7 +13,7 @@ permissions:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Check out source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -41,3 +41,9 @@ jobs:
         run: dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --configuration Release
       - name: Test Story Forge temporal model and queries
         run: dotnet test tests/StoryBuilder.StoryForge.Tests/StoryBuilder.StoryForge.Tests.csproj --configuration Release
+      - name: Build WebDemo browser tests
+        run: dotnet build tests/StoryBuilder.WebDemo.BrowserTests/StoryBuilder.WebDemo.BrowserTests.csproj --configuration Release
+      - name: Install Chromium for browser tests
+        run: pwsh tests/StoryBuilder.WebDemo.BrowserTests/bin/Release/net8.0/playwright.ps1 install --with-deps chromium
+      - name: Verify host persistence through browser reload and host restart
+        run: dotnet test tests/StoryBuilder.WebDemo.BrowserTests/StoryBuilder.WebDemo.BrowserTests.csproj --configuration Release --no-build
