@@ -51,7 +51,7 @@ public sealed class HostWorkspaceBrowserTests
             await ExpectWorkspaceContentAsync(page, manuscriptTitle, manuscriptId, sectionTitle, manuscriptText);
 
             await page.ReloadAsync(new PageReloadOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
-            await ExpectWorkspaceContentAsync(page, manuscriptTitle, sectionTitle, manuscriptText);
+            await ExpectWorkspaceContentAsync(page, manuscriptTitle, manuscriptId, sectionTitle, manuscriptText);
 
             StopHost(host);
             host = StartHost(appDll, repositoryRoot, workspacePath, address);
