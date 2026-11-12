@@ -30,6 +30,7 @@
 | Inspect living GUI.SVG views | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md), [WebDemo UML](docs/UML/StoryBuilderWebDemoUML.md) |
 | Understand architecture and stack fit | [Architecture](docs/ARCHITECTURE.md) |
 | Understand the boundary between FSM_COS composition, FSM_Foundry execution, and optional GUI presentation | [Foundry Execution Boundary](docs/FOUNDRY_EXECUTION_BOUNDARY.md) |
+| Understand process-group update semantics, non-owning driver membership, and FSM_API handle disposal | [Process Group Lifetime](docs/PROCESS_GROUP_LIFETIME.md) |
 | Start a story with one idea | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Create and revise characters | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md), [Character Creation](docs/CHARACTER_CREATION.md) |
 | Capture action scenes or poses | [Scene Capture](docs/SCENE_CAPTURE.md) |
