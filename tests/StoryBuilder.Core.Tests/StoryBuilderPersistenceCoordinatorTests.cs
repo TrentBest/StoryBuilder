@@ -73,6 +73,41 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
         }
     }
 
+    [Fact]
+    public async Task CoordinatorPreservesLegacyBrowserSnapshotWhenHostMigrationSaveFails()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(Path.GetDirectoryName(root)!);
+        await File.WriteAllTextAsync(root, "not a directory");
+
+        var javascript = new FakeJsRuntime();
+        var legacySession = new StoryBuilderSession("Legacy browser save");
+        legacySession.CreateCharacter("Lenny");
+        var legacyDocument = StoryWorkspaceBinaryDocument.FromSession(legacySession);
+        using var memory = new TheSingularityWorkshop.FSM_Serialization.MemoryBinaryStream();
+        legacyDocument.Pack(memory);
+        javascript.SavedValue = Convert.ToBase64String(memory.ToArray());
+
+        try
+        {
+            var restoredSession = new StoryBuilderSession("Empty");
+            using var coordinator = new StoryBuilderPersistenceCoordinator(
+                restoredSession, new LocalStoryWorkspaceRepository(root), javascript);
+            await coordinator.EnsureLoadedAsync();
+
+            Assert.Equal("Legacy browser save", restoredSession.Workspace.Name);
+            Assert.Equal("Lenny", Assert.Single(restoredSession.Workspace.Characters).Name);
+            Assert.NotNull(javascript.SavedValue);
+            Assert.NotNull(coordinator.SaveError);
+            Assert.True(File.Exists(root));
+        }
+        finally
+        {
+            if (File.Exists(root))
+                File.Delete(root);
+        }
+    }
+
     private sealed class FakeJsRuntime : IJSRuntime
     {
         public string? SavedValue { get; set; }
