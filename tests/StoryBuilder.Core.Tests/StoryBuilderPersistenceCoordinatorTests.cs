@@ -76,8 +76,7 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
     [Fact]
     public async Task CoordinatorPreservesLegacyBrowserSnapshotWhenHostMigrationSaveFails()
     {
-        var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
-        Directory.CreateDirectory(Path.GetDirectoryName(root)!);
+        var root = Path.Combine(Path.GetTempPath(), $"StoryBuilderTests-{Guid.NewGuid():N}");
         await File.WriteAllTextAsync(root, "not a directory");
 
         var javascript = new FakeJsRuntime();
