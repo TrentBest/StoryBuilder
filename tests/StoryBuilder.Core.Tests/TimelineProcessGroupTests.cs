@@ -30,6 +30,24 @@ public sealed class TimelineProcessGroupTests
     }
 
     [Fact]
+    public void DisposingTimelineDestroysOnlyItsOwnedHandleAndIsIdempotent()
+    {
+        using var first = new TimelineProcessGroup(new TimelineDefinition { Name = "Retired timeline" });
+        using var second = new TimelineProcessGroup(new TimelineDefinition { Name = "Surviving timeline" });
+
+        first.Dispose();
+        first.Dispose();
+
+        Assert.Throws<ObjectDisposedException>(() => first.Update());
+        Assert.Equal(0L, first.RuntimeTickCount);
+
+        second.Update();
+
+        Assert.Equal(1L, second.RuntimeTickCount);
+        Assert.Contains(second.Events, item => item.Kind == "RuntimeTick");
+    }
+
+    [Fact]
     public void SessionCreatesCanonicalTimelineAndBranch()
     {
         var session = new StoryBuilderSession("Timeline authoring");
