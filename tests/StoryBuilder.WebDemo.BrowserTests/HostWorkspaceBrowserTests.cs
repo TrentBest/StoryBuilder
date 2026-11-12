@@ -91,11 +91,7 @@ public sealed class HostWorkspaceBrowserTests
             page.SetDefaultTimeout(10_000);
 
             host = StartHost(appDll, repositoryRoot, workspacePath, address);
-            await page.GotoAsync($"{address}/book", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
-            await page.WaitForFunctionAsync(
-                "() => (document.querySelector('.persist-banner')?.textContent ?? '').includes('could not be loaded and has been left untouched')",
-                null,
-                new PageWaitForFunctionOptions { Timeout = 15_000 });
+            await NavigateUntilLoadErrorAsync(page, $"{address}/book");
 
             await page.GetByRole(AriaRole.Button, new() { Name = "Discard unreadable save and start fresh" }).ClickAsync();
             await page.WaitForFunctionAsync(
@@ -134,6 +130,35 @@ public sealed class HostWorkspaceBrowserTests
         }
 
         throw new TimeoutException("The host workspace file was not updated after saving the manuscript.");
+    }
+
+
+    private static async Task NavigateUntilLoadErrorAsync(IPage page, string address)
+    {
+        Exception? lastError = null;
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            try
+            {
+                await page.GotoAsync(address, new PageGotoOptions
+                {
+                    WaitUntil = WaitUntilState.DOMContentLoaded,
+                    Timeout = 2_000
+                });
+                await page.WaitForFunctionAsync(
+                    "() => (document.querySelector('.persist-banner')?.textContent ?? '').includes('could not be loaded and has been left untouched')",
+                    null,
+                    new PageWaitForFunctionOptions { Timeout = 5_000 });
+                return;
+            }
+            catch (PlaywrightException ex)
+            {
+                lastError = ex;
+                await Task.Delay(500);
+            }
+        }
+
+        throw new InvalidOperationException($"WebDemo did not reach the expected storage-denied state at {address}.", lastError);
     }
 
     private static async Task NavigateWhenReadyAsync(IPage page, string address)
