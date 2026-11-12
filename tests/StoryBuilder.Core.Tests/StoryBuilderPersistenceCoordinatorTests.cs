@@ -178,6 +178,11 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
             Assert.NotNull(coordinator.LoadError);
             Assert.True(javascript.ThrowOnGet);
             Assert.False(Directory.Exists(root));
+
+            await coordinator.ClearAndStartFreshAsync();
+            Assert.Null(coordinator.LoadError);
+            Assert.Contains("saved to host storage", coordinator.SaveError);
+            Assert.True(File.Exists(Path.Combine(root, "bundle-0000000000000001.sbws")));
         }
         finally
         {
