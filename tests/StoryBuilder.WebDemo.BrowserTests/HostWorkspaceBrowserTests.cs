@@ -66,7 +66,7 @@ public sealed class HostWorkspaceBrowserTests
     {
         await page.GetByRole(AriaRole.Heading, new() { Name = title }).WaitForAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = section }).WaitForAsync();
-        await page.GetByText(body, exact: true).WaitForAsync();
+        await page.GetByText(body, new PageGetByTextOptions { Exact = true }).WaitForAsync();
     }
 
     private static async Task NavigateWhenReadyAsync(IPage page, string address)
@@ -81,9 +81,10 @@ public sealed class HostWorkspaceBrowserTests
                     WaitUntil = WaitUntilState.DOMContentLoaded,
                     Timeout = 2_000
                 });
-                await page.GetByText("Host workspace autosave is ready. Your words remain yours to revise.")
-                    .Or(page.GetByText("Saved on host"))
-                    .WaitForAsync(new LocatorWaitForOptions { Timeout = 10_000 });
+                await page.WaitForFunctionAsync(
+                    "() => { const text = document.querySelector('.persist-banner')?.textContent ?? ''; return text.includes('Host workspace autosave is ready') || text.includes('Saved on host'); }",
+                    null,
+                    new PageWaitForFunctionOptions { Timeout = 10_000 });
                 return;
             }
             catch (PlaywrightException ex)
