@@ -136,6 +136,34 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
         }
     }
 
+
+    [Fact]
+    public async Task CoordinatorPreservesMalformedLegacyBinaryUntilExplicitFreshStart()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
+        var javascript = new FakeJsRuntime { SavedValue = Convert.ToBase64String(new byte[] { 0x53, 0x42, 0x57, 0x53, 0xFF }) };
+        try
+        {
+            var session = new StoryBuilderSession("Initial");
+            using var coordinator = new StoryBuilderPersistenceCoordinator(session, new LocalStoryWorkspaceRepository(root), javascript);
+            await coordinator.EnsureLoadedAsync();
+
+            Assert.NotNull(coordinator.LoadError);
+            Assert.NotNull(javascript.SavedValue);
+            Assert.False(Directory.Exists(root));
+
+            await coordinator.ClearAndStartFreshAsync();
+            Assert.Null(coordinator.LoadError);
+            Assert.Null(coordinator.SaveError);
+            Assert.Null(javascript.SavedValue);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     [Fact]
     public async Task CoordinatorPreservesLegacySnapshotWhenBrowserStorageIsDenied()
     {
