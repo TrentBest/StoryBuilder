@@ -107,9 +107,95 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
         }
     }
 
+
+    [Fact]
+    public async Task CoordinatorPreservesMalformedLegacySnapshotUntilExplicitFreshStart()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
+        var javascript = new FakeJsRuntime { SavedValue = "not-valid-base64%%%" };
+        try
+        {
+            var session = new StoryBuilderSession("Initial");
+            using var coordinator = new StoryBuilderPersistenceCoordinator(session, new LocalStoryWorkspaceRepository(root), javascript);
+            await coordinator.EnsureLoadedAsync();
+
+            Assert.NotNull(coordinator.LoadError);
+            Assert.Equal("not-valid-base64%%%", javascript.SavedValue);
+            Assert.Empty(Directory.Exists(root) ? Directory.GetFiles(root) : Array.Empty<string>());
+
+            await coordinator.ClearAndStartFreshAsync();
+            Assert.Null(coordinator.LoadError);
+            Assert.Null(coordinator.SaveError);
+            Assert.Null(javascript.SavedValue);
+            Assert.True(File.Exists(Path.Combine(root, "bundle-0000000000000001.sbws")));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task CoordinatorPreservesLegacySnapshotWhenBrowserStorageIsDenied()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
+        var javascript = new FakeJsRuntime { ThrowOnGet = true };
+        try
+        {
+            var session = new StoryBuilderSession("Initial");
+            using var coordinator = new StoryBuilderPersistenceCoordinator(session, new LocalStoryWorkspaceRepository(root), javascript);
+            await coordinator.EnsureLoadedAsync();
+
+            Assert.NotNull(coordinator.LoadError);
+            Assert.True(javascript.ThrowOnGet);
+            Assert.False(Directory.Exists(root));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task CoordinatorPreservesUnreadableHostWorkspaceUntilExplicitFreshStart()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "StoryBuilderTests", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        var workspaceFile = Path.Combine(root, "bundle-0000000000000001.sbws");
+        var corruptBytes = new byte[] { 0x53, 0x42, 0x57, 0x53, 0xFF, 0x00, 0x13 };
+        await File.WriteAllBytesAsync(workspaceFile, corruptBytes);
+
+        try
+        {
+            var session = new StoryBuilderSession("Initial");
+            using var coordinator = new StoryBuilderPersistenceCoordinator(session, new LocalStoryWorkspaceRepository(root), new FakeJsRuntime());
+            await coordinator.EnsureLoadedAsync();
+
+            Assert.NotNull(coordinator.LoadError);
+            Assert.Equal(corruptBytes, await File.ReadAllBytesAsync(workspaceFile));
+
+            await coordinator.ClearAndStartFreshAsync();
+            Assert.Null(coordinator.LoadError);
+            Assert.Null(coordinator.SaveError);
+
+            var restored = await new LocalStoryWorkspaceRepository(root).LoadAsync(1);
+            Assert.NotNull(restored);
+            Assert.Equal("StoryBuilder Web Demo", restored!.Workspace.Name);
+            Assert.Empty(restored.Workspace.Characters);
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
     private sealed class FakeJsRuntime : IJSRuntime
     {
         public string? SavedValue { get; set; }
+        public bool ThrowOnGet { get; set; }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) =>
             InvokeAsync<TValue>(identifier, CancellationToken.None, args);
@@ -123,6 +209,8 @@ public sealed class StoryBuilderPersistenceCoordinatorTests
             switch (identifier)
             {
                 case "storyBuilderStorage.get":
+                    if (ThrowOnGet)
+                        throw new JSException("Browser storage access was denied.");
                     result = SavedValue;
                     break;
                 case "storyBuilderStorage.clear":
