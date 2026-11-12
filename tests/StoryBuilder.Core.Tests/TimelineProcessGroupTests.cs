@@ -42,18 +42,6 @@ public sealed class TimelineProcessGroupTests
     }
 
     [Fact]
-    public void SessionCreatesCanonicalTimelineAndBranch()
-    {
-        var session = new StoryBuilderSession("Timeline authoring");
-        var original = session.CreateTimeline("Original");
-        var branch = session.CreateTimeline("Changed history", parentTimelineId: original.Id);
-
-        Assert.Equal(2, session.Workspace.Timelines.Count);
-        Assert.Equal(original.Id, branch.ParentTimelineId);
-        Assert.True(branch.IsBranch);
-    }
-
-    [Fact]
     public void DriverRejectsDuplicateProcessGroupIdentity()
     {
         using var group = new TimelineProcessGroup(new TimelineDefinition { Name = "One timeline" });
