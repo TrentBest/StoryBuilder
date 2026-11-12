@@ -68,6 +68,53 @@ public sealed class HostWorkspaceBrowserTests
         }
     }
 
+
+    [Fact]
+    public async Task BrowserStorageDenialIsVisibleAndExplicitFreshStartStillSavesToHost()
+    {
+        var repositoryRoot = FindRepositoryRoot();
+        var appDll = Path.Combine(repositoryRoot, "samples", "StoryBuilder.WebDemo", "bin", "Release", "net8.0", "StoryBuilder.WebDemo.dll");
+        Assert.True(File.Exists(appDll), $"WebDemo build output was not found: {appDll}");
+
+        var workspacePath = Path.Combine(Path.GetTempPath(), $"storybuilder-denied-storage-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(workspacePath);
+        var address = $"http://127.0.0.1:{GetFreePort()}";
+        Process? host = null;
+
+        try
+        {
+            using var playwright = await Playwright.CreateAsync();
+            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
+            await using var context = await browser.NewContextAsync();
+            await context.AddInitScriptAsync("Object.defineProperty(window, 'localStorage', { configurable: true, get() { throw new DOMException('Access denied', 'SecurityError'); } });");
+            var page = await context.NewPageAsync();
+            page.SetDefaultTimeout(10_000);
+
+            host = StartHost(appDll, repositoryRoot, workspacePath, address);
+            await page.GotoAsync($"{address}/book", new PageGotoOptions { WaitUntil = WaitUntilState.DOMContentLoaded });
+            await page.WaitForFunctionAsync(
+                "() => (document.querySelector('.persist-banner')?.textContent ?? '').includes('could not be loaded and has been left untouched')",
+                null,
+                new PageWaitForFunctionOptions { Timeout = 15_000 });
+
+            await page.GetByRole(AriaRole.Button, new() { Name = "Discard unreadable save and start fresh" }).ClickAsync();
+            await page.WaitForFunctionAsync(
+                "() => (document.querySelector('.persist-banner')?.textContent ?? '').includes('saved to host storage, but the legacy browser snapshot could not be cleared')",
+                null,
+                new PageWaitForFunctionOptions { Timeout = 15_000 });
+
+            Assert.True(File.Exists(Path.Combine(workspacePath, "bundle-0000000000000001.sbws")));
+        }
+        finally
+        {
+            if (host is not null)
+                StopHost(host);
+            try { Directory.Delete(workspacePath, recursive: true); }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+        }
+    }
+
     private static async Task ExpectWorkspaceContentAsync(IPage page, string title, string manuscriptId, string section, string body)
     {
         await page.GetByRole(AriaRole.Heading, new() { Name = title }).WaitForAsync();
