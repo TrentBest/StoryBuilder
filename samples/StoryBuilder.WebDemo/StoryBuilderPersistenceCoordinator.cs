@@ -53,8 +53,17 @@ public sealed class StoryBuilderPersistenceCoordinator : IDisposable
 
             if (_removeLegacySnapshotAfterSave)
             {
-                await _javascript.InvokeVoidAsync("storyBuilderStorage.clear");
-                _removeLegacySnapshotAfterSave = false;
+                try
+                {
+                    await _javascript.InvokeVoidAsync("storyBuilderStorage.clear");
+                    _removeLegacySnapshotAfterSave = false;
+                }
+                catch (Exception ex) when (IsExpectedPersistenceFailure(ex))
+                {
+                    // The host copy is already durable. Report cleanup separately and
+                    // retain the retry flag rather than implying that the host save failed.
+                    SaveError = $"Workspace saved to host storage, but the legacy browser snapshot could not be cleared: {ex.Message}";
+                }
             }
         }
         catch (Exception ex) when (IsExpectedPersistenceFailure(ex))
