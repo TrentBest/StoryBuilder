@@ -174,10 +174,46 @@ public sealed class VesperReachAuthoredWorkspaceTests
         restored.Unpack(input);
 
         Assert.Equal(3, restored.Workspace.Characters.Count);
+        Assert.Equal(3, restored.Workspace.Sources.Count);
+        Assert.Equal(3, restored.Workspace.HistoricalClaims.Count);
         Assert.Equal(2, restored.Workspace.ObserverKnowledge.Count);
-        Assert.Equal(signal.Id, Assert.Single(restored.Workspace.Events, item => item.Title.StartsWith("An anomalous")).Id);
-        Assert.Contains(restored.Workspace.Manuscripts.SelectMany(item => item.Sections),
-            item => item.EventIds.Contains(signal.Id) && item.EventIds.Contains(bulletin.Id));
+
+        var restoredSignal = Assert.Single(restored.Workspace.Events,
+            item => item.Title.StartsWith("An anomalous"));
+        Assert.Equal(signal.Id, restoredSignal.Id);
+        Assert.Equal(ilyan.Id, Assert.Single(restoredSignal.ParticipantIds));
+        Assert.Equal(signalSource.Id, Assert.Single(restoredSignal.SourceIds));
+
+        var restoredBulletin = Assert.Single(restored.Workspace.Events, item => item.Id == bulletin.Id);
+        Assert.Equal(signal.Id, Assert.Single(restoredBulletin.CauseEventIds));
+        Assert.Equal(bulletinSource.Id, Assert.Single(restoredBulletin.SourceIds));
+
+        var restoredIndependentClaim = Assert.Single(restored.Workspace.HistoricalClaims,
+            item => item.Attribution == "Courier account");
+        Assert.Equal(CanonStatus.Proposed, restoredIndependentClaim.Status);
+        Assert.Equal(independentSource.Id, Assert.Single(restoredIndependentClaim.SourceIds));
+
+        var restoredIlyanKnowledge = Assert.Single(restored.Workspace.ObserverKnowledge,
+            item => item.ObserverId == ilyan.Id);
+        Assert.Equal(ObserverKnowledgeKind.Witnessed, restoredIlyanKnowledge.Kind);
+        Assert.Equal(signal.Id, restoredIlyanKnowledge.AcquiredAtEventId);
+
+        var restoredMaraKnowledge = Assert.Single(restored.Workspace.ObserverKnowledge,
+            item => item.ObserverId == mara.Id);
+        Assert.Equal(ObserverKnowledgeKind.Told, restoredMaraKnowledge.Kind);
+        Assert.Equal(bulletin.Id, restoredMaraKnowledge.AcquiredAtEventId);
+        Assert.Equal(bulletinSource.Id, restoredMaraKnowledge.SourceId);
+
+        var restoredPlace = Assert.Single(restored.Workspace.Places, item => item.Id == place.Id);
+        var restoredScene = Assert.Single(restored.Workspace.Scenes, item => item.Id == scene.Id);
+        Assert.Equal(restoredPlace.Id, restoredScene.PlaceId);
+        Assert.Equal(mara.Id, Assert.Single(restoredScene.Beats).ActorId);
+
+        var restoredSection = Assert.Single(restored.Workspace.Manuscripts.SelectMany(item => item.Sections));
+        Assert.Contains(signal.Id, restoredSection.EventIds);
+        Assert.Contains(bulletin.Id, restoredSection.EventIds);
+        Assert.Contains(independentAccount.Id, restoredSection.EventIds);
+        Assert.Contains(scene.Id, restoredSection.SceneIds);
         Assert.Empty(StoryWorkspaceValidator.Validate(restored.Workspace));
     }
 }
