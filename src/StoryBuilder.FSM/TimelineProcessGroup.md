@@ -4,7 +4,7 @@
 
 ## Purpose
 
-TimelineProcessGroup is the optional FSM_API adapter that turns one canonical TimelineDefinition into an executable Process Group. Every instance uses a stable timeline ID and an isolated processing-group name. Its Events snapshot exposes update requests and runtime callbacks for inspection.
+TimelineProcessGroup is the optional FSM_API adapter that turns one canonical TimelineDefinition into an executable Process Group. Every instance retains the canonical timeline ID but receives a unique runtime processing-group name. Multiple adapters may project the same definition without sharing FSM_API updates. Its Events snapshot exposes update requests and runtime callbacks for inspection.
 
 ## UML class card
 
@@ -12,7 +12,7 @@ See [TimelineProcessGroup UML](../../docs/UML/TimelineProcessGroupUML.md) for th
 
 ## Use case
 
-Create one adapter per TimelineDefinition, insert it into a host's StoryProcessGroupDriver (or another host implementing the same contract), and let the host call Update. Each driver update reaches FSM_API for that timeline's processing group.
+Create one adapter per TimelineDefinition, insert it into a host's StoryProcessGroupDriver (or another host implementing the same contract), and let the host call Update. Each adapter update reaches FSM_API for that runtime instance's isolated processing group.
 
 The adapter owns the FSM_API handle it creates. The host must call Dispose when the adapter is permanently retired. Removing it from StoryProcessGroupDriver only stops future driver passes; removal does not dispose the adapter. Dispose is idempotent and destroys the owned FSM_API instance.
 
