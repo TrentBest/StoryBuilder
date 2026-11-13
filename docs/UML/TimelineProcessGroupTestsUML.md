@@ -5,6 +5,7 @@ classDiagram
     direction TB
     class TimelineProcessGroupTests {
         +DriverAdvancesTwoIndependentTimelineProcessGroups()
+        +MultipleRuntimeInstancesOfOneTimelineDefinitionRemainIsolated()
         +DriverRejectsDuplicateProcessGroupIdentity()
         +DriverUpdatesSnapshotWhenGroupsChangeDuringPass()
         +DriverRemovalDoesNotDisposeDetachedGroup()
@@ -33,6 +34,7 @@ classDiagram
 ## Use cases
 
 - Verify independent FSM_API-backed timeline groups advance without mixing runtime observations.
+- Verify separate runtime instances of one canonical timeline definition do not share an FSM_API processing group.
 - Verify duplicate identities are rejected.
 - Verify a group inserted during an update pass waits until the next pass, while a group removed during that pass may still receive the snapshotted update.
 - Verify removing a disposable group detaches it without disposing it; the host remains responsible for disposal.
