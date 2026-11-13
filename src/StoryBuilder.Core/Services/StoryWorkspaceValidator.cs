@@ -22,6 +22,8 @@ public static class StoryWorkspaceValidator
         var scenes = workspace.Scenes.Select(x => x.Id).ToHashSet();
         var manuscripts = workspace.Manuscripts.Select(x => x.Id).ToHashSet();
         var publishedEditions = workspace.PublishedEditions.Select(x => x.Id).ToHashSet();
+        var publicationOutlets = workspace.PublicationOutlets.Select(x => x.Id).ToHashSet();
+        var inWorldPublicationEditions = workspace.InWorldPublicationEditions.Select(x => x.Id).ToHashSet();
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
         var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();
         var premises = workspace.Premises.Select(x => x.Id).ToHashSet();
@@ -32,7 +34,7 @@ public static class StoryWorkspaceValidator
         var visualAssets = workspace.VisualAssets.Select(x => x.Id).ToHashSet();
         var visualAssetRevisions = workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
-            .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(sources).Concat(campaigns).Concat(premises)
+            .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(publicationOutlets).Concat(inWorldPublicationEditions).Concat(sources).Concat(campaigns).Concat(premises)
             .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(visualAssets)
             .Concat(workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id))
             .Concat(workspace.VisualAssetReviews.Select(item => item.Id))
@@ -67,6 +69,8 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.Scenes, item => item.Id, nameof(SceneRecord));
         DuplicateIds(workspace.Manuscripts, item => item.Id, nameof(ManuscriptEdition));
         DuplicateIds(workspace.PublishedEditions, item => item.Id, nameof(PublishedBookEdition));
+        DuplicateIds(workspace.PublicationOutlets, item => item.Id, nameof(PublicationOutlet));
+        DuplicateIds(workspace.InWorldPublicationEditions, item => item.Id, nameof(InWorldPublicationEdition));
         DuplicateIds(workspace.Premises, item => item.Id, nameof(StoryPremise));
         DuplicateIds(workspace.Sources, item => item.Id, nameof(SourceRecord));
         DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));
@@ -95,6 +99,8 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.Scenes.SelectMany(item => item.Beats).Select(item => (item.Id, nameof(SceneBeat))));
         typedIds.AddRange(workspace.Manuscripts.Select(item => (item.Id, nameof(ManuscriptEdition))));
         typedIds.AddRange(workspace.PublishedEditions.Select(item => (item.Id, nameof(PublishedBookEdition))));
+        typedIds.AddRange(workspace.PublicationOutlets.Select(item => (item.Id, nameof(PublicationOutlet))));
+        typedIds.AddRange(workspace.InWorldPublicationEditions.Select(item => (item.Id, nameof(InWorldPublicationEdition))));
         typedIds.AddRange(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => (item.Id, nameof(ManuscriptSection))));
         typedIds.AddRange(workspace.Sources.Select(item => (item.Id, nameof(SourceRecord))));
         typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));
@@ -199,6 +205,61 @@ public static class StoryWorkspaceValidator
             if (!string.Equals(expectedHash, edition.ContentSha256, StringComparison.OrdinalIgnoreCase))
                 issues.Add(new WorkspaceIntegrityIssue(nameof(PublishedBookEdition), edition.Id, "content hash", edition.Id,
                     $"Published edition '{edition.Id}' does not match its stored SHA-256 content hash."));
+        }
+
+        foreach (var outlet in workspace.PublicationOutlets)
+        {
+            if (string.IsNullOrWhiteSpace(outlet.Name))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(PublicationOutlet), outlet.Id, "outlet name", outlet.Id,
+                    $"Publication outlet '{outlet.Id}' must have a non-empty name."));
+            if (string.IsNullOrWhiteSpace(outlet.ArtifactType))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(PublicationOutlet), outlet.Id, "artifact type", outlet.Id,
+                    $"Publication outlet '{outlet.Id}' must have a non-empty artifact type."));
+        }
+
+        foreach (var edition in workspace.InWorldPublicationEditions)
+        {
+            Missing(nameof(InWorldPublicationEdition), edition.Id, "publication outlet", edition.OutletId, publicationOutlets);
+            if (edition.EditionNumber < 1)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "edition number", edition.Id,
+                    $"Publication edition '{edition.Id}' must have a positive edition number."));
+            if (string.IsNullOrWhiteSpace(edition.Title) || string.IsNullOrWhiteSpace(edition.Content) ||
+                string.IsNullOrWhiteSpace(edition.ContentFormat) || string.IsNullOrWhiteSpace(edition.InWorldPublishedAt))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "required snapshot metadata", edition.Id,
+                    $"Publication edition '{edition.Id}' is missing title, content, content format, or in-world publication time."));
+            var outletEditions = workspace.InWorldPublicationEditions.Where(item => item.OutletId == edition.OutletId).ToList();
+            if (outletEditions.Count(item => item.EditionNumber == edition.EditionNumber) > 1)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "duplicate outlet edition number", edition.Id,
+                    $"Publication outlet '{edition.OutletId}' has duplicate edition number {edition.EditionNumber}."));
+
+            if (edition.SupersedesEditionId is Guid previousId)
+            {
+                Missing(nameof(InWorldPublicationEdition), edition.Id, "superseded publication edition", previousId, inWorldPublicationEditions);
+                var previous = workspace.InWorldPublicationEditions.FirstOrDefault(item => item.Id == previousId);
+                if (previous is not null)
+                {
+                    if (previous.OutletId != edition.OutletId)
+                        issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "publication lineage outlet", previousId,
+                            $"Publication edition '{edition.Id}' supersedes an edition from a different outlet."));
+                    if (previous.EditionNumber >= edition.EditionNumber)
+                        issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "publication lineage order", previousId,
+                            $"Publication edition '{edition.Id}' must have a greater number than the edition it supersedes."));
+                }
+            }
+
+            foreach (var id in edition.ClaimIds) Missing(nameof(InWorldPublicationEdition), edition.Id, "claim", id, claims);
+            foreach (var id in edition.SourceIds) Missing(nameof(InWorldPublicationEdition), edition.Id, "source", id, sources);
+            foreach (var id in edition.EventIds) Missing(nameof(InWorldPublicationEdition), edition.Id, "event", id, events);
+            if (edition.ClaimIds.Distinct().Count() != edition.ClaimIds.Count ||
+                edition.SourceIds.Distinct().Count() != edition.SourceIds.Count ||
+                edition.EventIds.Distinct().Count() != edition.EventIds.Count)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "duplicate provenance reference", edition.Id,
+                    $"Publication edition '{edition.Id}' contains duplicate claim, source, or event references."));
+
+            var expectedHash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(edition.Content)));
+            if (!string.Equals(expectedHash, edition.ContentSha256, StringComparison.OrdinalIgnoreCase))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "content hash", edition.Id,
+                    $"Publication edition '{edition.Id}' does not match its stored SHA-256 content hash."));
         }
 
         foreach (var manuscript in workspace.Manuscripts)
