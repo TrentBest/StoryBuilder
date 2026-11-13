@@ -144,6 +144,7 @@ public sealed class VesperReachAuthoredWorkspaceTests
                 Status = CanonStatus.Accepted
             });
         session.UpdateScene(scene);
+        scene = session.LinkEventToSceneBeat(scene.Id, scene.Beats[0].Id, bulletin.Id);
         session.AssignSceneToPlace(scene.Id, place.Id);
 
         var manuscript = session.CreateManuscript("The Signal Nobody Owns", "First-contact story at Vesper Reach.");
