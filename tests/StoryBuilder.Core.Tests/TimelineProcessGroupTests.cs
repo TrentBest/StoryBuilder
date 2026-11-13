@@ -40,6 +40,7 @@ public sealed class TimelineProcessGroupTests
 
         Assert.Throws<ObjectDisposedException>(() => first.Update());
         Assert.Equal(0L, first.RuntimeTickCount);
+        Assert.Contains(first.Events, item => item.Kind == "ProcessGroupExited");
 
         second.Update();
 
