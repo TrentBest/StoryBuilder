@@ -93,11 +93,12 @@ public sealed class InWorldPublicationEditionTests
             "Station instruments report an anomalous signal beyond the settled frontier. Initial direction estimate is provisional.",
             "Station shift 41, 00:14",
             [initialClaim.Id], [officialSource.Id, signalSource.Id], [signal.Id]);
+        var independentEventIds = new List<Guid> { signal.Id };
         var independent = CreateEdition(
             courierOutlet.Id, 1, "Courier's independent account",
             "The courier disputes the bulletin's preliminary direction estimate.",
             "Station shift 41, 00:27",
-            [independentClaim.Id], [independentSource.Id], [signal.Id]);
+            [independentClaim.Id], [independentSource.Id], independentEventIds);
         var correction = CreateEdition(
             officialOutlet.Id, 2, "Correction: signal direction remains unconfirmed",
             "Correction: detection is confirmed, but the available measurements do not establish a reliable direction.",
@@ -108,6 +109,7 @@ public sealed class InWorldPublicationEditionTests
         session.Workspace.AddInWorldPublicationEdition(initial);
         session.Workspace.AddInWorldPublicationEdition(independent);
         session.Workspace.AddInWorldPublicationEdition(correction);
+        independentEventIds.Clear();
 
         var ilyan = session.CreateCharacter("Ilyan Voss", "Signal analyst");
         var mara = session.CreateCharacter("Mara Quill", "Courier");
@@ -140,6 +142,7 @@ public sealed class InWorldPublicationEditionTests
         Assert.Equal(2, restoredCorrection.EditionNumber);
         Assert.Equal("Station shift 41, 00:14", restoredInitial.InWorldPublishedAt);
         Assert.Contains(signal.Id, restoredIndependent.EventIds);
+        Assert.Single(restoredIndependent.EventIds);
         Assert.Contains(independentClaim.Id, restoredIndependent.ClaimIds);
         Assert.Equal(2, restored.Workspace.PublicationOutlets.Count);
         Assert.Empty(restored.Workspace.ObserverKnowledge);
