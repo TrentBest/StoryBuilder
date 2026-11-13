@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 16;
+    private const int FormatVersion = 17;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -143,6 +143,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.VisualAssets, WriteVisualAsset);
         BinaryCodec.WriteList(stream, workspace.VisualAssetReviews, WriteVisualAssetReview);
         BinaryCodec.WriteList(stream, workspace.PageCompositions, WritePageComposition);
+        BinaryCodec.WriteList(stream, workspace.PublicationOutlets, WritePublicationOutlet);
+        BinaryCodec.WriteList(stream, workspace.InWorldPublicationEditions, WriteInWorldPublicationEdition);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
@@ -169,6 +171,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var visualAssets = version >= 13 ? BinaryCodec.ReadList(stream, ReadVisualAsset) : [];
         var visualAssetReviews = version >= 14 ? BinaryCodec.ReadList(stream, ReadVisualAssetReview) : [];
         var pageCompositions = version >= 15 ? BinaryCodec.ReadList(stream, item => ReadPageComposition(item, version)) : [];
+        var publicationOutlets = version >= 17 ? BinaryCodec.ReadList(stream, ReadPublicationOutlet) : [];
+        var inWorldPublicationEditions = version >= 17 ? BinaryCodec.ReadList(stream, ReadInWorldPublicationEdition) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -190,6 +194,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in visualAssets) workspace.AddVisualAsset(item);
         foreach (var item in visualAssetReviews) workspace.AddVisualAssetReview(item);
         foreach (var item in pageCompositions) workspace.AddPageComposition(item);
+        foreach (var item in publicationOutlets) workspace.AddPublicationOutlet(item);
+        foreach (var item in inWorldPublicationEditions) workspace.AddInWorldPublicationEdition(item);
         return workspace;
     }
 
@@ -397,6 +403,64 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             EventIds = eventIds
         };
     }
+
+    private static void WritePublicationOutlet(IBinaryStream stream, PublicationOutlet value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteString(stream, value.Name);
+        BinaryCodec.WriteString(stream, value.ArtifactType);
+        BinaryCodec.WriteString(stream, value.Description);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+    }
+
+    private static PublicationOutlet ReadPublicationOutlet(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        Name = BinaryCodec.ReadRequiredString(stream, nameof(PublicationOutlet.Name)),
+        ArtifactType = BinaryCodec.ReadRequiredString(stream, nameof(PublicationOutlet.ArtifactType)),
+        Description = BinaryCodec.ReadString(stream) ?? string.Empty,
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+    };
+
+    private static void WriteInWorldPublicationEdition(IBinaryStream stream, InWorldPublicationEdition value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.OutletId);
+        BinaryCodec.WriteInt32(stream, value.EditionNumber);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Content);
+        BinaryCodec.WriteString(stream, value.ContentFormat);
+        BinaryCodec.WriteString(stream, value.ContentSha256);
+        BinaryCodec.WriteString(stream, value.InWorldPublishedAt);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+        BinaryCodec.WriteString(stream, value.IntendedAudience);
+        BinaryCodec.WriteString(stream, value.AccessScope);
+        BinaryCodec.WriteGuidList(stream, value.ClaimIds);
+        BinaryCodec.WriteGuidList(stream, value.SourceIds);
+        BinaryCodec.WriteGuidList(stream, value.EventIds);
+        BinaryCodec.WriteNullableGuid(stream, value.SupersedesEditionId);
+        BinaryCodec.WriteString(stream, value.CorrectionNotes);
+    }
+
+    private static InWorldPublicationEdition ReadInWorldPublicationEdition(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        OutletId = BinaryCodec.ReadGuid(stream),
+        EditionNumber = BinaryCodec.ReadInt32(stream),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.Title)),
+        Content = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.Content)),
+        ContentFormat = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.ContentFormat)),
+        ContentSha256 = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.ContentSha256)),
+        InWorldPublishedAt = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.InWorldPublishedAt)),
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        IntendedAudience = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.IntendedAudience)),
+        AccessScope = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.AccessScope)),
+        ClaimIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()),
+        SourceIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()),
+        EventIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()),
+        SupersedesEditionId = BinaryCodec.ReadNullableGuid(stream),
+        CorrectionNotes = BinaryCodec.ReadString(stream)
+    };
 
     private static void WritePremise(IBinaryStream stream, StoryPremise value)
     {
