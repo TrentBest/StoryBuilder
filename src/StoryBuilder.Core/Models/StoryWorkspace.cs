@@ -122,6 +122,8 @@ public sealed class StoryWorkspace
     private readonly List<ObserverKnowledgeRecord> _observerKnowledge = [];
     private readonly List<ManuscriptEdition> _manuscripts = [];
     private readonly List<PublishedBookEdition> _publishedEditions = [];
+    private readonly List<PublicationOutlet> _publicationOutlets = [];
+    private readonly List<InWorldPublicationEdition> _inWorldPublicationEditions = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
     private readonly List<PlaceRecord> _places = [];
@@ -146,6 +148,8 @@ public sealed class StoryWorkspace
     public IReadOnlyList<ObserverKnowledgeRecord> ObserverKnowledge => _observerKnowledge.AsReadOnly();
     public IReadOnlyList<ManuscriptEdition> Manuscripts => _manuscripts.AsReadOnly();
     public IReadOnlyList<PublishedBookEdition> PublishedEditions => _publishedEditions.AsReadOnly();
+    public IReadOnlyList<PublicationOutlet> PublicationOutlets => _publicationOutlets.AsReadOnly();
+    public IReadOnlyList<InWorldPublicationEdition> InWorldPublicationEditions => _inWorldPublicationEditions.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
     public IReadOnlyList<PlaceRecord> Places => _places.AsReadOnly();
@@ -230,6 +234,45 @@ public sealed class StoryWorkspace
                 throw new InvalidOperationException("A corrected publication must refer to a previous edition of the same manuscript.");
         }
         _publishedEditions.Add(edition);
+    }
+
+    public void AddPublicationOutlet(PublicationOutlet outlet)
+    {
+        ArgumentNullException.ThrowIfNull(outlet);
+        EnsureUnique(_publicationOutlets.Select(item => item.Id), outlet.Id, nameof(outlet));
+        _publicationOutlets.Add(outlet);
+    }
+
+    /// <summary>Appends an issued artifact; existing editions are never edited or replaced.</summary>
+    public void AddInWorldPublicationEdition(InWorldPublicationEdition edition)
+    {
+        ArgumentNullException.ThrowIfNull(edition);
+        EnsureUnique(_inWorldPublicationEditions.Select(item => item.Id), edition.Id, nameof(edition));
+        if (!_publicationOutlets.Any(item => item.Id == edition.OutletId))
+            throw new KeyNotFoundException($"Publication outlet '{edition.OutletId}' must exist before an edition can be added.");
+        if (edition.EditionNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(edition), "Publication edition numbers must be positive.");
+        if (_inWorldPublicationEditions.Any(item => item.OutletId == edition.OutletId && item.EditionNumber == edition.EditionNumber))
+            throw new InvalidOperationException($"Outlet '{edition.OutletId}' already has edition number {edition.EditionNumber}.");
+        foreach (var id in edition.ClaimIds)
+            if (!_historicalClaims.Any(item => item.Id == id))
+                throw new KeyNotFoundException($"Historical claim '{id}' must exist before an edition can reference it.");
+        foreach (var id in edition.SourceIds)
+            if (!_sources.Any(item => item.Id == id))
+                throw new KeyNotFoundException($"Source '{id}' must exist before an edition can reference it.");
+        foreach (var id in edition.EventIds)
+            if (!_events.Any(item => item.Id == id))
+                throw new KeyNotFoundException($"Story event '{id}' must exist before an edition can reference it.");
+        if (edition.SupersedesEditionId is Guid previousId)
+        {
+            var previous = _inWorldPublicationEditions.FirstOrDefault(item => item.Id == previousId)
+                ?? throw new KeyNotFoundException($"Superseded edition '{previousId}' must exist before its correction can be added.");
+            if (previous.OutletId != edition.OutletId)
+                throw new InvalidOperationException("A correction must belong to the same publication outlet as the edition it supersedes.");
+            if (previous.EditionNumber >= edition.EditionNumber)
+                throw new InvalidOperationException("A correction must have a greater edition number than the edition it supersedes.");
+        }
+        _inWorldPublicationEditions.Add(edition);
     }
 
     public void AddPremise(StoryPremise premise)
