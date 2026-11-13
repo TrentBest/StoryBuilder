@@ -7,11 +7,12 @@
   ],
   "actual_branches": [
     "development",
+    "feature/vesper-reach-authored-workspace",
     "master"
   ],
-  "branch_count": 2,
-  "status": "COMPLIANT",
-  "evaluated_at": "2026-11-12T12:46:07Z",
-  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/43220918173",
-  "triggering_commit": "e228f62522ecbc812dd3b26f17de72b407ecc4be"
+  "branch_count": 3,
+  "status": "NON-COMPLIANT",
+  "evaluated_at": "2026-11-13T12:16:38Z",
+  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/43423761794",
+  "triggering_commit": "552f34dd0c6e6227a8512eb8888d3eed515698c3"
 }
