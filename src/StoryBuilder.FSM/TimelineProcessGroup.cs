@@ -26,8 +26,11 @@ public sealed class TimelineProcessGroup : IStoryProcessGroup, IDisposable
         Definition = definition;
         Id = definition.Id;
         Name = string.IsNullOrWhiteSpace(definition.Name) ? "Untitled timeline" : definition.Name.Trim();
-        var suffix = Id.ToString("N");
-        var definitionName = $"StoryBuilder.Timeline.{suffix}";
+        // A timeline ID identifies canonical story data, not a runtime instance.
+        // FSM_API updates every handle in a processing group, so each adapter needs
+        // a unique group even when multiple adapters project the same definition.
+        var runtimeId = Guid.NewGuid().ToString("N");
+        var definitionName = $"StoryBuilder.Timeline.Runtime.{runtimeId}";
         _processingGroup = definitionName;
         _context = new TimelineProcessGroupContext(Id, Name, Record);
 
