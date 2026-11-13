@@ -272,6 +272,12 @@ public sealed class StoryWorkspace
             if (previous.EditionNumber >= edition.EditionNumber)
                 throw new InvalidOperationException("A correction must have a greater edition number than the edition it supersedes.");
         }
+        edition = edition with
+        {
+            ClaimIds = Array.AsReadOnly(edition.ClaimIds.ToArray()),
+            SourceIds = Array.AsReadOnly(edition.SourceIds.ToArray()),
+            EventIds = Array.AsReadOnly(edition.EventIds.ToArray())
+        };
         _inWorldPublicationEditions.Add(edition);
     }
 
