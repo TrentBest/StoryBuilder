@@ -27,7 +27,7 @@ The driver does not establish thread safety, prevent reentrant Update calls, sch
 
 ## FSM_API isolation
 
-TimelineProcessGroup gives each timeline a processing-group name derived from its stable timeline ID. This isolates its FSM_API update call from other TimelineProcessGroup instances. The host must still dispose each adapter it owns. It must not remove a shared FSM_API processing group as a cleanup shortcut: group removal has broader handle-destruction semantics than disposing the adapter's exact handle.
+TimelineProcessGroup retains the canonical timeline ID for story attribution but assigns a fresh runtime-instance ID to its FSM_API processing group. This distinction is required because FSM_API updates every handle in a named group: two adapters may legitimately project the same canonical definition, and must still advance and dispose independently. The host must still dispose each adapter it owns. It must not remove a shared FSM_API processing group as a cleanup shortcut: group removal has broader handle-destruction semantics than disposing the adapter's exact handle.
 
 ## Foundry boundary
 
@@ -38,5 +38,5 @@ The current driver is not a StoryBuilder-to-Foundry adapter. Production executio
 - Removing a group prevents it from appearing in subsequent driver update snapshots.
 - Removing a group does not dispose it; the owning host can still inspect or explicitly dispose it.
 - Disposing a TimelineProcessGroup destroys its owned FSM_API instance, invokes its current state's exit callback, and later Update calls fail with ObjectDisposedException.
-- Two timeline adapters advance independently and retain timeline-scoped diagnostic observations.
+- Two timeline adapters advance independently and retain timeline-scoped diagnostic observations, including when both adapters project the same canonical TimelineDefinition.
 - Hosts serialize driver mutation and update calls; concurrent scheduling is outside this utility's contract.
