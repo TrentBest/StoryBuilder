@@ -30,6 +30,25 @@ public sealed class TimelineProcessGroupTests
     }
 
     [Fact]
+    public void MultipleRuntimeInstancesOfOneTimelineDefinitionRemainIsolated()
+    {
+        var definition = new TimelineDefinition { Name = "Shared canonical timeline" };
+        using var first = new TimelineProcessGroup(definition);
+        using var second = new TimelineProcessGroup(definition);
+
+        first.Update();
+
+        Assert.Equal(1L, first.RuntimeTickCount);
+        Assert.Equal(0L, second.RuntimeTickCount);
+
+        second.Update();
+
+        Assert.Equal(1L, first.RuntimeTickCount);
+        Assert.Equal(1L, second.RuntimeTickCount);
+        Assert.Equal(first.Id, second.Id);
+    }
+
+    [Fact]
     public void DisposingTimelineDestroysOnlyItsOwnedHandleAndIsIdempotent()
     {
         using var first = new TimelineProcessGroup(new TimelineDefinition { Name = "Retired timeline" });
