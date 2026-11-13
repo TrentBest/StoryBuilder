@@ -14,11 +14,13 @@ See [TimelineProcessGroup UML](../../docs/UML/TimelineProcessGroupUML.md), [Stor
 
 - Prove driver updates reach each inserted group.
 - Prove runtime observations remain associated with their originating timeline.
+- Prove two runtime adapters created from the same canonical TimelineDefinition retain separate FSM_API processing groups and tick independently.
 - Reject duplicate process-group identity in one driver.
 - Prove insertions during an update pass begin on the next pass.
 - Prove removals during a pass do not invalidate the stable snapshot already being updated.
 - Prove Remove detaches a disposable group without disposing it; the host retains lifetime responsibility.
 - Prove disposing a timeline adapter is idempotent, invokes its exit callback, rejects later updates, and leaves another timeline's FSM_API handle operational.
+- Prove equal canonical timeline IDs do not imply shared runtime processing-group identity.
 - Enforce workspace-local branch parent references.
 
 ## Verification boundary
