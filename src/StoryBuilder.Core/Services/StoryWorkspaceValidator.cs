@@ -224,9 +224,10 @@ public static class StoryWorkspaceValidator
                 issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "edition number", edition.Id,
                     $"Publication edition '{edition.Id}' must have a positive edition number."));
             if (string.IsNullOrWhiteSpace(edition.Title) || string.IsNullOrWhiteSpace(edition.Content) ||
-                string.IsNullOrWhiteSpace(edition.ContentFormat) || string.IsNullOrWhiteSpace(edition.InWorldPublishedAt))
+                string.IsNullOrWhiteSpace(edition.ContentFormat) || string.IsNullOrWhiteSpace(edition.InWorldPublishedAt) ||
+                string.IsNullOrWhiteSpace(edition.IntendedAudience) || string.IsNullOrWhiteSpace(edition.AccessScope))
                 issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "required snapshot metadata", edition.Id,
-                    $"Publication edition '{edition.Id}' is missing title, content, content format, or in-world publication time."));
+                    $"Publication edition '{edition.Id}' is missing title, content, content format, in-world publication time, intended audience, or access scope."));
             var outletEditions = workspace.InWorldPublicationEditions.Where(item => item.OutletId == edition.OutletId).ToList();
             if (outletEditions.Count(item => item.EditionNumber == edition.EditionNumber) > 1)
                 issues.Add(new WorkspaceIntegrityIssue(nameof(InWorldPublicationEdition), edition.Id, "duplicate outlet edition number", edition.Id,
