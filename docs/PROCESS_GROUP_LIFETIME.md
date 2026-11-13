@@ -16,7 +16,7 @@ This is a local stepping utility and a deterministic test seam. It is not the pr
 2. Inserting a group into StoryProcessGroupDriver does not transfer ownership.
 3. Removing a group only detaches it from future driver snapshots. It does not call Dispose and does not cancel an update already captured in the current snapshot.
 4. The owning host must dispose a removed disposable group when it is permanently retired.
-5. TimelineProcessGroup owns the FSM_API handle it creates. Its host must call Dispose; disposal invalidates its context and destroys that exact handle. Repeated disposal is supported.
+5. TimelineProcessGroup owns the FSM_API handle it creates. Its host must call Dispose; disposal invalidates its context, destroys that exact handle, and allows FSM_API to invoke the current state's exit callback. Repeated disposal is supported.
 6. A driver must not dispose arbitrary groups because it has no ownership-transfer contract and IStoryProcessGroup does not require IDisposable.
 
 ## Update-pass semantics
@@ -37,6 +37,6 @@ The current driver is not a StoryBuilder-to-Foundry adapter. Production executio
 
 - Removing a group prevents it from appearing in subsequent driver update snapshots.
 - Removing a group does not dispose it; the owning host can still inspect or explicitly dispose it.
-- Disposing a TimelineProcessGroup destroys its owned FSM_API instance, and later Update calls fail with ObjectDisposedException.
+- Disposing a TimelineProcessGroup destroys its owned FSM_API instance, invokes its current state's exit callback, and later Update calls fail with ObjectDisposedException.
 - Two timeline adapters advance independently and retain timeline-scoped diagnostic observations.
 - Hosts serialize driver mutation and update calls; concurrent scheduling is outside this utility's contract.
