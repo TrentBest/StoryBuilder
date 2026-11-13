@@ -11,7 +11,7 @@
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
 | Understand the manifest/configuration contracts and binary package artifacts | [Package contract UML](docs/UML/CompositionPackageContractsUML.md), [Binary artifacts UML](docs/UML/CompositionPackageBinaryArtifactsUML.md), [Validator UML](docs/UML/CompositionPackageValidatorUML.md) |
 | Add an approximate Plot Twist to a timeline | Timeline planning point model [UML](docs/UML/TimelinePlanningPointUML.md) and the WebDemo Timelines page |
-| Constrain narration to an observer's knowledge | Observer knowledge ledger and evaluator [UML](docs/UML/ObserverKnowledgeRecordUML.md) |
+| Constrain narration to an observer's knowledge | Observer knowledge ledger and evaluator [UML](docs/UML/ObserverKnowledgeRecordUML.md); [Vesper Reach integrated authored-workspace proof](tests/StoryBuilder.Core.Tests/VesperReachAuthoredWorkspaceTests.md) |
 | Produce observer-safe input for narration or portrayal | [ObserverKnowledgeProjection UML](docs/UML/ObserverKnowledgeProjectionUML.md), [projection tests](tests/StoryBuilder.Core.Tests/ObserverKnowledgeProjectionServiceTests.md); NarratorAgent exposes the projection through its observer FSM |
 | Inspect or accept an observer's knowledge | [Observer Lens](samples/StoryBuilder.WebDemo/ObserverLens.md), route /observers |
 | Understand the Narrator's cooperating FSMs | [NarratorAgent](src/StoryBuilder.FSM/NarratorAgent.md), [Narrator UML](docs/UML/NarratorAgentUML.md) |
