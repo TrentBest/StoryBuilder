@@ -44,6 +44,6 @@ jobs:
       - name: Build WebDemo browser tests
         run: dotnet build tests/StoryBuilder.WebDemo.BrowserTests/StoryBuilder.WebDemo.BrowserTests.csproj --configuration Release
       - name: Install Chromium for browser tests
-        run: pwsh tests/StoryBuilder.WebDemo.BrowserTests/bin/Release/net8.0/playwright.ps1 install --with-deps chromium
+        run: pwsh tests/StoryBuilder.WebDemo.BrowserTests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
       - name: Verify host persistence through browser reload and host restart
         run: dotnet test tests/StoryBuilder.WebDemo.BrowserTests/StoryBuilder.WebDemo.BrowserTests.csproj --configuration Release --no-build
