@@ -26,7 +26,7 @@ StoryBuilder also needs to understand how words are used across the story domain
 
 ## 🩵 03 How
 
-The .NET 8 domain core includes:
+The .NET 10 domain core includes:
 
 - **Casting:** create, select, revise, and add/remove character traits from editable drafts; record stable-ID relationships between characters.
 - **Places:** create canonical place records, optionally nest places under parent places, and assign scenes to place IDs without losing free-form location notes.
@@ -46,7 +46,7 @@ The architecture follows the Workshop's boundaries: [FSM_API](https://github.com
 
 ## 🟢 04 See it in a minute
 
-Prerequisite: .NET 8 SDK. Initialize the pinned GUI.SVG source submodule once with `git submodule update --init --recursive`, then run the interactive workbench from the repository root:
+Prerequisite: .NET 10 SDK. Initialize the pinned GUI.SVG source submodule once with `git submodule update --init --recursive`, then run the interactive workbench from the repository root:
 
 ```sh
 dotnet run --project samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj --urls http://localhost:5080
