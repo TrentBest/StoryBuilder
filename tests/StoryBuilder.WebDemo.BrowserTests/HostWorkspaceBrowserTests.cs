@@ -12,7 +12,7 @@ public sealed class HostWorkspaceBrowserTests
     public async Task ManuscriptSurvivesBrowserReloadAndWebHostRestart()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var appDll = Path.Combine(repositoryRoot, "samples", "StoryBuilder.WebDemo", "bin", "Release", "net8.0", "StoryBuilder.WebDemo.dll");
+        var appDll = Path.Combine(repositoryRoot, "samples", "StoryBuilder.WebDemo", "bin", "Release", "net10.0", "StoryBuilder.WebDemo.dll");
         Assert.True(File.Exists(appDll), $"WebDemo build output was not found: {appDll}");
 
         var workspacePath = Path.Combine(Path.GetTempPath(), $"storybuilder-browser-{Guid.NewGuid():N}");
@@ -73,7 +73,7 @@ public sealed class HostWorkspaceBrowserTests
     public async Task BrowserStorageDenialIsVisibleAndExplicitFreshStartStillSavesToHost()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var appDll = Path.Combine(repositoryRoot, "samples", "StoryBuilder.WebDemo", "bin", "Release", "net8.0", "StoryBuilder.WebDemo.dll");
+        var appDll = Path.Combine(repositoryRoot, "samples", "StoryBuilder.WebDemo", "bin", "Release", "net10.0", "StoryBuilder.WebDemo.dll");
         Assert.True(File.Exists(appDll), $"WebDemo build output was not found: {appDll}");
 
         var workspacePath = Path.Combine(Path.GetTempPath(), $"storybuilder-denied-storage-{Guid.NewGuid():N}");
