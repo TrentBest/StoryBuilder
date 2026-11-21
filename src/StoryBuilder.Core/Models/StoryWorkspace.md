@@ -13,3 +13,7 @@ See the focused [StoryWorkspace UML](../../../docs/UML/StoryWorkspaceUML.md) for
 ## Boundary
 
 This is an in-memory aggregate, not a database or serialization format. The host is responsible for durable storage and user interaction. The domain types provide stable identities and explicit status/provenance fields for those adapters. `PublishedEditions` are append-only through the public workspace API; each publication points to its source manuscript, stores exact Markdown plus SHA-256, and may link to a prior edition when correcting a publication. Timeline Process Group execution is supplied by the optional StoryBuilder.FSM adapter.
+
+## Organizations
+
+The workspace stores organized actors as first-class `OrganizationRecord` entries, separate from characters. Events retain `ParticipantIds` for characters and use `OrganizationParticipantIds` for houses, factions, governments, institutions, and other collectives. Historical claims can reference organizations through the generic `RelatedEntityIds` relationship. Organization lifecycle status remains explicit; imported/proposed material is not automatically accepted canon.
