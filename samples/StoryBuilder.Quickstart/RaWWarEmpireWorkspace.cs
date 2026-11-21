@@ -39,19 +39,19 @@ public static class RaWWarEmpireWorkspace
 
         var houses = new[]
         {
-            ("House Veyr", "House", "A major House associated in the source with stability and preservation of order."),
-            ("House Cael", "House", "A major House associated in the source with Imperial administration."),
-            ("House Oris", "House", "A major House associated in the source with industrial power and production."),
-            ("House Sere", "House", "A major House associated in the source with independent knowledge and research autonomy."),
-            ("House Avar", "House", "A major House associated in the source with cultural preservation and resistance to homogenization."),
-            ("House Talan", "House", "A major House associated in the source with merchant independence and alternative trade networks."),
-            ("House Merid", "House", "A major House associated in the source with political consent and representation."),
-            ("House Rhen", "House", "A major House associated in the source with frontier self-reliance."),
-            ("House Solenne", "House", "A major House associated in the source with civilian welfare and protection."),
-            ("House Kharos", "House", "A major House associated in the source with professional military competence."),
-            ("House Nyr", "House", "A major House associated in the source with local autonomy and self-government."),
-            ("House Voss", "House", "A major House associated in the source with revolutionary opposition to the existing order."),
-            ("House Draven", "House", "A major House associated in the source with uncompromising resistance to the Empire in its present form.")
+            ("House Veyr", "House", "stability and preservation of order; a provisional source summary, not a universal description of every member."),
+            ("House Cael", "House", "Imperial administration; a provisional source summary, not a universal description of every member."),
+            ("House Oris", "House", "industrial power and production; a provisional source summary, not a universal description of every member."),
+            ("House Sere", "House", "independent knowledge and research autonomy; a provisional source summary, not a universal description of every member."),
+            ("House Avar", "House", "cultural preservation and resistance to homogenization; a provisional source summary, not a universal description of every member."),
+            ("House Talan", "House", "merchant independence and alternative trade networks; a provisional source summary, not a universal description of every member."),
+            ("House Merid", "House", "political consent and representation; a provisional source summary, not a universal description of every member."),
+            ("House Rhen", "House", "frontier self-reliance; a provisional source summary, not a universal description of every member."),
+            ("House Solenne", "House", "civilian welfare and protection; a provisional source summary, not a universal description of every member."),
+            ("House Kharos", "House", "professional military competence; a provisional source summary, not a universal description of every member."),
+            ("House Nyr", "House", "local autonomy and self-government; a provisional source summary, not a universal description of every member."),
+            ("House Voss", "House", "revolutionary opposition to the existing order; a provisional source summary, not a universal description of every member."),
+            ("House Draven", "House", "uncompromising resistance to the Empire in its present form; a provisional source summary, not a universal description of every member.")
         };
 
         var organizations = houses.ToDictionary(
@@ -63,7 +63,7 @@ public static class RaWWarEmpireWorkspace
             var organization = organizations[house.Item1];
             session.AddHistoricalClaim(new HistoricalClaim
             {
-                Statement = $"{organization.Name} is described by the source as a major House associated with {house.Item3[house.Item3.IndexOf("associated in the source with ", StringComparison.Ordinal)..].TrimEnd('.')}.",
+                Statement = $"{organization.Name} is described in the source as associated with {house.Item3}",
                 Attribution = "raWWar design source",
                 Status = CanonStatus.Proposed,
                 SourceIds = [source.Id],
