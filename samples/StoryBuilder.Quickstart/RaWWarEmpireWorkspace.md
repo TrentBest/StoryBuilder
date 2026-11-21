@@ -4,7 +4,7 @@
 
 ## Source and provenance
 
-The workspace links directly to [Empire History & Faction Origins](https://github.com/TrentBest/raWWar/blob/development/docs/EMPIRE_HISTORY_AND_FACTION_ORIGINS.md). Its source record describes the document as a living design model and preserves the source's explicit uncertainty around names, dates, rulers, and specific events.
+The workspace links directly to [Empire History & Faction Origins](https://github.com/TrentBest/raWWar/blob/ddd4c0b5ce34d4a1291b76824b265701cb32e436/docs/EMPIRE_HISTORY_AND_FACTION_ORIGINS.md). Its source record describes the document as a living design model and preserves the source's explicit uncertainty around names, dates, rulers, and specific events.
 
 ## Records authored
 
