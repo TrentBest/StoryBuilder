@@ -17,3 +17,11 @@ The format starts with the SBWS magic and version 12. Version 1 payloads default
 ## Restore behavior
 
 Timeline definitions are restored before planning points and timeline-assigned events so their references can be validated. Manuscript sections preserve authored text and event references. Scene beats preserve event IDs in version 8; older payloads restore with empty beat event links. Published editions are restored after their source manuscripts and prior editions, preserving the correction chain. Planning-point promotion identity is stored in version 12; older planning points restore without a promoted-event link. Observer knowledge preserves its observer, event, acquisition anchor, source, and claim framing. Runtime FSM handles and UI state are not serialized.
+
+# StoryWorkspaceBinaryDocument
+
+## Organization persistence (format 17)
+Format 17 appends the organization collection to the workspace payload and appends organization participant IDs to each event record. Readers for formats 1–16 remain compatible: they restore no organizations and no organization event participants. The format version is incremented rather than changing the interpretation of older payloads.
+
+## Verification
+Organization round-trip coverage is in `tests/StoryBuilder.Core.Tests/OrganizationAuthoringTests.cs`.
