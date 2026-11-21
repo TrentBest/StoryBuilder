@@ -389,7 +389,7 @@ public sealed class StoryBuilderSession
         return character;
     }
 
-    /// <summary>Creates and stores an empty scene so the user can add beats incrementally.</summary>
+    /// <summary>Creates a draft organization and indexes its descriptive vocabulary.</summary>
     public OrganizationRecord CreateOrganization(string? name = null, string? kind = null, string? description = null)
     {
         var organization = new OrganizationRecord
