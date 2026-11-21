@@ -127,7 +127,7 @@ public sealed class InWorldPublicationEditionTests
         var originalCreatedAt = initial.CreatedAtUtc;
 
         using var output = new MemoryBinaryStream();
-        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        new StoryWorkspaceBinaryDocument(session.Workspace).Pack(output);
         using var input = new MemoryBinaryStream(output.ToArray());
         var restored = new StoryWorkspaceBinaryDocument();
         restored.Unpack(input);
