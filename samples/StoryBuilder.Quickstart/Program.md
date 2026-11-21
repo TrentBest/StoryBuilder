@@ -19,4 +19,4 @@ The output shows the character, a vocabulary usage count, and a scene narration 
 
 ## raWWar Empire history workspace
 
-The sample also builds a source-attributed StoryBuilder workspace from raWWar's living [Empire History & Faction Origins](https://github.com/TrentBest/raWWar/blob/development/docs/EMPIRE_HISTORY_AND_FACTION_ORIGINS.md) document. It creates thirteen provisional House organizations, proposed historical claims, and an undated outline of historical planning points. It does not invent dates or events, and it does not accept the claims as canon. See [RaWWar Empire Workspace](RaWWarEmpireWorkspace.md) for details.
+The sample also builds a source-attributed StoryBuilder workspace from raWWar's living [Empire History & Faction Origins](https://github.com/TrentBest/raWWar/blob/ddd4c0b5ce34d4a1291b76824b265701cb32e436/docs/EMPIRE_HISTORY_AND_FACTION_ORIGINS.md) document. It creates thirteen provisional House organizations, proposed historical claims, and an undated outline of historical planning points. It does not invent dates or events, and it does not accept the claims as canon. See [RaWWar Empire Workspace](RaWWarEmpireWorkspace.md) for details.
