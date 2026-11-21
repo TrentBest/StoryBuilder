@@ -23,5 +23,6 @@
     <ProjectReference Include="../../src/StoryBuilder.FSM_COS/StoryBuilder.FSM_COS.csproj" />
     <ProjectReference Include="../../src/StoryBuilder.Persistence/StoryBuilder.Persistence.csproj" />
     <ProjectReference Include="../../samples/StoryBuilder.WebDemo/StoryBuilder.WebDemo.csproj" />
+    <ProjectReference Include="../../samples/StoryBuilder.Quickstart/StoryBuilder.Quickstart.csproj" />
   </ItemGroup>
 </Project>
