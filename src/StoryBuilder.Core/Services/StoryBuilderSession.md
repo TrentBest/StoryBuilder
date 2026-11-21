@@ -24,3 +24,8 @@ Coordinates canonical workspace edits, vocabulary indexing, timeline planning, m
 ## UML class card
 
 See [StoryBuilderSession UML](../../../docs/UML/StoryBuilderSessionUML.md).
+
+# StoryBuilderSession
+
+## Organization authoring
+`CreateOrganization` creates a draft organization and indexes its name, kind, and description. `UpdateOrganization` normalizes editable text, refreshes indexed vocabulary, and updates its timestamp. Restoring a workspace rebuilds organization vocabulary along with other records.
