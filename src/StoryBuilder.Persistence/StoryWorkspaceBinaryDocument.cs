@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 16;
+    private const int FormatVersion = 17;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not 15 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not 15 and not 16 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -143,6 +143,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.VisualAssets, WriteVisualAsset);
         BinaryCodec.WriteList(stream, workspace.VisualAssetReviews, WriteVisualAssetReview);
         BinaryCodec.WriteList(stream, workspace.PageCompositions, WritePageComposition);
+        BinaryCodec.WriteList(stream, workspace.Organizations, WriteOrganization);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
@@ -169,6 +170,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var visualAssets = version >= 13 ? BinaryCodec.ReadList(stream, ReadVisualAsset) : [];
         var visualAssetReviews = version >= 14 ? BinaryCodec.ReadList(stream, ReadVisualAssetReview) : [];
         var pageCompositions = version >= 15 ? BinaryCodec.ReadList(stream, item => ReadPageComposition(item, version)) : [];
+        var organizations = version >= 17 ? BinaryCodec.ReadList(stream, ReadOrganization) : [];
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -190,6 +192,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in visualAssets) workspace.AddVisualAsset(item);
         foreach (var item in visualAssetReviews) workspace.AddVisualAssetReview(item);
         foreach (var item in pageCompositions) workspace.AddPageComposition(item);
+        foreach (var item in organizations) workspace.AddOrganization(item);
         return workspace;
     }
 
@@ -547,6 +550,28 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
     };
 
+    private static void WriteOrganization(IBinaryStream stream, OrganizationRecord value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteString(stream, value.Name);
+        BinaryCodec.WriteString(stream, value.Kind);
+        BinaryCodec.WriteString(stream, value.Description);
+        BinaryCodec.WriteEnum(stream, value.Status);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+        BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
+    }
+
+    private static OrganizationRecord ReadOrganization(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        Name = BinaryCodec.ReadRequiredString(stream, nameof(OrganizationRecord.Name)),
+        Kind = BinaryCodec.ReadRequiredString(stream, nameof(OrganizationRecord.Kind)),
+        Description = BinaryCodec.ReadRequiredString(stream, nameof(OrganizationRecord.Description)),
+        Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+    };
+
     private static void WriteScene(IBinaryStream stream, SceneRecord value)
     {
         BinaryCodec.WriteGuid(stream, value.Id);
@@ -660,6 +685,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteGuidList(stream, value.ConsequenceEventIds);
         BinaryCodec.WriteGuidList(stream, value.SourceIds);
         BinaryCodec.WriteEnum(stream, value.Status);
+        BinaryCodec.WriteGuidList(stream, value.OrganizationParticipantIds);
     }
 
     private static StoryEvent ReadStoryEvent(IBinaryStream stream, int version)
@@ -682,7 +708,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             CauseEventIds = BinaryCodec.ReadGuidList(stream),
             ConsequenceEventIds = BinaryCodec.ReadGuidList(stream),
             SourceIds = BinaryCodec.ReadGuidList(stream),
-            Status = BinaryCodec.ReadEnum<CanonStatus>(stream)
+            Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
+            OrganizationParticipantIds = version >= 17 ? BinaryCodec.ReadGuidList(stream) : []
         };
     }
 
