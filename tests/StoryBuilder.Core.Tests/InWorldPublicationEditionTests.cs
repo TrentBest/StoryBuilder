@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Security.Cryptography;
 using System.Text;
 using StoryBuilder.Core.Models;
@@ -147,6 +148,36 @@ public sealed class InWorldPublicationEditionTests
         Assert.Equal(2, restored.Workspace.PublicationOutlets.Count);
         Assert.Empty(restored.Workspace.ObserverKnowledge);
         Assert.Empty(StoryWorkspaceValidator.Validate(restored.Workspace));
+    }
+
+    [Fact]
+    public void Version16WorkspacePayloadRemainsReadableWithoutPublicationSections()
+    {
+        var session = new StoryBuilderSession("Format 16 compatibility");
+        var character = session.CreateCharacter("Mara", "Cartographer");
+
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        var version17Payload = output.ToArray();
+
+        // Version 17 appends two workspace collections before the synonym list.
+        // A version 16 payload has neither collection, but retains the synonym-list trailer.
+        var version16Payload = new byte[version17Payload.Length - (sizeof(int) * 2)];
+        version17Payload.AsSpan(0, version17Payload.Length - (sizeof(int) * 3))
+            .CopyTo(version16Payload);
+        version17Payload.AsSpan(version17Payload.Length - sizeof(int))
+            .CopyTo(version16Payload.AsSpan(version16Payload.Length - sizeof(int)));
+        BinaryPrimitives.WriteInt32LittleEndian(version16Payload.AsSpan(sizeof(int), sizeof(int)), 16);
+
+        using var input = new MemoryBinaryStream(version16Payload);
+        var restored = new StoryWorkspaceBinaryDocument();
+        restored.Unpack(input);
+
+        Assert.Equal("Format 16 compatibility", restored.Workspace.Name);
+        Assert.Equal(character.Id, Assert.Single(restored.Workspace.Characters).Id);
+        Assert.Empty(restored.Workspace.PublicationOutlets);
+        Assert.Empty(restored.Workspace.InWorldPublicationEditions);
+        Assert.Empty(restored.Synonyms);
     }
 
     [Fact]
