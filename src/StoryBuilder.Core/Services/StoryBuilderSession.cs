@@ -390,6 +390,38 @@ public sealed class StoryBuilderSession
     }
 
     /// <summary>Creates and stores an empty scene so the user can add beats incrementally.</summary>
+    public OrganizationRecord CreateOrganization(string? name = null, string? kind = null, string? description = null)
+    {
+        var organization = new OrganizationRecord
+        {
+            Name = string.IsNullOrWhiteSpace(name) ? "Unnamed organization" : name.Trim(),
+            Kind = string.IsNullOrWhiteSpace(kind) ? "Organization" : kind.Trim(),
+            Description = NormalizeOptional(description) ?? string.Empty,
+            Status = CanonStatus.Draft
+        };
+        Workspace.AddOrganization(organization);
+        IndexOrganization(organization);
+        NotifyChanged();
+        return organization;
+    }
+
+    public OrganizationRecord UpdateOrganization(OrganizationRecord organization)
+    {
+        ArgumentNullException.ThrowIfNull(organization);
+        var updated = organization with
+        {
+            Name = string.IsNullOrWhiteSpace(organization.Name) ? "Unnamed organization" : organization.Name.Trim(),
+            Kind = string.IsNullOrWhiteSpace(organization.Kind) ? "Organization" : organization.Kind.Trim(),
+            Description = organization.Description?.Trim() ?? string.Empty,
+            UpdatedAtUtc = DateTimeOffset.UtcNow
+        };
+        Workspace.ReplaceOrganization(updated);
+        Vocabulary.RemoveTarget(updated.Id);
+        IndexOrganization(updated);
+        NotifyChanged();
+        return updated;
+    }
+
     public PlaceRecord CreatePlace(string? name = null, string? description = null, string? kind = null, Guid? parentPlaceId = null)
     {
         var place = new PlaceRecord
@@ -669,6 +701,7 @@ public sealed class StoryBuilderSession
     {
         foreach (var premise in Workspace.Premises) IndexPremise(premise);
         foreach (var character in Workspace.Characters) IndexCharacter(character);
+        foreach (var organization in Workspace.Organizations) IndexOrganization(organization);
         foreach (var place in Workspace.Places) IndexPlace(place);
         foreach (var scene in Workspace.Scenes) IndexScene(scene);
         foreach (var claim in Workspace.HistoricalClaims)
@@ -744,6 +777,16 @@ public sealed class StoryBuilderSession
             nameof(StoryPremise.CreationApproach), context: premise.Vision, status: premise.Status);
         Vocabulary.RecordText(premise.PrimaryTarget, VocabularyCategory.Other, premise.Id, premise.Title,
             nameof(StoryPremise.PrimaryTarget), context: premise.Vision, status: premise.Status);
+    }
+
+    private void IndexOrganization(OrganizationRecord organization)
+    {
+        Vocabulary.RecordText(organization.Name, VocabularyCategory.Other, organization.Id, organization.Name,
+            nameof(OrganizationRecord.Name), context: organization.Description, attribution: "Author", status: organization.Status);
+        Vocabulary.RecordText(organization.Kind, VocabularyCategory.Other, organization.Id, organization.Name,
+            nameof(OrganizationRecord.Kind), context: organization.Description, attribution: "Author", status: organization.Status);
+        Vocabulary.RecordText(organization.Description, VocabularyCategory.Other, organization.Id, organization.Name,
+            nameof(OrganizationRecord.Description), context: organization.Description, attribution: "Author", status: organization.Status);
     }
 
     private void IndexPlace(PlaceRecord place)
