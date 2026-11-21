@@ -18,3 +18,5 @@ The workspace links directly to [Empire History & Faction Origins](https://githu
 House organizations remain `Draft`. Claims and continuity issues remain `Proposed`. The timeline has planning points only: it does not invent dated events. House descriptions are concise source summaries, not universal descriptions of every member or sub-faction.
 
 Run the Quickstart project to print the workspace's source, House, claim, outline, and event counts. The corresponding tests verify workspace integrity and binary persistence.
+
+See the [workspace builder UML](../../docs/UML/RaWWarEmpireWorkspaceUML.md) for the composition and record relationships.
