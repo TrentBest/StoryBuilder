@@ -56,10 +56,23 @@ public sealed record StoryEvent
     public Guid? TimelineId { get; init; }
     public TimelinePlacementKind PlacementKind { get; init; } = TimelinePlacementKind.Unresolved;
     public List<Guid> ParticipantIds { get; init; } = [];
+    public List<Guid> OrganizationParticipantIds { get; init; } = [];
     public List<Guid> CauseEventIds { get; init; } = [];
     public List<Guid> ConsequenceEventIds { get; init; } = [];
     public List<Guid> SourceIds { get; init; } = [];
     public CanonStatus Status { get; init; } = CanonStatus.Proposed;
+}
+
+/// <summary>A government, faction, house, institution, corporation, guild, or other organized actor.</summary>
+public sealed record OrganizationRecord
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public string Name { get; init; } = "Unnamed organization";
+    public string Kind { get; init; } = "Organization";
+    public string Description { get; init; } = string.Empty;
+    public CanonStatus Status { get; init; } = CanonStatus.Draft;
+    public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
 }
 
 /// <summary>A continuing narrative context in which participants make consequential choices.</summary>
@@ -124,6 +137,7 @@ public sealed class StoryWorkspace
     private readonly List<PublishedBookEdition> _publishedEditions = [];
     private readonly List<StoryPremise> _premises = [];
     private readonly List<CharacterProfile> _characters = [];
+    private readonly List<OrganizationRecord> _organizations = [];
     private readonly List<PlaceRecord> _places = [];
     private readonly List<SceneRecord> _scenes = [];
     private readonly List<HistoricalClaim> _historicalClaims = [];
@@ -148,6 +162,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<PublishedBookEdition> PublishedEditions => _publishedEditions.AsReadOnly();
     public IReadOnlyList<StoryPremise> Premises => _premises.AsReadOnly();
     public IReadOnlyList<CharacterProfile> Characters => _characters.AsReadOnly();
+    public IReadOnlyList<OrganizationRecord> Organizations => _organizations.AsReadOnly();
     public IReadOnlyList<PlaceRecord> Places => _places.AsReadOnly();
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
@@ -250,6 +265,19 @@ public sealed class StoryWorkspace
         ArgumentNullException.ThrowIfNull(character);
         EnsureUnique(_characters.Select(x => x.Id), character.Id, nameof(character));
         _characters.Add(character);
+    }
+
+    public void AddOrganization(OrganizationRecord organization)
+    {
+        ArgumentNullException.ThrowIfNull(organization);
+        EnsureUnique(_organizations.Select(x => x.Id), organization.Id, nameof(organization));
+        _organizations.Add(organization);
+    }
+
+    public void ReplaceOrganization(OrganizationRecord organization)
+    {
+        ArgumentNullException.ThrowIfNull(organization);
+        ReplaceById(_organizations, organization.Id, organization, nameof(organization));
     }
 
     public void AddPlace(PlaceRecord place)
@@ -439,6 +467,7 @@ public sealed class StoryWorkspace
         TimelinePlanningPoint point => point.Id,
         ObserverKnowledgeRecord observerRecord => observerRecord.Id,
         CharacterProfile character => character.Id,
+        OrganizationRecord organization => organization.Id,
         SceneRecord scene => scene.Id,
         ParticipantAction action => action.Id,
         _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
