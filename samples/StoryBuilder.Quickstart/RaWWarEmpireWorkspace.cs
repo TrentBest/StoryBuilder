@@ -9,7 +9,7 @@ namespace StoryBuilder.Quickstart;
 /// </summary>
 public static class RaWWarEmpireWorkspace
 {
-    public const string SourceUri = "https://github.com/TrentBest/raWWar/blob/development/docs/EMPIRE_HISTORY_AND_FACTION_ORIGINS.md";
+    public const string SourceUri = "https://github.com/TrentBest/raWWar/blob/ddd4c0b5ce34d4a1291b76824b265701cb32e436/docs/EMPIRE_HISTORY_AND_FACTION_ORIGINS.md";
 
     public static StoryBuilderSession Create()
     {
