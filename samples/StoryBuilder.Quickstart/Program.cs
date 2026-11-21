@@ -1,5 +1,6 @@
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
+using StoryBuilder.Quickstart;
 
 var session = new StoryBuilderSession("StoryBuilder quickstart");
 var trait = new CharacterTrait
@@ -56,3 +57,14 @@ Console.WriteLine($"The concept '{usage.CanonicalTerm}' has {usage.OccurrenceCou
 Console.WriteLine();
 Console.WriteLine("SCENE DRAFT");
 Console.WriteLine(session.SceneComposer.ComposeNarration(scene));
+
+
+var empireHistory = RaWWarEmpireWorkspace.Create();
+Console.WriteLine();
+Console.WriteLine("RAWWAR EMPIRE HISTORY WORKSPACE");
+Console.WriteLine($"Source: {RaWWarEmpireWorkspace.SourceUri}");
+Console.WriteLine($"Houses: {empireHistory.Workspace.Organizations.Count}");
+Console.WriteLine($"Proposed source-backed claims: {empireHistory.Workspace.HistoricalClaims.Count}");
+Console.WriteLine($"Undated outline anchors: {empireHistory.Workspace.PlanningPoints.Count}");
+Console.WriteLine($"Recorded historical events: {empireHistory.Workspace.Events.Count}");
+Console.WriteLine("All House records remain Draft; historical claims remain Proposed.");
