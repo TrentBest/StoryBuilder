@@ -1,6 +1,7 @@
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
 using StoryBuilder.Persistence;
+using TheSingularityWorkshop.FSM_Serialization;
 using Xunit;
 
 namespace StoryBuilder.Core.Tests;
