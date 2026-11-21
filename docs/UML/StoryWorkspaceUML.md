@@ -15,6 +15,7 @@ class StoryWorkspace {
   +IReadOnlyList~StoryPremise~ Premises
   +IReadOnlyList~PlaceRecord~ Places
   +IReadOnlyList~CharacterProfile~ Characters
+  +IReadOnlyList~OrganizationRecord~ Organizations
   +IReadOnlyList~SceneRecord~ Scenes
   +IReadOnlyList~HistoricalClaim~ HistoricalClaims
   +IReadOnlyList~StoryEvent~ Events
@@ -27,6 +28,8 @@ class StoryWorkspace {
   +AddPremise(premise)
   +ReplacePremise(premise)
   +AddCharacter(character)
+  +AddOrganization(organization)
+  +ReplaceOrganization(organization)
   +ReplaceCharacter(character)
   +AddScene(scene)
   +ReplaceScene(scene)
@@ -47,9 +50,12 @@ StoryWorkspace o-- PlaceRecord
 PublishedBookEdition --> ManuscriptEdition : source manuscript
 PublishedBookEdition --> PublishedBookEdition : corrected from
 StoryWorkspace o-- CharacterProfile
+StoryWorkspace o-- OrganizationRecord
 StoryWorkspace o-- SceneRecord
 StoryWorkspace o-- HistoricalClaim
 StoryWorkspace o-- StoryEvent
+StoryEvent --> CharacterProfile : ParticipantIds
+StoryEvent --> OrganizationRecord : OrganizationParticipantIds
 StoryWorkspace o-- CampaignRecord
 StoryWorkspace o-- ParticipantAction
 StoryWorkspace o-- SourceRecord
