@@ -18,6 +18,7 @@ public static class StoryWorkspaceValidator
         var planningPoints = workspace.PlanningPoints.Select(x => x.Id).ToHashSet();
         var events = workspace.Events.Select(x => x.Id).ToHashSet();
         var characters = workspace.Characters.Select(x => x.Id).ToHashSet();
+        var organizations = workspace.Organizations.Select(x => x.Id).ToHashSet();
         var places = workspace.Places.Select(x => x.Id).ToHashSet();
         var scenes = workspace.Scenes.Select(x => x.Id).ToHashSet();
         var manuscripts = workspace.Manuscripts.Select(x => x.Id).ToHashSet();
@@ -33,7 +34,7 @@ public static class StoryWorkspaceValidator
         var visualAssetRevisions = workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
             .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(sources).Concat(campaigns).Concat(premises)
-            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(visualAssets)
+            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(organizations).Concat(visualAssets)
             .Concat(workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id))
             .Concat(workspace.VisualAssetReviews.Select(item => item.Id))
             .Concat(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => item.Id))
@@ -63,6 +64,7 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.PlanningPoints, item => item.Id, nameof(TimelinePlanningPoint));
         DuplicateIds(workspace.Events, item => item.Id, nameof(StoryEvent));
         DuplicateIds(workspace.Characters, item => item.Id, nameof(CharacterProfile));
+        DuplicateIds(workspace.Organizations, item => item.Id, nameof(OrganizationRecord));
         DuplicateIds(workspace.Places, item => item.Id, nameof(PlaceRecord));
         DuplicateIds(workspace.Scenes, item => item.Id, nameof(SceneRecord));
         DuplicateIds(workspace.Manuscripts, item => item.Id, nameof(ManuscriptEdition));
@@ -90,6 +92,7 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.PlanningPoints.Select(item => (item.Id, nameof(TimelinePlanningPoint))));
         typedIds.AddRange(workspace.Events.Select(item => (item.Id, nameof(StoryEvent))));
         typedIds.AddRange(workspace.Characters.Select(item => (item.Id, nameof(CharacterProfile))));
+        typedIds.AddRange(workspace.Organizations.Select(item => (item.Id, nameof(OrganizationRecord))));
         typedIds.AddRange(workspace.Places.Select(item => (item.Id, nameof(PlaceRecord))));
         typedIds.AddRange(workspace.Scenes.Select(item => (item.Id, nameof(SceneRecord))));
         typedIds.AddRange(workspace.Scenes.SelectMany(item => item.Beats).Select(item => (item.Id, nameof(SceneBeat))));
@@ -157,6 +160,8 @@ public static class StoryWorkspaceValidator
                 Missing(nameof(StoryEvent), storyEvent.Id, "timeline", timelineId, timelines);
             foreach (var id in storyEvent.ParticipantIds)
                 Missing(nameof(StoryEvent), storyEvent.Id, "participant character", id, characters);
+            foreach (var id in storyEvent.OrganizationParticipantIds)
+                Missing(nameof(StoryEvent), storyEvent.Id, "participant organization", id, organizations);
             foreach (var id in storyEvent.CauseEventIds)
                 Missing(nameof(StoryEvent), storyEvent.Id, "cause event", id, events);
             foreach (var id in storyEvent.ConsequenceEventIds)
