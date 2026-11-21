@@ -7,12 +7,13 @@
   ],
   "actual_branches": [
     "development",
+    "feature/organization-history-authoring",
     "feature/vesper-reach-authored-workspace",
     "master"
   ],
-  "branch_count": 3,
+  "branch_count": 4,
   "status": "NON-COMPLIANT",
-  "evaluated_at": "2026-11-20T12:57:19Z",
-  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/44740052687",
-  "triggering_commit": "8f52f90b5dcf1c9c48612d5302564c03aab82d4b"
+  "evaluated_at": "2026-11-21T12:41:59Z",
+  "workflow_run": "https://github.com/TrentBest/StoryBuilder/actions/runs/44905176552",
+  "triggering_commit": "28f47a9a2be3ab89473d4fc50ecce853674d48e2"
 }
