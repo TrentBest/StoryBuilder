@@ -78,11 +78,7 @@ public sealed class TemporalModelTests
     [Fact]
     public void PublishedEditionCopiesCoverageAndExposesReadOnlySnapshot()
     {
-        var timeline = new StoryTimeline("world", "World", "year", 1);
-        var original = new List<PublicationCoverage>
-        {
-            new("saga", "chapter-1", "chapter", 0, new StoryTimeRange(timeline.At(0), timeline.At(10)))
-        };
+        var original = new List<PublicationCoverage> { Coverage("chapter-1", 0) };
         var edition = new PublishedEdition("edition-1", "saga", "1.0", "sha256:abc", original);
         original.Clear();
 
@@ -92,10 +88,42 @@ public sealed class TemporalModelTests
     }
 
     [Fact]
+    public void PublishedEditionRejectsEmptyCoverage()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new PublishedEdition("edition-1", "saga", "1.0", "sha256:abc", Array.Empty<PublicationCoverage>()));
+    }
+
+    [Fact]
+    public void PublishedEditionRequiresCoverageToBelongToItsWork()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new PublishedEdition("edition-1", "saga", "1.0", "sha256:abc", new[] { Coverage("chapter-1", 0, "other-work") }));
+    }
+
+    [Fact]
+    public void PublishedEditionRequiresUniqueUnitIdsAndSequenceNumbers()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            new PublishedEdition("edition-1", "saga", "1.0", "sha256:abc",
+                new[] { Coverage("chapter-1", 0), Coverage("chapter-1", 1) }));
+        Assert.Throws<ArgumentException>(() =>
+            new PublishedEdition("edition-1", "saga", "1.0", "sha256:abc",
+                new[] { Coverage("chapter-1", 0), Coverage("chapter-2", 0) }));
+    }
+
+    [Fact]
     public void CoverageSequenceCannotBeNegative()
     {
         var timeline = new StoryTimeline("world", "World", "year", 1);
         var range = new StoryTimeRange(timeline.At(0), timeline.At(1));
         Assert.Throws<ArgumentOutOfRangeException>(() => new PublicationCoverage("saga", "c1", "chapter", -1, range));
+    }
+
+    private static PublicationCoverage Coverage(string unitId, int sequence, string workId = "saga")
+    {
+        var timeline = new StoryTimeline("world", "World", "year", 1);
+        return new PublicationCoverage(workId, unitId, "chapter", sequence,
+            new StoryTimeRange(timeline.At(sequence * 10), timeline.At((sequence + 1) * 10)));
     }
 }
