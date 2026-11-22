@@ -12,7 +12,7 @@ namespace StoryBuilder.Persistence;
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
     private const int FormatVersion = 1;
-    private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
+    private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBW1");
 
     public StoryWorkspaceBinaryDocument()
     {
