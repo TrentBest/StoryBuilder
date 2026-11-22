@@ -20,7 +20,7 @@
 | Render deterministic digital book output from a manuscript or restored package | [BookProductRenderer UML](docs/UML/BookProductRendererUML.md), [RenderedBookArtifact UML](docs/UML/RenderedBookArtifactUML.md), [renderer tests](tests/StoryBuilder.Core.Tests/BookProductRendererTests.md) |
 | Understand book-first composition, provisional Plot Twist planning, observer constraints, and multi-FSM Narrator | [Timeline Authoring and Observer Model](docs/TIMELINE_AUTHORING_MODEL.md), [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Understand publication output versus physical printing | [Narrator Experience — Publication Boundary](docs/NARRATOR_EXPERIENCE.md#publication-boundary) |
-| Author in-world publications, immutable editions, provenance, and corrections | [In-World Publication Editions](docs/IN_WORLD_PUBLICATION_EDITIONS.md) |
+| Author in-world publications, immutable editions, provenance, and corrections | [In-World Publication Editions](docs/IN_WORLD_PUBLICATION_EDITIONS.md), [domain tests](tests/StoryBuilder.Core.Tests/InWorldPublicationEditionTests.md), [Vesper Reach proof](tests/StoryBuilder.Core.Tests/VesperReachAuthoredWorkspaceTests.md) |
 | Explore the casting-room concept | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) |
 | Understand the timeline Process Group foundation | [Timeline Process Groups](docs/TIMELINE_PROCESS_GROUPS.md), [TimelineProcessGroup UML](docs/UML/TimelineProcessGroupUML.md), [Timeline tests](tests/StoryBuilder.Core.Tests/TimelineProcessGroupTests.cs) |
 | Link timeline events to actual book sections and scene beats | [Timeline renderer UML](docs/UML/StoryBuilderTimelineRendererUML.md), [Scene-beat link tests](tests/StoryBuilder.Core.Tests/SceneBeatEventLinkTests.md) |
