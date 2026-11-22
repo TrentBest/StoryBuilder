@@ -9,6 +9,8 @@ public sealed record PageComposition
     public Guid Id { get; init; } = Guid.NewGuid();
     public Guid ManuscriptSectionId { get; init; }
     public Guid? VisualAssetId { get; init; }
+    /// <summary>The exact immutable visual revision selected for this composition.</summary>
+    public Guid? VisualAssetRevisionId { get; init; }
     public string Name { get; init; } = "Untitled page";
     public PageCompositionOrientation Orientation { get; init; } = PageCompositionOrientation.Portrait;
     public PageCompositionFit ImageFit { get; init; } = PageCompositionFit.Contain;
