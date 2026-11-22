@@ -4,45 +4,35 @@
 
 ## Purpose
 
-StoryWorkspaceBinaryDocument defines a StoryBuilder-owned binary schema for workspace records and explicit synonym mappings. It uses FSM_Serialization's IBinarySerializable contract without adding a general-purpose serializer or JSON dependency.
+StoryWorkspaceBinaryDocument defines the single current StoryBuilder workspace binary schema and explicit synonym mappings. It uses FSM_Serialization's IBinarySerializable contract without adding a general-purpose serializer or JSON dependency.
 
-## UML class card
+## Current development contract
 
-See [StoryWorkspaceBinaryDocument UML](../../docs/UML/StoryWorkspaceBinaryDocumentUML.md).
+The payload begins with the four-byte `SBWS` marker followed by schema version `1`. Version 1 means the complete current development shape—not the first historical format from the repository's early development.
 
-## Safety and compatibility
+The reader accepts only the current schema version. It does not carry compatibility branches for unpublished development snapshots. When the workspace model changes, update the writer, reader, fixtures, tests, and every in-repository consumer together. Development workspaces may be regenerated when the schema changes.
 
-The format starts with the SBWS magic and version 18. The schema evolves by appending version-gated fields and collections while preserving the interpretation of prior versions:
+This is an internal persistence contract, not a released interchange format. A future public release can establish its own compatibility policy based on actual published data and consumers.
 
-| Version | Added persisted data |
-| --- | --- |
-| 1 | Initial workspace and character records |
-| 2 | Story premises |
-| 3 | Ordered timeline definitions |
-| 4 | Manuscripts and ordered manuscript sections |
-| 5 | Timeline planning points |
-| 6 | Timeline assignment and placement certainty for world events |
-| 7 | Observer-knowledge records |
-| 8 | Stable event links on scene beats |
-| 9 | Original legacy project JSON |
-| 10 | Canonical places and scene place IDs |
-| 11 | Immutable published Markdown snapshots, SHA-256 integrity, provenance, and correction lineage |
-| 12 | Durable promoted-event identity on planning points |
-| 13 | Visual asset records and immutable revisions |
-| 14 | Append-only visual asset review decisions |
-| 15 | Page-composition layouts |
-| 16 | Optional discovery-interaction settings |
-| 17 | Organizations and organization participant IDs on events |
-| 18 | Exact visual asset revision identity selected by each page composition |
+## Persisted workspace shape
 
-Readers retain compatibility with formats 1–17. A composition restored from a format before 18 has no selected visual revision; the reader does not infer one from the asset's current revision list. Publication export requires an explicit selection and an unambiguous latest Approved review on that exact revision.
+The current document includes:
 
-Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. Future incompatible schemas require a new format version and migration tests.
+- experience definition, timelines, planning points, manuscripts, premises, and characters;
+- canonical places, scenes, claims, events, observer knowledge, campaigns, participant actions, sources, and continuity issues;
+- legacy import source text retained as part of the current workspace model;
+- immutable published book editions;
+- visual assets, append-only reviews, page compositions, discovery settings, and exact selected visual revision IDs;
+- organizations and organization participants on events;
+- stable publication outlets and immutable in-world publication editions, including provenance and correction lineage;
+- explicit vocabulary synonym mappings.
 
 ## Restore behavior
 
-Records are restored in dependency order so references can be validated: timelines before planning points and timeline-assigned events; manuscripts before published editions; assets before reviews and page compositions; organizations before event organization references are validated. Published editions preserve correction lineage. Planning-point promotion identity is stored from version 12 onward. Observer knowledge preserves its observer, event, acquisition anchor, source, and claim framing. Visual asset revisions and review decisions remain append-only. Page compositions preserve their exact selected revision from version 18 onward. Runtime FSM handles and UI state are not serialized.
+Records are restored in dependency order so references can be validated: timelines before planning points and timeline-assigned events; manuscripts before published editions; assets before reviews and page compositions; organizations before event organization references are validated; and publication outlets before in-world editions. Published editions and in-world editions preserve append-only correction lineage.
+
+Strings and collection sizes are bounded; enum values, booleans, UTF-8, cross-record references, content hashes, and end-of-payload are validated. Runtime FSM handles and UI state are not serialized.
 
 ## Verification
 
-Persistence and compatibility coverage is in `tests/StoryBuilder.Core.Tests/StoryWorkspacePersistenceTests.cs`. Organization authoring and event-participant coverage is in `tests/StoryBuilder.Core.Tests/OrganizationAuthoringTests.cs`.
+Persistence coverage is in `tests/StoryBuilder.Core.Tests/StoryWorkspacePersistenceTests.cs`. In-world publication coverage is in `tests/StoryBuilder.Core.Tests/InWorldPublicationEditionTests.cs` and `tests/StoryBuilder.Core.Tests/VesperReachAuthoredWorkspaceTests.cs`.
