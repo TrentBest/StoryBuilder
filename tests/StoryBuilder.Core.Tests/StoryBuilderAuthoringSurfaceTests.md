@@ -4,11 +4,12 @@
 
 ## Purpose
 
-These tests verify the semantic authoring surface as an integration seam: stable presentation node IDs, explicit command metadata, updated projection after domain mutation, and rejection of unsupported commands without changing the workspace.
+These tests verify the semantic authoring surface as an integration seam: stable presentation node IDs, explicit command metadata, updated projection after domain mutation, publication authoring through a typed draft, and rejection of unsupported commands without changing the workspace.
 
 ## Coverage
 
-- `RootUsesStableNodeIdsAndExplicitCommandIds` checks the four supported action IDs.
+- `RootUsesStableNodeIdsAndExplicitCommandIds` checks stable action IDs.
+- `PublicationCommandsRefreshTheSemanticProjection` proves that a created outlet and issued edition appear in the next semantic snapshot.
 - `ExecutingCommandUpdatesNextSemanticSnapshot` proves the next `Root` snapshot reflects a created timeline.
 - `UnsupportedCommandLeavesProjectionUnchanged` verifies the safety boundary.
 
