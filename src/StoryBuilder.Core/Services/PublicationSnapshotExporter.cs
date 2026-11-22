@@ -18,6 +18,23 @@ public static class PublicationSnapshotExporter
         WriteIndented = true
     };
 
+    /// <summary>
+    /// Exports directly from a manifest import result so source provenance and the identity map
+    /// cannot be accidentally mixed with values from another import.
+    /// </summary>
+    public static PublicationSnapshot Export(
+        CompositionManifestImportResult import,
+        Guid manuscriptId)
+    {
+        ArgumentNullException.ThrowIfNull(import);
+        return Export(
+            import.Session,
+            manuscriptId,
+            import.SourcePath,
+            import.SourceBlobSha,
+            import.SourceSectionIds);
+    }
+
     public static PublicationSnapshot Export(
         StoryBuilderSession session,
         Guid manuscriptId,
