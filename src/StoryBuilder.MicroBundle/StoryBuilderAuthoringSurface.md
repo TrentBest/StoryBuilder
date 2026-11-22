@@ -4,7 +4,7 @@
 
 ## Purpose
 
-Projects one live `StoryBuilderSession` into the shared, platform-neutral `GuiNode` model. Its `Root` getter builds a fresh snapshot from current workspace counts, and its `Execute` method routes only the four stable authoring command IDs supported by `StoryBuilderAuthoringController`.
+Projects one live `StoryBuilderSession` into the shared, platform-neutral `GuiNode` model. Its `Root` getter builds a fresh snapshot from current workspace counts and publication records. `Execute` routes the stable string command IDs; `IssuePublicationEdition` accepts a typed `StoryBuilderPublicationEditionDraft` so a host can provide complete publication metadata and provenance without flattening it into a display-name string.
 
 ## Example
 
@@ -14,6 +14,7 @@ var surface = new StoryBuilderAuthoringSurface(session);
 
 // Render surface.Root with the host's GUI adapter.
 // On activation, dispatch the node's onClickCommand through surface.Execute(...).
+// A structured publication editor calls surface.IssuePublicationEdition(draft).
 var result = surface.Execute(StoryBuilderAuthoringCommands.CreateTimeline);
 var refreshedRoot = surface.Root;
 ```
@@ -23,6 +24,8 @@ var refreshedRoot = surface.Root;
 - The surface does not reference WPF or AnyApp.
 - Node IDs identify stable presentation elements; labels are not command IDs.
 - Command IDs are explicit and unknown commands are rejected without mutation.
+- Publication outlets are created through an explicit command; in-world editions are issued through the typed draft method and displayed in the next snapshot.
+- Issuance freezes authored content and provenance; it does not create observer knowledge or delivery state.
 - Hosts own rendering, authorization, user input, and re-rendering after a successful command.
 - The semantic snapshot is regenerated from the domain session; it is not a second source of truth.
 
