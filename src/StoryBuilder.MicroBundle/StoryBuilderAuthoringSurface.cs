@@ -36,7 +36,7 @@ public sealed class StoryBuilderAuthoringSurface
                 .Child(GuiBuilders.Text("storybuilder-workspace", $"Workspace: {workspace.Name}"))
                 .Child(GuiBuilders.Text(
                     "storybuilder-counts",
-                    $"Timelines: {workspace.Timelines.Count}  |  Characters: {workspace.Characters.Count}  |  Scenes: {workspace.Scenes.Count}  |  Events: {workspace.Events.Count}  |  Manuscripts: {workspace.Manuscripts.Count}  |  Passages: {sectionCount}"))
+                    $"Timelines: {workspace.Timelines.Count}  |  Characters: {workspace.Characters.Count}  |  Scenes: {workspace.Scenes.Count}  |  Events: {workspace.Events.Count}  |  Manuscripts: {workspace.Manuscripts.Count}  |  Passages: {sectionCount}  |  Publication outlets: {workspace.PublicationOutlets.Count}  |  In-world editions: {workspace.InWorldPublicationEditions.Count}"))
                 .Child(GuiBuilders.Button("storybuilder-create-timeline", "＋ Create timeline")
                     .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateTimeline))
                 .Child(GuiBuilders.Button("storybuilder-create-character", "＋ Create character")
@@ -50,7 +50,19 @@ public sealed class StoryBuilderAuthoringSurface
                 .Child(GuiBuilders.Button("storybuilder-create-passage", "＋ Create manuscript passage")
                     .Property("onClickCommand", StoryBuilderAuthoringCommands.CreateManuscriptSection))
                 .Child(GuiBuilders.Button("storybuilder-link-event-passage", "Link latest event to latest passage")
-                    .Property("onClickCommand", StoryBuilderAuthoringCommands.LinkLatestEventToLatestSection));
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.LinkLatestEventToLatestSection))
+                .Child(GuiBuilders.Button("storybuilder-create-publication-outlet", "＋ Create publication outlet")
+                    .Property("onClickCommand", StoryBuilderAuthoringCommands.CreatePublicationOutlet));
+
+            foreach (var outlet in workspace.PublicationOutlets)
+                root.Child(GuiBuilders.Text(
+                    $"storybuilder-publication-outlet-{outlet.Id:N}",
+                    $"Outlet: {outlet.Name} ({outlet.ArtifactType})"));
+
+            foreach (var edition in workspace.InWorldPublicationEditions)
+                root.Child(GuiBuilders.Text(
+                    $"storybuilder-publication-edition-{edition.Id:N}",
+                    $"Issued: {edition.Title} · {edition.InWorldPublishedAt}"));
 
             return root.Build();
         }
