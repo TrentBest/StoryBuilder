@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using StoryBuilder.Core.Models;
 using StoryBuilder.Core.Services;
 
@@ -19,6 +21,8 @@ public static class StoryBuilderAuthoringCommands
     public const string CreateEvent = "storybuilder.event.create";
     public const string CreateManuscriptSection = "storybuilder.manuscript.section.create";
     public const string LinkLatestEventToLatestSection = "storybuilder.manuscript.section.link-latest-event";
+    public const string CreatePublicationOutlet = "storybuilder.publication.outlet.create";
+    public const string IssuePublicationEdition = "storybuilder.publication.edition.issue";
 }
 
 /// <summary>Reports the outcome of an explicit StoryBuilder authoring command.</summary>
@@ -27,6 +31,22 @@ public sealed record StoryBuilderCommandResult(
     string CommandId,
     string Message,
     Guid? RecordId = null);
+
+/// <summary>Explicit, provider-neutral input for issuing one immutable in-world publication artifact.</summary>
+public sealed record StoryBuilderPublicationEditionDraft(
+    Guid OutletId,
+    int EditionNumber,
+    string Title,
+    string Content,
+    string InWorldPublishedAt,
+    string IntendedAudience,
+    string AccessScope,
+    string ContentFormat = "text/plain",
+    IReadOnlyList<Guid>? ClaimIds = null,
+    IReadOnlyList<Guid>? SourceIds = null,
+    IReadOnlyList<Guid>? EventIds = null,
+    Guid? SupersedesEditionId = null,
+    string? CorrectionNotes = null);
 
 /// <summary>Applies a bounded set of host-originated commands to one isolated authoring session.</summary>
 public sealed class StoryBuilderAuthoringController
@@ -57,10 +77,68 @@ public sealed class StoryBuilderAuthoringController
             StoryBuilderAuthoringCommands.CreateEvent => CreateEvent(name),
             StoryBuilderAuthoringCommands.CreateManuscriptSection => CreateManuscriptSection(name),
             StoryBuilderAuthoringCommands.LinkLatestEventToLatestSection => LinkLatestEventToLatestSection(),
+            StoryBuilderAuthoringCommands.CreatePublicationOutlet => CreatePublicationOutlet(name),
             _ => new StoryBuilderCommandResult(
                 false, commandId,
                 $"Unsupported StoryBuilder command '{commandId}'. No changes were made.")
         };
+    }
+
+    /// <summary>Creates a stable issuing identity for later in-world publication editions.</summary>
+    public StoryBuilderCommandResult CreatePublicationOutlet(
+        string? name,
+        string artifactType = "Publication",
+        string? description = null)
+    {
+        var outlet = new PublicationOutlet
+        {
+            Name = string.IsNullOrWhiteSpace(name)
+                ? $"Publication Outlet {Session.Workspace.PublicationOutlets.Count + 1}"
+                : name.Trim(),
+            ArtifactType = string.IsNullOrWhiteSpace(artifactType) ? "Publication" : artifactType.Trim(),
+            Description = description?.Trim() ?? string.Empty
+        };
+        Session.Workspace.AddPublicationOutlet(outlet);
+        return new(true, StoryBuilderAuthoringCommands.CreatePublicationOutlet,
+            $"Created publication outlet '{outlet.Name}'.", outlet.Id);
+    }
+
+    /// <summary>
+    /// Issues an immutable snapshot through the domain workspace. The controller computes the
+    /// content hash; it never infers observer knowledge or delivery from issuance.
+    /// </summary>
+    public StoryBuilderCommandResult IssuePublicationEdition(StoryBuilderPublicationEditionDraft draft)
+    {
+        ArgumentNullException.ThrowIfNull(draft);
+        ArgumentException.ThrowIfNullOrWhiteSpace(draft.Title);
+        ArgumentException.ThrowIfNullOrWhiteSpace(draft.Content);
+        ArgumentException.ThrowIfNullOrWhiteSpace(draft.InWorldPublishedAt);
+        ArgumentException.ThrowIfNullOrWhiteSpace(draft.IntendedAudience);
+        ArgumentException.ThrowIfNullOrWhiteSpace(draft.AccessScope);
+        ArgumentException.ThrowIfNullOrWhiteSpace(draft.ContentFormat);
+        if (draft.EditionNumber < 1)
+            throw new ArgumentOutOfRangeException(nameof(draft), "Publication edition numbers must be positive.");
+
+        var edition = new InWorldPublicationEdition
+        {
+            OutletId = draft.OutletId,
+            EditionNumber = draft.EditionNumber,
+            Title = draft.Title.Trim(),
+            Content = draft.Content,
+            ContentFormat = draft.ContentFormat.Trim(),
+            ContentSha256 = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(draft.Content))),
+            InWorldPublishedAt = draft.InWorldPublishedAt.Trim(),
+            IntendedAudience = draft.IntendedAudience.Trim(),
+            AccessScope = draft.AccessScope.Trim(),
+            ClaimIds = draft.ClaimIds?.ToArray() ?? [],
+            SourceIds = draft.SourceIds?.ToArray() ?? [],
+            EventIds = draft.EventIds?.ToArray() ?? [],
+            SupersedesEditionId = draft.SupersedesEditionId,
+            CorrectionNotes = draft.CorrectionNotes?.Trim()
+        };
+        Session.Workspace.AddInWorldPublicationEdition(edition);
+        return new(true, StoryBuilderAuthoringCommands.IssuePublicationEdition,
+            $"Issued edition {edition.EditionNumber}: '{edition.Title}'.", edition.Id);
     }
 
     private StoryBuilderCommandResult CreateTimeline(string? name)
