@@ -11,6 +11,7 @@ classDiagram
         +StoryBuilderSession Session
         +GuiNode Root
         +Execute(commandId, value) StoryBuilderCommandResult
+        +IssuePublicationEdition(draft) StoryBuilderCommandResult
     }
     class StoryBuilderAuthoringController {
         +StoryBuilderSession Session
