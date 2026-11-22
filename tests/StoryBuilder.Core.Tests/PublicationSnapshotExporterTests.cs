@@ -63,21 +63,24 @@ public sealed class PublicationSnapshotExporterTests
     }
 
     [Fact]
-    public void Export_fails_closed_when_composition_cannot_select_between_multiple_revisions()
+    public void Export_uses_the_exact_revision_selected_by_the_page_composition()
     {
         var fixture = CreateComposedStory();
-        fixture.Session.AddVisualAssetRevision(fixture.AssetId, new VisualAssetRevision
+        var secondRevision = new VisualAssetRevision
         {
             RevisionNumber = 2,
             AssetLocation = "visuals/page-01-v2.png",
             MediaType = "image/png",
             ContentSha256 = new string('b', 64)
-        });
+        };
+        fixture.Session.AddVisualAssetRevision(fixture.AssetId, secondRevision);
         fixture.Session.ReviewVisualAssetRevision(
             fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author");
 
-        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
-            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
+        var snapshot = PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds);
+
+        Assert.Equal(fixture.RevisionId, snapshot.Sections[0].Composition!.VisualAsset.RevisionId);
     }
 
     [Fact]
@@ -234,6 +237,7 @@ public sealed class PublicationSnapshotExporterTests
         {
             ManuscriptSectionId = section.Id,
             VisualAssetId = asset.Id,
+            VisualAssetRevisionId = revision.Id,
             Name = "Page 01 composition"
         });
 
