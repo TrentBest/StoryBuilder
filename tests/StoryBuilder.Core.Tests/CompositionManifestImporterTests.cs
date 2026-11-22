@@ -87,7 +87,6 @@ public sealed class CompositionManifestImporterTests
 
         Assert.Throws<InvalidDataException>(() => CompositionManifestImporter.Import(json));
     }
-}
 
     [Fact]
     public void RejectsDuplicateSourceIdsAcrossFrontMatterStoryAndClosing()
@@ -106,3 +105,4 @@ public sealed class CompositionManifestImporterTests
 
         Assert.Throws<InvalidDataException>(() => CompositionManifestImporter.ImportWithIdentityMap(json));
     }
+}
