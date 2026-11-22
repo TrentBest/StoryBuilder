@@ -123,6 +123,58 @@ public sealed class StoryBuilderAuthoringControllerTests
     }
 
     [Fact]
+    public void PublicationCommandsCreateOutletAndIssueHashedImmutableEdition()
+    {
+        var session = new StoryBuilder.Core.Services.StoryBuilderSession("Publication authoring");
+        var controller = new StoryBuilderAuthoringController(session);
+
+        var outletResult = controller.Execute(StoryBuilderAuthoringCommands.CreatePublicationOutlet, "Station Bulletin");
+        Assert.True(outletResult.Succeeded);
+        var outlet = Assert.Single(session.Workspace.PublicationOutlets);
+        Assert.Equal(outlet.Id, outletResult.RecordId);
+        Assert.Equal("Station Bulletin", outlet.Name);
+
+        var draft = new StoryBuilderPublicationEditionDraft(
+            outlet.Id,
+            1,
+            "Preliminary signal bulletin",
+            "Station instruments report an anomalous signal.",
+            "Station shift 41, 00:14",
+            "Station residents",
+            "Publicly issued within the station");
+        var editionResult = controller.IssuePublicationEdition(draft);
+
+        Assert.True(editionResult.Succeeded);
+        var edition = Assert.Single(session.Workspace.InWorldPublicationEditions);
+        Assert.Equal(edition.Id, editionResult.RecordId);
+        Assert.Equal(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes(edition.Content))), edition.ContentSha256);
+        Assert.Empty(session.Workspace.ObserverKnowledge);
+        Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
+    }
+
+    [Fact]
+    public void PublicationEditionCommandRejectsInvalidCorrectionWithoutMutatingWorkspace()
+    {
+        var session = new StoryBuilder.Core.Services.StoryBuilderSession("Publication correction");
+        var controller = new StoryBuilderAuthoringController(session);
+        var outlet = controller.CreatePublicationOutlet("Station Bulletin");
+        var original = controller.IssuePublicationEdition(new StoryBuilderPublicationEditionDraft(
+            outlet.RecordId!.Value, 1, "Original", "Original content", "Shift 1",
+            "Residents", "Public"));
+        Assert.True(original.Succeeded);
+
+        var exception = Assert.Throws<InvalidOperationException>(() => controller.IssuePublicationEdition(
+            new StoryBuilderPublicationEditionDraft(
+                outlet.RecordId.Value, 1, "Duplicate number", "Correction content", "Shift 2",
+                "Residents", "Public")));
+
+        Assert.Contains("already has edition number", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Single(session.Workspace.InWorldPublicationEditions);
+        Assert.Equal("Original", Assert.Single(session.Workspace.InWorldPublicationEditions).Title);
+    }
+
+    [Fact]
     public void BlankNameUsesPredictableDefault()
     {
         var session = new StoryBuilder.Core.Services.StoryBuilderSession("Command test");
