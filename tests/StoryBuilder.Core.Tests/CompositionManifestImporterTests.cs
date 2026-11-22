@@ -25,7 +25,15 @@ public sealed class CompositionManifestImporterTests
         }
         """;
 
-        var session = CompositionManifestImporter.Import(json);
+        var import = CompositionManifestImporter.ImportWithIdentityMap(json);
+        var session = import.Session;
+        Assert.Equal("experiences/Lenny/SourceManuscript.md", import.SourcePath);
+        Assert.Equal("0123456789012345678901234567890123456789", import.SourceBlobSha);
+        Assert.Equal(35, import.SourceSectionIds.Count);
+        Assert.Equal(35, import.SourceSectionIds.Keys.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(35, import.SourceSectionIds.Values.Distinct().Count());
+        Assert.Contains("lenny-dedication", import.SourceSectionIds.Keys);
+        Assert.Contains("lenny-closing", import.SourceSectionIds.Keys);
         var manuscript = Assert.Single(session.Workspace.Manuscripts);
         var ordered = manuscript.Sections.OrderBy(section => section.Sequence).ToArray();
 
@@ -39,6 +47,10 @@ public sealed class CompositionManifestImporterTests
         }
         Assert.Equal(ManuscriptSectionKind.BackMatter, ordered[^1].Kind);
         Assert.Equal("The end.", ordered[^1].Body);
+        Assert.Equal(ordered[0].Id, import.SourceSectionIds["lenny-dedication"]);
+        Assert.Equal(ordered[^1].Id, import.SourceSectionIds["lenny-closing"]);
+        for (var index = 0; index < 33; index++)
+            Assert.Equal(ordered[index + 1].Id, import.SourceSectionIds[$"lenny-page-{index + 1:00}"]);
 
         Assert.Equal(5, session.Workspace.Characters.Count);
         Assert.Equal(5, session.Workspace.Places.Count);
@@ -76,3 +88,21 @@ public sealed class CompositionManifestImporterTests
         Assert.Throws<InvalidDataException>(() => CompositionManifestImporter.Import(json));
     }
 }
+
+    [Fact]
+    public void RejectsDuplicateSourceIdsAcrossFrontMatterStoryAndClosing()
+    {
+        var pages = string.Join(",", Enumerable.Range(1, 33).Select(number =>
+            $$"""{"pageNumber":{{number}},"id":"lenny-page-{{number:00}}","text":"Page {{number}}."}"""));
+        var json = $$"""
+        {
+          "title": "Lenny",
+          "source": { "path": "source.md", "blobSha": "abc" },
+          "dedication": { "id": "duplicate", "text": "Dedication" },
+          "storyPages": [{{pages}}],
+          "closingPage": { "id": "duplicate", "text": "Closing" }
+        }
+        """;
+
+        Assert.Throws<InvalidDataException>(() => CompositionManifestImporter.ImportWithIdentityMap(json));
+    }
