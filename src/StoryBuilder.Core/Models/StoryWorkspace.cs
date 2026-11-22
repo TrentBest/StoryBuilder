@@ -414,6 +414,10 @@ public sealed class StoryWorkspace
             throw new KeyNotFoundException($"Manuscript section '{composition.ManuscriptSectionId}' does not exist.");
         if (composition.VisualAssetId is Guid assetId && !_visualAssets.Any(item => item.Id == assetId))
             throw new KeyNotFoundException($"Visual asset '{assetId}' does not exist.");
+        if (composition.VisualAssetRevisionId is Guid revisionId &&
+            (composition.VisualAssetId is not Guid selectedAssetId ||
+             !_visualAssets.Any(item => item.Id == selectedAssetId && item.Revisions.Any(revision => revision.Id == revisionId))))
+            throw new KeyNotFoundException($"Visual revision '{revisionId}' does not belong to the selected visual asset.");
         if (!IsNormalized(composition.TextRegion) || !IsNormalized(composition.ImageRegion) ||
             (composition.DiscoveryRegion is not null && !IsNormalized(composition.DiscoveryRegion)))
             throw new InvalidOperationException("Page composition regions must fit within normalized page bounds (0..1).");
