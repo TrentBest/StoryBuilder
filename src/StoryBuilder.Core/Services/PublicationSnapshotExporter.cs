@@ -210,38 +210,20 @@ public static class PublicationSnapshotExporter
             ?? throw new InvalidDataException($"Visual asset '{assetId}' does not exist.");
         if (asset.Kind != VisualAssetKind.PageIllustration || asset.ManuscriptSectionId != section.Id)
             throw new InvalidDataException($"Visual asset '{assetId}' is not the page illustration for section '{section.Id}'.");
-        if (asset.Revisions.Count == 0)
-            throw new InvalidDataException($"Visual asset '{assetId}' has no revisions.");
-        if (asset.Revisions.Count != 1)
-            throw new InvalidDataException(
-                $"Visual asset '{assetId}' has {asset.Revisions.Count} revisions, but this page composition does not identify an exact revision.");
-
-        var approvedRevision = asset.Revisions
-            .Select(revision => new
-            {
-                Revision = revision,
-                Reviews = session.Workspace.VisualAssetReviews
-                    .Where(review => review.AssetId == asset.Id && review.RevisionId == revision.Id)
-                    .ToArray()
-            })
-            .Where(item => item.Reviews.Length > 0)
-            .Select(item => new
-            {
-                item.Revision,
-                LatestAt = item.Reviews.Max(review => review.ReviewedAtUtc),
-                LatestReviews = item.Reviews.Where(review => review.ReviewedAtUtc == item.Reviews.Max(candidate => candidate.ReviewedAtUtc)).ToArray()
-            })
-            .Where(item => item.LatestReviews.Length == 1 &&
-                           item.LatestReviews[0].Decision == VisualAssetReviewDecision.Approved)
+        if (composition.VisualAssetRevisionId is not Guid revisionId)
+            throw new InvalidDataException($"Page composition '{composition.Id}' does not select an exact visual asset revision.");
+        var revision = asset.Revisions.SingleOrDefault(item => item.Id == revisionId)
+            ?? throw new InvalidDataException($"Visual revision '{revisionId}' does not belong to visual asset '{asset.Id}'.");
+        var reviews = session.Workspace.VisualAssetReviews
+            .Where(item => item.AssetId == asset.Id && item.RevisionId == revision.Id)
             .ToArray();
-
-        if (approvedRevision.Length != 1)
-            throw new InvalidDataException(
-                $"Visual asset '{asset.Id}' must have exactly one revision with an unambiguous latest Approved review; found {approvedRevision.Length}.");
-
-        var selected = approvedRevision[0];
-        var revision = selected.Revision;
-        var review = selected.LatestReviews[0];
+        if (reviews.Length == 0)
+            throw new InvalidDataException($"Visual revision '{revision.Id}' has no review decision.");
+        var latestAt = reviews.Max(item => item.ReviewedAtUtc);
+        var latestReviews = reviews.Where(item => item.ReviewedAtUtc == latestAt).ToArray();
+        if (latestReviews.Length != 1 || latestReviews[0].Decision != VisualAssetReviewDecision.Approved)
+            throw new InvalidDataException($"Visual revision '{revision.Id}' must have one unambiguous latest Approved review.");
+        var review = latestReviews[0];
         if (string.IsNullOrWhiteSpace(revision.AssetLocation) ||
             string.IsNullOrWhiteSpace(revision.MediaType) ||
             !IsSha256(revision.ContentSha256))
