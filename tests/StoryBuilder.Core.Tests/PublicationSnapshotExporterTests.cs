@@ -82,6 +82,22 @@ public sealed class PublicationSnapshotExporterTests
             fixture.Session, fixture.ManuscriptId, "manifest.json", "source-sha", fixture.SourceIds));
     }
 
+    [Fact]
+    public void Export_fails_closed_when_latest_review_timestamp_is_ambiguous()
+    {
+        var fixture = CreateComposedStory();
+        var reviewedAt = DateTimeOffset.Parse("2026-11-21T18:00:00Z");
+        fixture.Session.ReviewVisualAssetRevision(
+            fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author",
+            reviewedAtUtc: reviewedAt);
+        fixture.Session.ReviewVisualAssetRevision(
+            fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Rejected, "Reviewer",
+            reviewedAtUtc: reviewedAt);
+
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", "source-sha", fixture.SourceIds));
+    }
+
     private static Fixture CreateComposedStory()
     {
         var session = new StoryBuilderSession("Lenny");
