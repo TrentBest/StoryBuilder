@@ -221,6 +221,22 @@ public sealed class StoryWorkspacePersistenceTests
     }
 
     [Fact]
+    public void BinaryDocumentRejectsLegacyDevelopmentWorkspaceSignature()
+    {
+        var session = new StoryBuilderSession("Current schema");
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        var payload = output.ToArray();
+        System.Text.Encoding.ASCII.GetBytes("SBWS").CopyTo(payload, 0);
+
+        using var input = new MemoryBinaryStream(payload);
+        var document = new StoryWorkspaceBinaryDocument();
+        var exception = Assert.Throws<InvalidDataException>(() => document.Unpack(input));
+
+        Assert.Contains("not a StoryBuilder workspace document", exception.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void BinaryDocumentRejectsUnknownFormatVersion()
     {
         var session = new StoryBuilderSession("Version test");
