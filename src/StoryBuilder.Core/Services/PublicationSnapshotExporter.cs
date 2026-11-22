@@ -153,20 +153,31 @@ public static class PublicationSnapshotExporter
         ArgumentNullException.ThrowIfNull(snapshot);
         if (snapshot.SchemaVersion != 1)
             throw new InvalidDataException($"Unsupported publication snapshot schema version '{snapshot.SchemaVersion}'.");
+        if (snapshot.Source is null || snapshot.Manuscript is null || snapshot.Sections is null)
+            throw new InvalidDataException("Publication snapshot is missing source, manuscript, or section data.");
         if (snapshot.Id == Guid.Empty || snapshot.Manuscript.Id == Guid.Empty)
             throw new InvalidDataException("Publication snapshot and manuscript IDs must be non-empty.");
         if (string.IsNullOrWhiteSpace(snapshot.Source.ManifestPath) ||
             !IsGitBlobSha1(snapshot.Source.ManifestBlobSha))
             throw new InvalidDataException("Publication snapshot source provenance is incomplete or invalid.");
+        if (snapshot.Source.SourceSectionIds is null)
+            throw new InvalidDataException("Publication snapshot source identity map is missing.");
         if (snapshot.Sections.Count == 0 ||
             snapshot.Sections.Any(section => section is null ||
                 string.IsNullOrWhiteSpace(section.SourceId) ||
                 section.SectionId == Guid.Empty ||
                 section.Sequence < 1 ||
                 string.IsNullOrWhiteSpace(section.Kind) ||
+                section.Body is null ||
                 !IsSha256(section.BodySha256) ||
                 !string.Equals(Sha256(Encoding.UTF8.GetBytes(section.Body)), section.BodySha256, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidDataException("Publication snapshot contains an invalid section or section body digest.");
+        if (snapshot.Sections.Any(section => section.Composition is not null &&
+            (section.Composition.VisualAsset is null ||
+             section.Composition.TextRegion is null ||
+             section.Composition.ImageRegion is null ||
+             section.Composition.VisualAsset.Approval is null)))
+            throw new InvalidDataException("Publication snapshot contains an incomplete page composition or visual approval.");
         if (snapshot.Sections.Select(section => section.Sequence).Distinct().Count() != snapshot.Sections.Count ||
             snapshot.Sections.Select(section => section.SectionId).Distinct().Count() != snapshot.Sections.Count ||
             snapshot.Sections.Select(section => section.SourceId).Distinct(StringComparer.Ordinal).Count() != snapshot.Sections.Count)
