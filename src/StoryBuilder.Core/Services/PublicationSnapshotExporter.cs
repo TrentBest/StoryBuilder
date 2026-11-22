@@ -131,14 +131,61 @@ public static class PublicationSnapshotExporter
 
     public static string Serialize(PublicationSnapshot snapshot)
     {
+        ValidateSnapshot(snapshot);
+        return JsonSerializer.Serialize(snapshot, JsonOptions);
+    }
+
+    /// <summary>
+    /// Reads a publication handoff and verifies its schema, content digest, section digests,
+    /// and source-to-section identity map before a consumer can use it.
+    /// </summary>
+    public static PublicationSnapshot Deserialize(string json)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(json);
+        var snapshot = JsonSerializer.Deserialize<PublicationSnapshot>(json, JsonOptions)
+            ?? throw new InvalidDataException("Publication snapshot document is empty.");
+        ValidateSnapshot(snapshot);
+        return snapshot;
+    }
+
+    private static void ValidateSnapshot(PublicationSnapshot snapshot)
+    {
         ArgumentNullException.ThrowIfNull(snapshot);
         if (snapshot.SchemaVersion != 1)
             throw new InvalidDataException($"Unsupported publication snapshot schema version '{snapshot.SchemaVersion}'.");
+        if (snapshot.Id == Guid.Empty || snapshot.Manuscript.Id == Guid.Empty)
+            throw new InvalidDataException("Publication snapshot and manuscript IDs must be non-empty.");
+        if (string.IsNullOrWhiteSpace(snapshot.Source.ManifestPath) ||
+            !IsGitBlobSha1(snapshot.Source.ManifestBlobSha))
+            throw new InvalidDataException("Publication snapshot source provenance is incomplete or invalid.");
+        if (snapshot.Sections.Count == 0 ||
+            snapshot.Sections.Any(section => section is null ||
+                string.IsNullOrWhiteSpace(section.SourceId) ||
+                section.SectionId == Guid.Empty ||
+                section.Sequence < 1 ||
+                string.IsNullOrWhiteSpace(section.Kind) ||
+                !IsSha256(section.BodySha256) ||
+                !string.Equals(Sha256(Encoding.UTF8.GetBytes(section.Body)), section.BodySha256, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidDataException("Publication snapshot contains an invalid section or section body digest.");
+        if (snapshot.Sections.Select(section => section.Sequence).Distinct().Count() != snapshot.Sections.Count ||
+            snapshot.Sections.Select(section => section.SectionId).Distinct().Count() != snapshot.Sections.Count ||
+            snapshot.Sections.Select(section => section.SourceId).Distinct(StringComparer.Ordinal).Count() != snapshot.Sections.Count)
+            throw new InvalidDataException("Publication snapshot section identities and sequence numbers must be unique.");
+        if (snapshot.Sections.Any(section => section.Composition is null && section.Kind == ManuscriptSectionKind.Scene.ToString()) ||
+            snapshot.Sections.Any(section => section.Composition is not null && section.Kind != ManuscriptSectionKind.Scene.ToString()))
+            throw new InvalidDataException("Publication snapshot composition does not match its section kind.");
+
+        var sourceMap = snapshot.Source.SourceSectionIds;
+        if (sourceMap.Count != snapshot.Sections.Count ||
+            sourceMap.Any(pair => string.IsNullOrWhiteSpace(pair.Key) || pair.Value == Guid.Empty) ||
+            snapshot.Sections.Any(section => !sourceMap.TryGetValue(section.SourceId, out var id) || id != section.SectionId))
+            throw new InvalidDataException("Publication snapshot source identity map does not exactly match its sections.");
+
         var expectedHash = Sha256(JsonSerializer.SerializeToUtf8Bytes(
             snapshot with { ContentSha256 = string.Empty }, JsonOptions));
-        if (!string.Equals(expectedHash, snapshot.ContentSha256, StringComparison.OrdinalIgnoreCase))
+        if (!IsSha256(snapshot.ContentSha256) ||
+            !string.Equals(expectedHash, snapshot.ContentSha256, StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("Publication snapshot content hash does not match its contents.");
-        return JsonSerializer.Serialize(snapshot, JsonOptions);
     }
 
     private static PublicationComposition BuildComposition(
