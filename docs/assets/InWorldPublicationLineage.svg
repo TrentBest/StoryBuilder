@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">In-world publication and correction lineage</title>
+  <desc id="desc">A stable publication outlet issues an immutable first edition. A later correction is a separate immutable edition that supersedes the first. Both retain their own content and provenance references. Issuance does not create observer knowledge or prove delivery.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101827"/>
+      <stop offset="1" stop-color="#18283a"/>
+    </linearGradient>
+    <linearGradient id="outlet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1f4961"/>
+      <stop offset="1" stop-color="#17354b"/>
+    </linearGradient>
+    <linearGradient id="edition" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#253b53"/>
+      <stop offset="1" stop-color="#1d2e43"/>
+    </linearGradient>
+    <linearGradient id="correction" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#55432a"/>
+      <stop offset="1" stop-color="#3d3428"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#000" flood-opacity=".28"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#8eb7ca"/>
+    </marker>
+    <marker id="goldArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#e6b86a"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="560" rx="24" fill="url(#bg)"/>
+  <text x="52" y="56" fill="#f1f5f9" font-family="Segoe UI,Arial,sans-serif" font-size="24" font-weight="700">IN-WORLD PUBLICATION</text>
+  <text x="52" y="84" fill="#9fb3c8" font-family="Segoe UI,Arial,sans-serif" font-size="14">Authored issuance is immutable; delivery and knowledge remain separate systems.</text>
+
+  <g filter="url(#shadow)">
+    <rect x="52" y="150" width="250" height="174" rx="18" fill="url(#outlet)" stroke="#4f91ad" stroke-width="1.5"/>
+    <text x="78" y="188" fill="#a8d7e8" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">STABLE IDENTITY</text>
+    <text x="78" y="224" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700">PublicationOutlet</text>
+    <text x="78" y="255" fill="#c7d8e5" font-family="Segoe UI,Arial,sans-serif" font-size="14">Who issues the artifact</text>
+    <text x="78" y="282" fill="#9fb8c8" font-family="Segoe UI,Arial,sans-serif" font-size="12">Name · type · description · ID</text>
+  </g>
+
+  <path d="M302 236 H370" fill="none" stroke="#8eb7ca" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="336" y="218" fill="#9fb3c8" font-family="Segoe UI,Arial,sans-serif" font-size="11" text-anchor="middle">issues</text>
+
+  <g filter="url(#shadow)">
+    <rect x="390" y="132" width="310" height="210" rx="18" fill="url(#edition)" stroke="#6f9bbd" stroke-width="1.5"/>
+    <text x="418" y="170" fill="#a9cde5" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">EDITION 1 · IMMUTABLE</text>
+    <text x="418" y="208" fill="#f8fafc" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700">Issued artifact</text>
+    <text x="418" y="238" fill="#c7d8e5" font-family="Segoe UI,Arial,sans-serif" font-size="14">Exact content + SHA-256</text>
+    <text x="418" y="263" fill="#c7d8e5" font-family="Segoe UI,Arial,sans-serif" font-size="14">In-world publication time</text>
+    <text x="418" y="288" fill="#c7d8e5" font-family="Segoe UI,Arial,sans-serif" font-size="14">Audience + access scope</text>
+    <text x="418" y="315" fill="#8faec4" font-family="Segoe UI,Arial,sans-serif" font-size="12">Claims · sources · events</text>
+  </g>
+
+  <path d="M700 236 H770" fill="none" stroke="#e6b86a" stroke-width="2.5" marker-end="url(#goldArrow)"/>
+  <text x="735" y="218" fill="#e6c98f" font-family="Segoe UI,Arial,sans-serif" font-size="11" text-anchor="middle">corrects</text>
+
+  <g filter="url(#shadow)">
+    <rect x="790" y="132" width="358" height="210" rx="18" fill="url(#correction)" stroke="#c99b56" stroke-width="1.5"/>
+    <text x="818" y="170" fill="#f0cc8c" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">EDITION 2 · NEW SNAPSHOT</text>
+    <text x="818" y="208" fill="#fff8eb" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700">Correction</text>
+    <text x="818" y="238" fill="#e7d8bf" font-family="Segoe UI,Arial,sans-serif" font-size="14">New content + new SHA-256</text>
+    <text x="818" y="263" fill="#e7d8bf" font-family="Segoe UI,Arial,sans-serif" font-size="14">Higher outlet-local edition number</text>
+    <text x="818" y="288" fill="#e7d8bf" font-family="Segoe UI,Arial,sans-serif" font-size="14">SupersedesEditionId → edition 1</text>
+    <text x="818" y="315" fill="#cbb38d" font-family="Segoe UI,Arial,sans-serif" font-size="12">Original remains unchanged</text>
+  </g>
+
+  <path d="M545 342 V388 H602" fill="none" stroke="#7793a9" stroke-width="1.8" stroke-dasharray="5 6"/>
+  <path d="M968 342 V388 H602" fill="none" stroke="#7793a9" stroke-width="1.8" stroke-dasharray="5 6"/>
+  <g>
+    <rect x="330" y="400" width="544" height="104" rx="16" fill="#172536" stroke="#7793a9" stroke-width="1.4" stroke-dasharray="7 6"/>
+    <text x="602" y="435" fill="#d9e6ef" font-family="Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" text-anchor="middle">Observer knowledge / runtime delivery</text>
+    <text x="602" y="465" fill="#a9bdcc" font-family="Segoe UI,Arial,sans-serif" font-size="14" text-anchor="middle">Separate acquisition, distribution, receipt, and presentation records</text>
+    <text x="602" y="488" fill="#e8b66d" font-family="Segoe UI,Arial,sans-serif" font-size="12" font-weight="700" text-anchor="middle">NOT CREATED BY ISSUANCE</text>
+  </g>
+  <text x="52" y="535" fill="#7890a4" font-family="Segoe UI,Arial,sans-serif" font-size="11">STORYBUILDER · CURRENT DEVELOPMENT CONTRACT</text>
+  <text x="1148" y="535" fill="#7890a4" font-family="Segoe UI,Arial,sans-serif" font-size="11" text-anchor="end">IMMUTABLE ARTIFACTS · EXPLICIT PROVENANCE</text>
+</svg>
