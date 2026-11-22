@@ -403,9 +403,21 @@ public sealed class StoryWorkspacePersistenceTests
         var session = new StoryBuilderSession("Discovery persistence");
         var manuscript = session.CreateManuscript("A small discovery story");
         var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "The beach");
+        var asset = session.CreateVisualAsset(
+            "Beach illustration", VisualAssetKind.PageIllustration,
+            manuscriptSectionId: section.Sections[0].Id);
+        var revision = new VisualAssetRevision
+        {
+            RevisionNumber = 1,
+            AssetLocation = "visuals/beach.png",
+            MediaType = "image/png"
+        };
+        session.AddVisualAssetRevision(asset.Id, revision);
         var composition = new PageComposition
         {
             ManuscriptSectionId = section.Sections[0].Id,
+            VisualAssetId = asset.Id,
+            VisualAssetRevisionId = revision.Id,
             Name = "Find the shell",
             DiscoveryRegion = new PageCompositionRegion
             {
@@ -428,6 +440,8 @@ public sealed class StoryWorkspacePersistenceTests
         var restoredComposition = Assert.Single(restored.Workspace.PageCompositions);
         Assert.Equal(composition.Id, restoredComposition.Id);
         Assert.Equal(composition.ManuscriptSectionId, restoredComposition.ManuscriptSectionId);
+        Assert.Equal(composition.VisualAssetId, restoredComposition.VisualAssetId);
+        Assert.Equal(composition.VisualAssetRevisionId, restoredComposition.VisualAssetRevisionId);
         Assert.Equal(composition.DiscoveryRegion, restoredComposition.DiscoveryRegion);
         Assert.Equal("Can you find the shell?", restoredComposition.DiscoveryPrompt);
         Assert.Equal(27, restoredComposition.DiscoveryHintDelaySeconds);
