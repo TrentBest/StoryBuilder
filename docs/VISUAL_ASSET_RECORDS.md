@@ -15,11 +15,11 @@ A revision is appended through `StoryWorkspace.AddVisualAssetRevision`. Existing
 
 A generated image is a proposal until its exact revision is approved. Physical traits not established by the source manuscript must not be silently promoted into character canon. Keep prompts and production notes with the revision so an author can understand how it was made.
 
-The asset record's source links establish which manuscript or reference material informed the work. The page/scene/character links establish where the asset belongs in the composition.
+The asset record's source links establish which manuscript or reference material informed the work. The page/scene/character links establish where the asset belongs in the composition. A `PageComposition` must select both its asset and the exact revision to make that artwork eligible for publication. The selected revision must belong to that asset and have an unambiguous latest `Approved` review; missing, rejected, unreviewed, or tied latest decisions fail closed. A later revision does not silently change an existing composition's selection.
 
 ## Persistence and integrity
 
-The binary workspace format is version 16. Earlier versions remain readable; versions 1–12 restore with no visual assets, and version 13 restores its assets with no review history. Version 14 serializes assets, immutable revisions, and append-only review decisions explicitly. Formats 15–16 add page-composition data and optional discovery-interaction settings while retaining the existing asset and review records. Older formats restore those newer composition fields with their documented defaults.
+The binary workspace format is version 18. Earlier versions remain readable; versions 1–12 restore with no visual assets, and version 13 restores its assets with no review history. Version 14 serializes assets, immutable revisions, and append-only review decisions explicitly. Formats 15–17 add page-composition data, optional discovery-interaction settings, and organization records. Format 18 persists the exact `VisualAssetRevisionId` selected by each `PageComposition`; older workspaces restore with that optional selection unset.
 
 Workspace validation checks:
 - workspace-wide identity uniqueness, including revision identities;
