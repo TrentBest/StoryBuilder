@@ -8,7 +8,7 @@ StoryWorkspaceBinaryDocument defines the single current StoryBuilder workspace b
 
 ## Current development contract
 
-The payload begins with the four-byte `SBWS` marker followed by schema version `1`. Version 1 means the complete current development shape—not the first historical format from the repository's early development.
+The payload begins with the four-byte `SBW1` marker followed by schema version `1`. Version 1 means the complete current development shape—not the first historical format from the repository's early development.
 
 The reader accepts only the current schema version. It does not carry compatibility branches for unpublished development snapshots. When the workspace model changes, update the writer, reader, fixtures, tests, and every in-repository consumer together. Development workspaces may be regenerated when the schema changes.
 
