@@ -527,4 +527,76 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(12, Assert.Single(session.Workspace.PageCompositions).DiscoveryHintDelaySeconds);
     }
 
+
+    [Fact]
+    public void PageCompositionAdditionRejectsVisualRevisionFromAnotherAsset()
+    {
+        var session = new StoryBuilderSession("Reject mismatched visual revision on add");
+        var manuscript = session.CreateManuscript("A visual story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Beach");
+        var firstAsset = session.CreateVisualAsset("Beach artwork", VisualAssetKind.PageIllustration,
+            manuscriptSectionId: section.Sections[0].Id);
+        var secondAsset = session.CreateVisualAsset("Alternate artwork", VisualAssetKind.PageIllustration,
+            manuscriptSectionId: section.Sections[0].Id);
+        var firstRevision = session.AddVisualAssetRevision(firstAsset.Id, new VisualAssetRevision
+        {
+            RevisionNumber = 1,
+            AssetLocation = "visuals/beach.png"
+        });
+        var secondRevision = session.AddVisualAssetRevision(secondAsset.Id, new VisualAssetRevision
+        {
+            RevisionNumber = 1,
+            AssetLocation = "visuals/alternate.png"
+        });
+
+        var exception = Assert.Throws<KeyNotFoundException>(() => session.Workspace.AddPageComposition(
+            new PageComposition
+            {
+                ManuscriptSectionId = section.Sections[0].Id,
+                VisualAssetId = firstAsset.Id,
+                VisualAssetRevisionId = secondRevision.Id
+            }));
+
+        Assert.Contains("does not belong to the selected visual asset", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Empty(session.Workspace.PageCompositions);
+        Assert.NotEqual(firstRevision.Id, secondRevision.Id);
+    }
+
+    [Fact]
+    public void PageCompositionReplacementRejectsVisualRevisionFromAnotherAssetWithoutMutation()
+    {
+        var session = new StoryBuilderSession("Reject mismatched visual revision on replace");
+        var manuscript = session.CreateManuscript("A visual story");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Passage, "Beach");
+        var firstAsset = session.CreateVisualAsset("Beach artwork", VisualAssetKind.PageIllustration,
+            manuscriptSectionId: section.Sections[0].Id);
+        var secondAsset = session.CreateVisualAsset("Alternate artwork", VisualAssetKind.PageIllustration,
+            manuscriptSectionId: section.Sections[0].Id);
+        var firstRevision = session.AddVisualAssetRevision(firstAsset.Id, new VisualAssetRevision
+        {
+            RevisionNumber = 1,
+            AssetLocation = "visuals/beach.png"
+        });
+        var secondRevision = session.AddVisualAssetRevision(secondAsset.Id, new VisualAssetRevision
+        {
+            RevisionNumber = 1,
+            AssetLocation = "visuals/alternate.png"
+        });
+        var original = new PageComposition
+        {
+            ManuscriptSectionId = section.Sections[0].Id,
+            VisualAssetId = firstAsset.Id,
+            VisualAssetRevisionId = firstRevision.Id
+        };
+        session.Workspace.AddPageComposition(original);
+
+        var exception = Assert.Throws<KeyNotFoundException>(() => session.Workspace.ReplacePageComposition(
+            original with { VisualAssetRevisionId = secondRevision.Id }));
+
+        Assert.Contains("does not belong to the selected visual asset", exception.Message, StringComparison.OrdinalIgnoreCase);
+        var retained = Assert.Single(session.Workspace.PageCompositions);
+        Assert.Equal(firstAsset.Id, retained.VisualAssetId);
+        Assert.Equal(firstRevision.Id, retained.VisualAssetRevisionId);
+    }
+
 }
