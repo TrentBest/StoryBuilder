@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -11,7 +12,16 @@ namespace StoryBuilder.Core.Services;
 /// </summary>
 public static class CompositionManifestImporter
 {
-    public static StoryBuilderSession Import(string manifestJson)
+    /// <summary>Compatibility entry point for callers that only need the editable session.</summary>
+    public static StoryBuilderSession Import(string manifestJson) =>
+        ImportWithIdentityMap(manifestJson).Session;
+
+    /// <summary>
+    /// Imports the manifest while preserving every authored source ID against the generated
+    /// manuscript section ID. The map is explicit because generated workspace IDs are not
+    /// interchangeable with source-manifest identities.
+    /// </summary>
+    public static CompositionManifestImportResult ImportWithIdentityMap(string manifestJson)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(manifestJson);
 
@@ -34,10 +44,11 @@ public static class CompositionManifestImporter
         session.Workspace.AddSource(source);
 
         var manuscript = session.CreateManuscript(title);
-        AddSection(session, manuscript.Id, ManuscriptSectionKind.FrontMatter,
+        var sections = new Dictionary<string, Guid>(StringComparer.Ordinal);
+        AddMappedSection(sections, RequiredString(root.GetProperty("dedication"), "id"),
+            session, manuscript.Id, ManuscriptSectionKind.FrontMatter,
             "Dedication", root.GetProperty("dedication").GetProperty("text").GetString() ?? string.Empty);
 
-        var sections = new Dictionary<string, Guid>(StringComparer.Ordinal);
         var pageNumber = 0;
         foreach (var page in root.GetProperty("storyPages").EnumerateArray())
         {
@@ -51,16 +62,17 @@ public static class CompositionManifestImporter
             if (string.IsNullOrWhiteSpace(body))
                 throw new InvalidDataException($"Story page {pageNumber} has no text.");
 
-            var section = AddSection(session, manuscript.Id, ManuscriptSectionKind.Scene,
-                $"Page {pageNumber:00}", body);
-            sections.Add(stablePageId, section.Id);
+            AddMappedSection(sections, stablePageId, session, manuscript.Id,
+                ManuscriptSectionKind.Scene, $"Page {pageNumber:00}", body);
         }
 
         if (pageNumber != 33)
             throw new InvalidDataException($"The Lenny composition manifest must contain 33 story pages; found {pageNumber}.");
 
-        AddSection(session, manuscript.Id, ManuscriptSectionKind.BackMatter,
-            "Closing page", root.GetProperty("closingPage").GetProperty("text").GetString() ?? string.Empty);
+        var closing = root.GetProperty("closingPage");
+        AddMappedSection(sections, RequiredString(closing, "id"), session, manuscript.Id,
+            ManuscriptSectionKind.BackMatter, "Closing page",
+            closing.GetProperty("text").GetString() ?? string.Empty);
 
         var cast = new[]
         {
@@ -70,7 +82,6 @@ public static class CompositionManifestImporter
             ("Dolphin pod", "Animal group", "The group of dolphins who guide Lenny."),
             ("Beachgoers", "Group", "People present on the beach.")
         };
-        var characters = new Dictionary<string, CharacterProfile>(StringComparer.Ordinal);
         foreach (var item in cast)
         {
             var character = session.CreateCharacter(item.Item1);
@@ -84,7 +95,6 @@ public static class CompositionManifestImporter
                     ["Visual design"] = "Unspecified by the manuscript; any generated appearance remains provisional until author approval."
                 }
             });
-            characters.Add(item.Item1, character);
             session.CreateVisualAsset(
                 $"{item.Item1} — character design",
                 VisualAssetKind.CharacterDesign,
@@ -106,7 +116,9 @@ public static class CompositionManifestImporter
                 sourceIds: [source.Id]);
         }
 
-        foreach (var entry in sections)
+        foreach (var entry in sections.Where(entry =>
+                     root.GetProperty("storyPages").EnumerateArray()
+                         .Any(page => RequiredString(page, "id") == entry.Key)))
         {
             var illustration = session.CreateVisualAsset(
                 $"Illustration — {entry.Key}",
@@ -125,7 +137,27 @@ public static class CompositionManifestImporter
             });
         }
 
-        return session;
+        return new CompositionManifestImportResult(
+            session,
+            sourcePath,
+            sourceSha,
+            new ReadOnlyDictionary<string, Guid>(sections));
+    }
+
+    private static void AddMappedSection(
+        IDictionary<string, Guid> sections,
+        string sourceId,
+        StoryBuilderSession session,
+        Guid manuscriptId,
+        ManuscriptSectionKind kind,
+        string title,
+        string body)
+    {
+        if (sections.ContainsKey(sourceId))
+            throw new InvalidDataException($"Duplicate source manifest ID '{sourceId}'.");
+
+        var section = AddSection(session, manuscriptId, kind, title, body);
+        sections.Add(sourceId, section.Id);
     }
 
     private static ManuscriptSection AddSection(
@@ -144,7 +176,9 @@ public static class CompositionManifestImporter
 
     private static string RequiredString(JsonElement element, string propertyName)
     {
-        var value = element.GetProperty(propertyName).GetString();
+        if (!element.TryGetProperty(propertyName, out var property) || property.ValueKind != JsonValueKind.String)
+            throw new InvalidDataException($"Manifest property '{propertyName}' is required.");
+        var value = property.GetString();
         return string.IsNullOrWhiteSpace(value)
             ? throw new InvalidDataException($"Manifest property '{propertyName}' is required.")
             : value;
@@ -156,3 +190,10 @@ public static class CompositionManifestImporter
         return new Guid(hash.AsSpan(0, 16));
     }
 }
+
+/// <summary>Import output retaining source provenance and the complete source-to-workspace identity map.</summary>
+public sealed record CompositionManifestImportResult(
+    StoryBuilderSession Session,
+    string SourcePath,
+    string SourceBlobSha,
+    IReadOnlyDictionary<string, Guid> SourceSectionIds);
