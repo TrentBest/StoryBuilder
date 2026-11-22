@@ -17,3 +17,7 @@ A host binds a control to a documented command ID, calls Execute(commandId, opti
 ## Safety and boundary
 
 The controller does not use reflection, arbitrary method names, UI-framework types, or persistence. It is not itself a GUI renderer. Hosts must explicitly bind their controls to supported command IDs and display the returned outcome; rendering a button without such a binding is not a functional interaction.
+
+## Optional AI host boundary
+
+A future CommandAi adapter can translate a model-proposed authoring action into the same explicit command IDs or typed publication draft. That adapter is not integrated yet. StoryBuilder.Core and StoryBuilder.MicroBundle remain usable without an AI package or LLM; the host validates and deliberately dispatches proposals through this controller rather than allowing model output to mutate the workspace directly.
