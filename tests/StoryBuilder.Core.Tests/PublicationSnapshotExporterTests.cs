@@ -111,6 +111,29 @@ public sealed class PublicationSnapshotExporterTests
             fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
     }
 
+    [Fact]
+    public void Export_uses_source_provenance_from_the_same_manifest_import_result()
+    {
+        var session = new StoryBuilderSession("Lenny");
+        var manuscript = session.CreateManuscript("Lenny");
+        manuscript = session.AddManuscriptSection(
+            manuscript.Id, ManuscriptSectionKind.FrontMatter, "Dedication");
+        var section = manuscript.Sections.Single();
+        session.UpdateManuscriptSection(manuscript.Id, section.Id, section.Title, "For the ocean.");
+        var import = new CompositionManifestImportResult(
+            session,
+            "experiences/Lenny/CompositionManifest.json",
+            SourceManifestBlobSha,
+            new Dictionary<string, Guid>(StringComparer.Ordinal) { ["lenny-dedication"] = section.Id });
+
+        var snapshot = PublicationSnapshotExporter.Export(import, manuscript.Id);
+
+        Assert.Equal(import.SourcePath, snapshot.Source.ManifestPath);
+        Assert.Equal(import.SourceBlobSha, snapshot.Source.ManifestBlobSha);
+        Assert.Equal(section.Id, snapshot.Source.SourceSectionIds["lenny-dedication"]);
+        Assert.Equal("lenny-dedication", Assert.Single(snapshot.Sections).SourceId);
+    }
+
     private static Fixture CreateComposedStory()
     {
         var session = new StoryBuilderSession("Lenny");
