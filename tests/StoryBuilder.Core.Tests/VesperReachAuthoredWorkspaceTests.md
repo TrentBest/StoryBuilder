@@ -16,7 +16,7 @@ Exercises a complete authored first-contact workspace through the StoryBuilder d
 
 ## Persistence contract
 
-The test creates a scene with an authored beat, assigns the scene to Vesper Reach, and links the scene and three distinct events into a manuscript section. It then packs and restores the workspace through StoryWorkspaceBinaryDocument, checks stable event and manuscript-link identities, and validates both the original and restored workspaces.
+The test creates a scene with an authored beat, assigns the scene to Vesper Reach, and links the scene and three distinct events into a manuscript section. It then packs and restores the workspace through the current StoryWorkspaceBinaryDocument schema, checks stable event and manuscript-link identities, and validates both the original and restored workspaces.
 
 ## UML class card
 
