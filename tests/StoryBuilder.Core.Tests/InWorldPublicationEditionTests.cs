@@ -118,7 +118,7 @@ public sealed class InWorldPublicationEditionTests
         var projections = new ObserverKnowledgeProjectionService();
         Assert.Empty(projections.Project(session.Workspace, ilyan.Id, signal.Id).Events);
         Assert.Empty(projections.Project(session.Workspace, mara.Id, signal.Id).Events);
-        Assert.Equal(0, session.Workspace.ObserverKnowledge.Count);
+        Assert.Empty(session.Workspace.ObserverKnowledge);
 
         Assert.Empty(StoryWorkspaceValidator.Validate(session.Workspace));
         var originalContent = initial.Content;
