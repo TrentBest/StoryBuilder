@@ -19,4 +19,4 @@ House organizations remain `Draft`. Claims and continuity issues remain `Propose
 
 Run the Quickstart project to print the workspace's source, House, claim, outline, and event counts. The corresponding tests verify workspace integrity and binary persistence.
 
-See the [workspace builder UML](../../docs/UML/RaWWarEmpireWorkspaceUML.md) for the composition and record relationships.
+See the [workspace builder UML](../../docs/UML/RaWWarEmpireWorkspaceUML.md) for the composition and record relationships. The [Historical Discovery and Place-Based Lore](../../docs/HISTORICAL_DISCOVERY_AND_PLACE_BASED_LORE.md) guide describes how future locations can carry evidence, competing interpretations, and observer-specific discoveries without prematurely fixing canon.
