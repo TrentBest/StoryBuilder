@@ -134,6 +134,9 @@ public static class PublicationSnapshotExporter
             throw new InvalidDataException($"Visual asset '{assetId}' is not the page illustration for section '{section.Id}'.");
         if (asset.Revisions.Count == 0)
             throw new InvalidDataException($"Visual asset '{assetId}' has no revisions.");
+        if (asset.Revisions.Count != 1)
+            throw new InvalidDataException(
+                $"Visual asset '{assetId}' has {asset.Revisions.Count} revisions, but this page composition does not identify an exact revision.");
 
         var approvedRevision = asset.Revisions
             .Select(revision => new
