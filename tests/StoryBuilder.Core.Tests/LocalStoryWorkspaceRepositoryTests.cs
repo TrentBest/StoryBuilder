@@ -1,5 +1,6 @@
 using StoryBuilder.Core.Services;
 using StoryBuilder.Persistence;
+using TheSingularityWorkshop.FSM_Serialization;
 using Xunit;
 
 namespace StoryBuilder.Core.Tests;
@@ -91,6 +92,35 @@ public sealed class LocalStoryWorkspaceRepositoryTests
 
             await Assert.ThrowsAsync<InvalidDataException>(
                 () => repository.LoadWithIdentityMapAsync(0x4C454E4E59UL));
+        }
+        finally
+        {
+            if (Directory.Exists(root))
+                Directory.Delete(root, recursive: true);
+        }
+    }
+
+    [Fact]
+    public async Task Load_explains_how_to_recover_from_retired_development_workspace_files()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "StoryBuilder", Guid.NewGuid().ToString("N"));
+        const ulong bundleId = 0x5441434F4D41UL;
+        var repository = new LocalStoryWorkspaceRepository(root);
+        var session = new StoryBuilderSession("Old local workspace");
+        using var output = new MemoryBinaryStream();
+        StoryWorkspaceBinaryDocument.FromSession(session).Pack(output);
+        var payload = output.ToArray();
+        System.Text.Encoding.ASCII.GetBytes("SBWS").CopyTo(payload, 0);
+        Directory.CreateDirectory(root);
+        await File.WriteAllBytesAsync(Path.Combine(root, $"bundle-{bundleId:X16}.sbws"), payload);
+
+        try
+        {
+            var exception = await Assert.ThrowsAsync<InvalidDataException>(
+                () => repository.LoadAsync(bundleId));
+
+            Assert.Contains("retired SBWS development signature", exception.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Start a fresh workspace", exception.Message, StringComparison.OrdinalIgnoreCase);
         }
         finally
         {
