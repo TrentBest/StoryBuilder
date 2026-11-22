@@ -93,7 +93,7 @@ public static class PublicationSnapshotExporter
             {
                 ManifestPath = sourceManifestPath,
                 ManifestBlobSha = sourceManifestBlobSha,
-                SourceSectionIds = new Dictionary<string, Guid>(sourceSectionIds, StringComparer.Ordinal)
+                SourceSectionIds = sourceSectionIds.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal)
             },
             Manuscript = new PublicationManuscript
             {
