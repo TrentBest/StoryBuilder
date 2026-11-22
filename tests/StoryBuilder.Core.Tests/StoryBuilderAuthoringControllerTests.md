@@ -13,3 +13,8 @@ See [StoryBuilderAuthoringController UML](../../docs/UML/StoryBuilderAuthoringCo
 ## Verification
 
 The test source is committed; passing status must be established by a CI run for the commit containing these tests.
+
+
+## Publication authoring
+
+The controller can create a stable publication outlet and issue an immutable in-world edition from a typed draft. It computes the content hash, preserves provenance references, and does not grant observer knowledge or imply delivery. Invalid outlet/edition lineage is rejected by the workspace domain boundary.
