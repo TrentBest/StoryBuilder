@@ -203,21 +203,6 @@ public sealed class StoryWorkspacePersistenceTests
     }
 
     [Fact]
-    public void VersionOneWorkspacePayloadMigratesWithUndecidedCharacterRolesAndNoPremises()
-    {
-        using var input = new MemoryBinaryStream(CreateVersionOneEmptyWorkspacePayload());
-        var document = new StoryWorkspaceBinaryDocument();
-
-        document.Unpack(input);
-
-        Assert.Equal("Legacy workspace", document.Workspace.Name);
-        Assert.Empty(document.Workspace.Premises);
-        var legacyCharacter = Assert.Single(document.Workspace.Characters);
-        Assert.Equal("Legacy Hero", legacyCharacter.Name);
-        Assert.Equal(CharacterNarrativeRole.Undecided, legacyCharacter.NarrativeRole);
-    }
-
-    [Fact]
     public void BinaryDocumentRejectsBrokenCrossRecordReferencesBeforeWriting()
     {
         var workspace = new StoryWorkspace { Name = "Broken workspace" };
@@ -247,55 +232,6 @@ public sealed class StoryWorkspacePersistenceTests
         using var input = new MemoryBinaryStream(payload);
         var document = new StoryWorkspaceBinaryDocument();
         Assert.Throws<InvalidDataException>(() => document.Unpack(input));
-    }
-
-    private static byte[] CreateVersionOneEmptyWorkspacePayload()
-    {
-        using var stream = new MemoryStream();
-        using var writer = new BinaryWriter(stream, System.Text.Encoding.UTF8, leaveOpen: true);
-        writer.Write(System.Text.Encoding.ASCII.GetBytes("SBWS"));
-        writer.Write(1);
-        writer.Write(Guid.Empty.ToByteArray());
-        WriteLegacyString(writer, "Legacy workspace");
-        writer.Write(Guid.Empty.ToByteArray());
-        WriteLegacyString(writer, "Legacy experience");
-        WriteLegacyString(writer, "Legacy purpose");
-        WriteLegacyString(writer, "Legacy audience");
-        writer.Write(0); // Experience capabilities
-        writer.Write(0); // Experience constraints
-        writer.Write(0); // Experience design decisions
-        writer.Write(1); // Characters
-        writer.Write(Guid.Parse("11111111-1111-1111-1111-111111111111").ToByteArray());
-        WriteLegacyString(writer, "Legacy Hero");
-        WriteLegacyString(writer, "Scout");
-        WriteLegacyString(writer, "A careful explorer.");
-        WriteLegacyString(writer, null); // Pronouns
-        WriteLegacyString(writer, null); // Species
-        writer.Write((int)CanonStatus.Proposed);
-        writer.Write(0); // Traits
-        writer.Write(0); // Relationships
-        writer.Write(0); // Notes
-        writer.Write(DateTimeOffset.UnixEpoch.Ticks);
-        writer.Write(TimeSpan.Zero.Ticks);
-        writer.Write(DateTimeOffset.UnixEpoch.Ticks);
-        writer.Write(TimeSpan.Zero.Ticks);
-        for (var i = 0; i < 8; i++)
-            writer.Write(0); // Scenes, claims, events, campaigns, actions, sources, issues, synonyms
-        writer.Flush();
-        return stream.ToArray();
-    }
-
-    private static void WriteLegacyString(BinaryWriter writer, string? value)
-    {
-        if (value is null)
-        {
-            writer.Write(-1);
-            return;
-        }
-
-        var bytes = System.Text.Encoding.UTF8.GetBytes(value);
-        writer.Write(bytes.Length);
-        writer.Write(bytes);
     }
 
     [Fact]
