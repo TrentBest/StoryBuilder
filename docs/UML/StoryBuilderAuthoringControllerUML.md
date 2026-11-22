@@ -31,8 +31,24 @@ classDiagram
         +CreateEvent
         +CreateManuscriptSection
         +LinkLatestEventToLatestSection
+        +CreatePublicationOutlet
+        +IssuePublicationEdition
+    }
+    class StoryBuilderPublicationEditionDraft {
+        +Guid OutletId
+        +int EditionNumber
+        +string Title
+        +string Content
+        +string InWorldPublishedAt
+        +string IntendedAudience
+        +string AccessScope
+        +IReadOnlyList~Guid~ ClaimIds
+        +IReadOnlyList~Guid~ SourceIds
+        +IReadOnlyList~Guid~ EventIds
+        +Guid? SupersedesEditionId
     }
     StoryBuilderAuthoringController --> StoryBuilderSession : delegates to
+    StoryBuilderAuthoringController ..> StoryBuilderPublicationEditionDraft : accepts typed input
     StoryBuilderAuthoringController ..> StoryBuilderCommandResult : returns
     StoryBuilderAuthoringController ..> StoryBuilderAuthoringCommands : accepts stable IDs
 ```
