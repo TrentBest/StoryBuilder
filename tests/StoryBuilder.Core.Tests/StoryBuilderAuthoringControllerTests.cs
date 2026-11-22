@@ -1,4 +1,5 @@
 using StoryBuilder.Core.Models;
+using StoryBuilder.Core.Services;
 using StoryBuilder.MicroBundle;
 using StoryBuilder.Persistence;
 using TheSingularityWorkshop.FSM_Serialization;
@@ -166,7 +167,7 @@ public sealed class StoryBuilderAuthoringControllerTests
 
         var exception = Assert.Throws<InvalidOperationException>(() => controller.IssuePublicationEdition(
             new StoryBuilderPublicationEditionDraft(
-                outlet.RecordId.Value, 1, "Duplicate number", "Correction content", "Shift 2",
+                outlet.RecordId!.Value, 1, "Duplicate number", "Correction content", "Shift 2",
                 "Residents", "Public")));
 
         Assert.Contains("already has edition number", exception.Message, StringComparison.OrdinalIgnoreCase);
