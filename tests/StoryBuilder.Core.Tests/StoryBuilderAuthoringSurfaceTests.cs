@@ -62,9 +62,9 @@ public sealed class StoryBuilderAuthoringSurfaceTests
 
         Assert.True(editionResult.Succeeded);
         var root = surface.Root;
-        Assert.Contains("Publication outlets: 1", root.Children.Single(node => node.Id == "storybuilder-counts").Text);
-        Assert.Contains(root.Children, node => node.Id == $"storybuilder-publication-outlet-{outletResult.RecordId.Value:N}");
-        Assert.Contains(root.Children, node => node.Id == $"storybuilder-publication-edition-{editionResult.RecordId.Value:N}");
+        Assert.Contains("Publication outlets: 1", root.Children.Single(node => node.Id == "storybuilder-counts").Text ?? string.Empty);
+        Assert.Contains(root.Children, node => node.Id == $"storybuilder-publication-outlet-{outletResult.RecordId!.Value:N}");
+        Assert.Contains(root.Children, node => node.Id == $"storybuilder-publication-edition-{editionResult.RecordId!.Value:N}");
     }
 
     [Fact]
