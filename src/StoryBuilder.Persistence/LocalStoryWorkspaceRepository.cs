@@ -148,7 +148,17 @@ public sealed class LocalStoryWorkspaceRepository
     {
         using var memory = new MemoryBinaryStream(payload);
         var document = new StoryWorkspaceBinaryDocument();
-        document.Unpack(memory);
+        try
+        {
+            document.Unpack(memory);
+        }
+        catch (InvalidDataException exception) when (
+            exception.Message == "The payload is not a StoryBuilder workspace document.")
+        {
+            throw new InvalidDataException(
+                "This local workspace uses the retired SBWS development signature. It is an unpublished development snapshot and cannot be restored. Start a fresh workspace, or remove the local .sbws file and matching .sbmap sidecar only after confirming they are no longer needed.",
+                exception);
+        }
 
         var session = new StoryBuilderSession();
         document.RestoreInto(session);
