@@ -27,7 +27,8 @@ public sealed class StoryBuilderAuthoringBundle : IMicroBundle
             new MicroBundleProvider("storybuilder.vocabulary"),
             new MicroBundleProvider("storybuilder.history"),
             new MicroBundleProvider("storybuilder.campaign"),
-            new MicroBundleProvider("storybuilder.timeline")
+            new MicroBundleProvider("storybuilder.timeline"),
+            new MicroBundleProvider("storybuilder.publication")
         ]);
 
     public IReadOnlyList<MicroBundleDependencyRequest> Dependencies { get; } =
