@@ -76,7 +76,7 @@ public sealed class CompositionManifestImporterTests
         const string json = """
         {
           "title": "Lenny",
-          "source": { "path": "source.md", "blobSha": "abc" },
+          "source": { "path": "source.md", "blobSha": "0123456789012345678901234567890123456789" },
           "dedication": { "text": "Dedication" },
           "storyPages": [
             { "pageNumber": 2, "id": "page-2", "text": "Page two" }
@@ -88,6 +88,24 @@ public sealed class CompositionManifestImporterTests
         Assert.Throws<InvalidDataException>(() => CompositionManifestImporter.Import(json));
     }
 
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("012345678901234567890123456789012345678g")]
+    public void RejectsMalformedSourceManifestBlobSha(string blobSha)
+    {
+        var json = $"""
+        {
+          "title": "Lenny",
+          "source": { "path": "source.md", "blobSha": "{{blobSha}}" },
+          "dedication": { "id": "dedication", "text": "Dedication" },
+          "storyPages": [],
+          "closingPage": { "id": "closing", "text": "Closing" }
+        }
+        """;
+
+        Assert.Throws<InvalidDataException>(() => CompositionManifestImporter.ImportWithIdentityMap(json));
+    }
+
     [Fact]
     public void RejectsDuplicateSourceIdsAcrossFrontMatterStoryAndClosing()
     {
@@ -96,7 +114,7 @@ public sealed class CompositionManifestImporterTests
         var json = $$"""
         {
           "title": "Lenny",
-          "source": { "path": "source.md", "blobSha": "abc" },
+          "source": { "path": "source.md", "blobSha": "0123456789012345678901234567890123456789" },
           "dedication": { "id": "duplicate", "text": "Dedication" },
           "storyPages": [{{pages}}],
           "closingPage": { "id": "duplicate", "text": "Closing" }
