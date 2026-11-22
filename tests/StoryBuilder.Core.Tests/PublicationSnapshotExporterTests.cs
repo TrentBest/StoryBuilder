@@ -84,6 +84,19 @@ public sealed class PublicationSnapshotExporterTests
     }
 
     [Fact]
+    public void Export_rejects_a_composition_without_an_explicit_visual_revision()
+    {
+        var fixture = CreateComposedStory();
+        var composition = Assert.Single(fixture.Session.Workspace.PageCompositions);
+        fixture.Session.Workspace.ReplacePageComposition(composition with { VisualAssetRevisionId = null });
+        fixture.Session.ReviewVisualAssetRevision(
+            fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author");
+
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
+    }
+
+    [Fact]
     public void Export_fails_closed_when_latest_review_rejects_the_exact_revision()
     {
         var fixture = CreateComposedStory();
