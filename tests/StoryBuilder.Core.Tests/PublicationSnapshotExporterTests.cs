@@ -112,6 +112,46 @@ public sealed class PublicationSnapshotExporterTests
     }
 
     [Fact]
+    public void Deserialize_round_trips_a_valid_publication_snapshot()
+    {
+        var fixture = CreateComposedStory();
+        fixture.Session.ReviewVisualAssetRevision(
+            fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author",
+            reviewedAtUtc: DateTimeOffset.Parse("2026-11-21T18:00:00Z"));
+        var snapshot = PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds);
+
+        var restored = PublicationSnapshotExporter.Deserialize(PublicationSnapshotExporter.Serialize(snapshot));
+
+        Assert.Equal(snapshot.ContentSha256, restored.ContentSha256);
+        Assert.Equal(snapshot.Sections[0].Body, restored.Sections[0].Body);
+        Assert.Equal(snapshot.Sections[0].Composition!.VisualAsset.RevisionId,
+            restored.Sections[0].Composition!.VisualAsset.RevisionId);
+    }
+
+    [Fact]
+    public void Deserialize_rejects_a_section_body_that_no_longer_matches_its_digest()
+    {
+        var fixture = CreateComposedStory();
+        fixture.Session.ReviewVisualAssetRevision(
+            fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author",
+            reviewedAtUtc: DateTimeOffset.Parse("2026-11-21T18:00:00Z"));
+        var snapshot = PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds);
+        var tampered = snapshot with
+        {
+            Sections = new[] { snapshot.Sections[0] with { Body = "Tampered after publication." } }
+        };
+        var json = JsonSerializer.Serialize(tampered, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        });
+
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Deserialize(json));
+    }
+
+    [Fact]
     public void Export_uses_source_provenance_from_the_same_manifest_import_result()
     {
         var session = new StoryBuilderSession("Lenny");
