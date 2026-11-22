@@ -30,6 +30,9 @@ public static class PublicationSnapshotExporter
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceManifestBlobSha);
         ArgumentNullException.ThrowIfNull(sourceSectionIds);
 
+        if (!IsGitBlobSha1(sourceManifestBlobSha))
+            throw new InvalidDataException("The source manifest blob SHA must be a 40-character hexadecimal Git SHA-1.");
+
         if (sourceSectionIds.Count == 0 ||
             sourceSectionIds.Any(pair => string.IsNullOrWhiteSpace(pair.Key) || pair.Value == Guid.Empty))
             throw new InvalidDataException("The source identity map must contain non-empty source IDs and section IDs.");
@@ -211,6 +214,9 @@ public static class PublicationSnapshotExporter
         Width = region.Width,
         Height = region.Height
     };
+
+    private static bool IsGitBlobSha1(string value) =>
+        value.Length == 40 && value.All(Uri.IsHexDigit);
 
     private static bool IsSha256(string? value) =>
         value is { Length: 64 } && value.All(Uri.IsHexDigit);
