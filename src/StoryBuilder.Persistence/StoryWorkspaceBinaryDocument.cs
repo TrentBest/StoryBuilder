@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 18;
+    private const int FormatVersion = 1;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,10 +64,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not 15 and not 16 and not 17 and not FormatVersion)
+        if (version != FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
-        Workspace = ReadWorkspace(stream, version);
+        Workspace = ReadWorkspace(stream);
         Synonyms = BinaryCodec.ReadList(stream, ReadVocabularyConcept);
         EnsureWorkspaceIntegrity(Workspace);
 
@@ -144,33 +144,37 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.VisualAssetReviews, WriteVisualAssetReview);
         BinaryCodec.WriteList(stream, workspace.PageCompositions, WritePageComposition);
         BinaryCodec.WriteList(stream, workspace.Organizations, WriteOrganization);
+        BinaryCodec.WriteList(stream, workspace.PublicationOutlets, WritePublicationOutlet);
+        BinaryCodec.WriteList(stream, workspace.InWorldPublicationEditions, WriteInWorldPublicationEdition);
     }
 
-    private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int version)
+    private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var name = BinaryCodec.ReadRequiredString(stream, nameof(StoryWorkspace.Name));
         var experience = ReadExperience(stream);
-        var timelines = version >= 3 ? BinaryCodec.ReadList(stream, ReadTimeline) : [];
-        var planningPoints = version >= 5 ? BinaryCodec.ReadList(stream, item => ReadPlanningPoint(item, version)) : [];
-        var manuscripts = version >= 4 ? BinaryCodec.ReadList(stream, ReadManuscript) : [];
-        var premises = version >= 2 ? BinaryCodec.ReadList(stream, ReadPremise) : [];
-        var characters = BinaryCodec.ReadList(stream, item => ReadCharacter(item, version));
-        var places = version >= 10 ? BinaryCodec.ReadList(stream, ReadPlace) : [];
-        var scenes = BinaryCodec.ReadList(stream, item => ReadScene(item, version));
+        var timelines = BinaryCodec.ReadList(stream, ReadTimeline);
+        var planningPoints = BinaryCodec.ReadList(stream, ReadPlanningPoint);
+        var manuscripts = BinaryCodec.ReadList(stream, ReadManuscript);
+        var premises = BinaryCodec.ReadList(stream, ReadPremise);
+        var characters = BinaryCodec.ReadList(stream, ReadCharacter);
+        var places = BinaryCodec.ReadList(stream, ReadPlace);
+        var scenes = BinaryCodec.ReadList(stream, ReadScene);
         var claims = BinaryCodec.ReadList(stream, ReadHistoricalClaim);
-        var events = BinaryCodec.ReadList(stream, item => ReadStoryEvent(item, version));
-        var observerKnowledge = version >= 7 ? BinaryCodec.ReadList(stream, ReadObserverKnowledge) : [];
+        var events = BinaryCodec.ReadList(stream, ReadStoryEvent);
+        var observerKnowledge = BinaryCodec.ReadList(stream, ReadObserverKnowledge);
         var campaigns = BinaryCodec.ReadList(stream, ReadCampaign);
         var actions = BinaryCodec.ReadList(stream, ReadParticipantAction);
         var sources = BinaryCodec.ReadList(stream, ReadSource);
         var issues = BinaryCodec.ReadList(stream, ReadContinuityIssue);
-        var legacyProjectSourceJson = version >= 9 ? BinaryCodec.ReadString(stream) : null;
-        var publishedEditions = version >= 11 ? BinaryCodec.ReadList(stream, item => ReadPublishedEdition(item, version)) : [];
-        var visualAssets = version >= 13 ? BinaryCodec.ReadList(stream, ReadVisualAsset) : [];
-        var visualAssetReviews = version >= 14 ? BinaryCodec.ReadList(stream, ReadVisualAssetReview) : [];
-        var pageCompositions = version >= 15 ? BinaryCodec.ReadList(stream, item => ReadPageComposition(item, version)) : [];
-        var organizations = version >= 17 ? BinaryCodec.ReadList(stream, ReadOrganization) : [];
+        var legacyProjectSourceJson = BinaryCodec.ReadString(stream);
+        var publishedEditions = BinaryCodec.ReadList(stream, ReadPublishedEdition);
+        var visualAssets = BinaryCodec.ReadList(stream, ReadVisualAsset);
+        var visualAssetReviews = BinaryCodec.ReadList(stream, ReadVisualAssetReview);
+        var pageCompositions = BinaryCodec.ReadList(stream, ReadPageComposition);
+        var organizations = BinaryCodec.ReadList(stream, ReadOrganization);
+        var publicationOutlets = BinaryCodec.ReadList(stream, ReadPublicationOutlet);
+        var inWorldPublicationEditions = BinaryCodec.ReadList(stream, ReadInWorldPublicationEdition);
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -193,6 +197,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in visualAssetReviews) workspace.AddVisualAssetReview(item);
         foreach (var item in pageCompositions) workspace.AddPageComposition(item);
         foreach (var item in organizations) workspace.AddOrganization(item);
+        foreach (var item in publicationOutlets) workspace.AddPublicationOutlet(item);
+        foreach (var item in inWorldPublicationEditions) workspace.AddInWorldPublicationEdition(item);
         return workspace;
     }
 
@@ -271,7 +277,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static TimelinePlanningPoint ReadPlanningPoint(IBinaryStream stream, int version)
+    private static TimelinePlanningPoint ReadPlanningPoint(IBinaryStream stream)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var timelineId = BinaryCodec.ReadGuid(stream);
@@ -283,7 +289,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var alternatives = BinaryCodec.ReadStringList(stream);
         var relatedSceneIds = BinaryCodec.ReadGuidList(stream);
         var relatedEventIds = BinaryCodec.ReadGuidList(stream);
-        var promotedEventId = version >= 12 ? BinaryCodec.ReadNullableGuid(stream) : null;
+        var promotedEventId = BinaryCodec.ReadNullableGuid(stream);
         return new TimelinePlanningPoint
         {
             Id = id,
@@ -366,7 +372,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, value.EventIds, (target, id) => BinaryCodec.WriteGuid(target, id));
     }
 
-    private static PublishedBookEdition ReadPublishedEdition(IBinaryStream stream, int version)
+    private static PublishedBookEdition ReadPublishedEdition(IBinaryStream stream)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var manuscriptId = BinaryCodec.ReadGuid(stream);
@@ -380,7 +386,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var previousEditionId = BinaryCodec.ReadNullableGuid(stream);
         var correctionNotes = BinaryCodec.ReadString(stream);
         var sectionIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
-        IReadOnlyList<Guid> sceneIds = version >= 12 ? Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()) : Array.Empty<Guid>();
+        IReadOnlyList<Guid> sceneIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
         var eventIds = Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray());
         return new PublishedBookEdition
         {
@@ -451,7 +457,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static CharacterProfile ReadCharacter(IBinaryStream stream, int version)
+    private static CharacterProfile ReadCharacter(IBinaryStream stream)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var name = BinaryCodec.ReadRequiredString(stream, nameof(CharacterProfile.Name));
@@ -459,9 +465,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var description = BinaryCodec.ReadRequiredString(stream, nameof(CharacterProfile.Description));
         var pronouns = BinaryCodec.ReadString(stream);
         var species = BinaryCodec.ReadString(stream);
-        var narrativeRole = version >= 2
-            ? BinaryCodec.ReadEnum<CharacterNarrativeRole>(stream)
-            : CharacterNarrativeRole.Undecided;
+        var narrativeRole = BinaryCodec.ReadEnum<CharacterNarrativeRole>(stream);
         var status = BinaryCodec.ReadEnum<CanonStatus>(stream);
         var traits = BinaryCodec.ReadList(stream, ReadCharacterTrait);
         var relationships = BinaryCodec.ReadList(stream, ReadCharacterRelationship);
@@ -586,16 +590,16 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static SceneRecord ReadScene(IBinaryStream stream, int version) => new()
+    private static SceneRecord ReadScene(IBinaryStream stream) => new()
     {
         Id = BinaryCodec.ReadGuid(stream),
         Title = BinaryCodec.ReadRequiredString(stream, nameof(SceneRecord.Title)),
         Location = BinaryCodec.ReadString(stream),
-        PlaceId = version >= 10 ? BinaryCodec.ReadNullableGuid(stream) : null,
+        PlaceId = BinaryCodec.ReadNullableGuid(stream),
         Purpose = BinaryCodec.ReadString(stream),
         CaptureMode = BinaryCodec.ReadEnum<SceneCaptureMode>(stream),
         Status = BinaryCodec.ReadEnum<SceneStatus>(stream),
-        Beats = BinaryCodec.ReadList(stream, item => ReadSceneBeat(item, version)),
+        Beats = BinaryCodec.ReadList(stream, ReadSceneBeat),
         CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
         UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
     };
@@ -618,7 +622,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, value.EventIds, BinaryCodec.WriteGuid);
     }
 
-    private static SceneBeat ReadSceneBeat(IBinaryStream stream, int version)
+    private static SceneBeat ReadSceneBeat(IBinaryStream stream)
     {
         var beat = new SceneBeat
     {
@@ -636,7 +640,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Attribution = BinaryCodec.ReadRequiredString(stream, nameof(SceneBeat.Attribution)),
         Status = BinaryCodec.ReadEnum<CanonStatus>(stream)
         };
-        return version >= 8 ? beat with { EventIds = BinaryCodec.ReadList(stream, BinaryCodec.ReadGuid) } : beat;
+        return beat with { EventIds = BinaryCodec.ReadList(stream, BinaryCodec.ReadGuid) };
     }
 
     private static void WriteHistoricalClaim(IBinaryStream stream, HistoricalClaim value)
@@ -688,14 +692,14 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteGuidList(stream, value.OrganizationParticipantIds);
     }
 
-    private static StoryEvent ReadStoryEvent(IBinaryStream stream, int version)
+    private static StoryEvent ReadStoryEvent(IBinaryStream stream)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var title = BinaryCodec.ReadRequiredString(stream, nameof(StoryEvent.Title));
         var summary = BinaryCodec.ReadRequiredString(stream, nameof(StoryEvent.Summary));
         var period = BinaryCodec.ReadString(stream);
-        var timelineId = version >= 6 ? BinaryCodec.ReadNullableGuid(stream) : null;
-        var placementKind = version >= 6 ? BinaryCodec.ReadEnum<TimelinePlacementKind>(stream) : TimelinePlacementKind.Unresolved;
+        var timelineId = BinaryCodec.ReadNullableGuid(stream);
+        var placementKind = BinaryCodec.ReadEnum<TimelinePlacementKind>(stream);
         return new StoryEvent
         {
             Id = id,
@@ -709,7 +713,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             ConsequenceEventIds = BinaryCodec.ReadGuidList(stream),
             SourceIds = BinaryCodec.ReadGuidList(stream),
             Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
-            OrganizationParticipantIds = version >= 17 ? BinaryCodec.ReadGuidList(stream) : []
+            OrganizationParticipantIds = BinaryCodec.ReadGuidList(stream)
         };
     }
 
@@ -925,7 +929,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteNullableGuid(stream, value.VisualAssetRevisionId);
     }
 
-    private static PageComposition ReadPageComposition(IBinaryStream stream, int version) => new()
+    private static PageComposition ReadPageComposition(IBinaryStream stream) => new()
     {
         Id = BinaryCodec.ReadGuid(stream),
         ManuscriptSectionId = BinaryCodec.ReadGuid(stream),
@@ -937,10 +941,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         ImageRegion = ReadPageCompositionRegion(stream),
         FocalPoint = BinaryCodec.ReadString(stream),
         LayerOrder = BinaryCodec.ReadInt32(stream),
-        DiscoveryRegion = version >= 16 && BinaryCodec.ReadBoolean(stream) ? ReadPageCompositionRegion(stream) : null,
-        DiscoveryPrompt = version >= 16 ? BinaryCodec.ReadString(stream) : null,
-        DiscoveryHintDelaySeconds = version >= 16 ? BinaryCodec.ReadInt32(stream) : 12,
-        VisualAssetRevisionId = version >= 18 ? BinaryCodec.ReadNullableGuid(stream) : null
+        DiscoveryRegion = BinaryCodec.ReadBoolean(stream) ? ReadPageCompositionRegion(stream) : null,
+        DiscoveryPrompt = BinaryCodec.ReadString(stream),
+        DiscoveryHintDelaySeconds = BinaryCodec.ReadInt32(stream),
+        VisualAssetRevisionId = BinaryCodec.ReadNullableGuid(stream)
     };
 
     private static void WritePageCompositionRegion(IBinaryStream stream, PageCompositionRegion value)
@@ -957,6 +961,64 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Y = BinaryCodec.ReadDouble(stream),
         Width = BinaryCodec.ReadDouble(stream),
         Height = BinaryCodec.ReadDouble(stream)
+    };
+
+    private static void WritePublicationOutlet(IBinaryStream stream, PublicationOutlet value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteString(stream, value.Name);
+        BinaryCodec.WriteString(stream, value.ArtifactType);
+        BinaryCodec.WriteString(stream, value.Description);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+    }
+
+    private static PublicationOutlet ReadPublicationOutlet(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        Name = BinaryCodec.ReadRequiredString(stream, nameof(PublicationOutlet.Name)),
+        ArtifactType = BinaryCodec.ReadRequiredString(stream, nameof(PublicationOutlet.ArtifactType)),
+        Description = BinaryCodec.ReadString(stream) ?? string.Empty,
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
+    };
+
+    private static void WriteInWorldPublicationEdition(IBinaryStream stream, InWorldPublicationEdition value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.OutletId);
+        BinaryCodec.WriteInt32(stream, value.EditionNumber);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Content);
+        BinaryCodec.WriteString(stream, value.ContentFormat);
+        BinaryCodec.WriteString(stream, value.ContentSha256);
+        BinaryCodec.WriteString(stream, value.InWorldPublishedAt);
+        BinaryCodec.WriteDateTimeOffset(stream, value.CreatedAtUtc);
+        BinaryCodec.WriteString(stream, value.IntendedAudience);
+        BinaryCodec.WriteString(stream, value.AccessScope);
+        BinaryCodec.WriteGuidList(stream, value.ClaimIds);
+        BinaryCodec.WriteGuidList(stream, value.SourceIds);
+        BinaryCodec.WriteGuidList(stream, value.EventIds);
+        BinaryCodec.WriteNullableGuid(stream, value.SupersedesEditionId);
+        BinaryCodec.WriteString(stream, value.CorrectionNotes);
+    }
+
+    private static InWorldPublicationEdition ReadInWorldPublicationEdition(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        OutletId = BinaryCodec.ReadGuid(stream),
+        EditionNumber = BinaryCodec.ReadInt32(stream),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.Title)),
+        Content = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.Content)),
+        ContentFormat = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.ContentFormat)),
+        ContentSha256 = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.ContentSha256)),
+        InWorldPublishedAt = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.InWorldPublishedAt)),
+        CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        IntendedAudience = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.IntendedAudience)),
+        AccessScope = BinaryCodec.ReadRequiredString(stream, nameof(InWorldPublicationEdition.AccessScope)),
+        ClaimIds = BinaryCodec.ReadGuidList(stream),
+        SourceIds = BinaryCodec.ReadGuidList(stream),
+        EventIds = BinaryCodec.ReadGuidList(stream),
+        SupersedesEditionId = BinaryCodec.ReadNullableGuid(stream),
+        CorrectionNotes = BinaryCodec.ReadString(stream)
     };
 
     private static void WriteVocabularyConcept(IBinaryStream stream, VocabularyConcept value)
