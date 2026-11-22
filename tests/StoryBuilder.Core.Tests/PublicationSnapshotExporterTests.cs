@@ -9,6 +9,8 @@ namespace StoryBuilder.Core.Tests;
 
 public sealed class PublicationSnapshotExporterTests
 {
+    private const string SourceManifestBlobSha = "685d275782b76a4c5bdd30d6ae69baeaea919993";
+
     [Fact]
     public void Export_freezes_source_order_composition_exact_revision_and_approval()
     {
@@ -25,7 +27,7 @@ public sealed class PublicationSnapshotExporterTests
             fixture.Session,
             fixture.ManuscriptId,
             "experiences/Lenny/CompositionManifest.json",
-            "685d275782b76a4c5bdd30d6ae69baeaea919993",
+            SourceManifestBlobSha,
             fixture.SourceIds);
 
         Assert.Equal(1, snapshot.SchemaVersion);
@@ -41,12 +43,23 @@ public sealed class PublicationSnapshotExporterTests
     }
 
     [Fact]
-    public void Export_fails_closed_when_visual_revision_is_unreviewed()
+    public void Export_fails_closed_when_source_manifest_blob_sha_is_not_a_git_blob_sha1()
     {
         var fixture = CreateComposedStory();
 
         Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
             fixture.Session, fixture.ManuscriptId, "manifest.json", "source-sha", fixture.SourceIds));
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", new string('z', 40), fixture.SourceIds));
+    }
+
+    [Fact]
+    public void Export_fails_closed_when_visual_revision_is_unreviewed()
+    {
+        var fixture = CreateComposedStory();
+
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
     }
 
     [Fact]
@@ -64,7 +77,7 @@ public sealed class PublicationSnapshotExporterTests
             fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author");
 
         Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
-            fixture.Session, fixture.ManuscriptId, "manifest.json", "source-sha", fixture.SourceIds));
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
     }
 
     [Fact]
@@ -79,7 +92,7 @@ public sealed class PublicationSnapshotExporterTests
             reviewedAtUtc: DateTimeOffset.Parse("2026-11-21T19:00:00Z"));
 
         Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
-            fixture.Session, fixture.ManuscriptId, "manifest.json", "source-sha", fixture.SourceIds));
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
     }
 
     [Fact]
@@ -95,7 +108,7 @@ public sealed class PublicationSnapshotExporterTests
             reviewedAtUtc: reviewedAt);
 
         Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Export(
-            fixture.Session, fixture.ManuscriptId, "manifest.json", "source-sha", fixture.SourceIds));
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds));
     }
 
     private static Fixture CreateComposedStory()
