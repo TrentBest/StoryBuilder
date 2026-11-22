@@ -1,0 +1,254 @@
+@page "/organizations"
+@implements IDisposable
+@inject StoryBuilderSession Session
+@inject StoryLifecycleRegistry Lifecycles
+
+<PageTitle>Organizations · StoryBuilder</PageTitle>
+
+<div class="page-head">
+    <div class="eyebrow">Door 14 · The Organization Hall</div>
+    <h1>Give groups a place in history.</h1>
+    <p class="lede">Houses, factions, governments, guilds, institutions, companies, and movements are actors in their own right. They are not characters with a different label, and their participation in events is recorded separately.</p>
+</div>
+
+<div class="workbench-grid">
+    <section class="panel stack">
+        <div class="eyebrow">Organization authoring</div>
+        <h2>Create a new organization</h2>
+        <div class="field">
+            <label for="organization-name">Name</label>
+            <input id="organization-name" @bind="draftName" placeholder="The name used by the world" />
+        </div>
+        <div class="field">
+            <label for="organization-kind">Kind</label>
+            <input id="organization-kind" @bind="draftKind" placeholder="House, faction, government, guild…" />
+        </div>
+        <div class="field">
+            <label for="organization-description">Description</label>
+            <textarea id="organization-description" @bind="draftDescription" placeholder="What makes this organization distinct?"></textarea>
+        </div>
+        <button @onclick="CreateOrganization" disabled="@string.IsNullOrWhiteSpace(draftName)">Create organization draft</button>
+        <p class="muted">New organizations begin as Draft. Creating a record does not make its claims or history canon.</p>
+        @if (!string.IsNullOrWhiteSpace(message))
+        {
+            <p class="muted" role="status">@message</p>
+        }
+    </section>
+
+    <section class="panel stack">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">World actors</div>
+                <h2>Organizations</h2>
+            </div>
+            <span class="chip">@Session.Workspace.Organizations.Count record(s)</span>
+        </div>
+        @if (Session.Workspace.Organizations.Count == 0)
+        {
+            <div class="empty">No organizations yet. Create a draft to begin.</div>
+        }
+        else
+        {
+            <div class="list">
+                @foreach (var organization in Session.Workspace.Organizations.OrderBy(item => item.Name))
+                {
+                    <button class="list-item @(selectedOrganization?.Id == organization.Id ? "selected" : "")" @onclick="() => SelectOrganization(organization)">
+                        <strong>@organization.Name</strong>
+                        <span class="chip">@organization.Kind</span>
+                        <span class="chip">@organization.Status</span>
+                        @if (!string.IsNullOrWhiteSpace(organization.Description))
+                        {
+                            <span>@organization.Description</span>
+                        }
+                        <small class="muted">ID: @organization.Id</small>
+                    </button>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@if (selectedOrganization is not null)
+{
+    <section class="panel stack" style="margin-top:1rem">
+        <div class="row">
+            <div class="grow">
+                <div class="eyebrow">Organization record · @selectedOrganization.Status</div>
+                <h2>Edit @selectedOrganization.Name</h2>
+            </div>
+            <span class="chip">Stable identity · @selectedOrganization.Id</span>
+        </div>
+        <div class="field-grid">
+            <div class="field">
+                <label for="edit-organization-name">Name</label>
+                <input id="edit-organization-name" @bind="editName" />
+            </div>
+            <div class="field">
+                <label for="edit-organization-kind">Kind</label>
+                <input id="edit-organization-kind" @bind="editKind" />
+            </div>
+        </div>
+        <div class="field">
+            <label for="edit-organization-description">Description</label>
+            <textarea id="edit-organization-description" @bind="editDescription"></textarea>
+        </div>
+        <div class="row">
+            <button @onclick="SaveOrganization">Save edits</button>
+            @if (selectedOrganization.Status == CanonStatus.Draft)
+            {
+                <button class="secondary" @onclick="() => RequestStatus(CanonStatus.Proposed)">Propose for review</button>
+            }
+            else if (selectedOrganization.Status == CanonStatus.Proposed)
+            {
+                <button @onclick="() => RequestStatus(CanonStatus.Accepted)">Accept</button>
+                <button class="secondary" @onclick="() => RequestStatus(CanonStatus.Rejected)">Reject</button>
+                <button class="secondary" @onclick="() => RequestStatus(CanonStatus.Draft)">Return to draft</button>
+            }
+            else if (selectedOrganization.Status == CanonStatus.Accepted)
+            {
+                <button class="secondary" @onclick="() => RequestStatus(CanonStatus.Proposed)">Reopen for revision</button>
+                <button class="danger" @onclick="() => RequestStatus(CanonStatus.Deprecated)">Deprecate</button>
+            }
+            else if (selectedOrganization.Status == CanonStatus.Rejected)
+            {
+                <button class="secondary" @onclick="() => RequestStatus(CanonStatus.Draft)">Return to draft</button>
+                <button class="secondary" @onclick="() => RequestStatus(CanonStatus.Proposed)">Re-propose</button>
+            }
+        </div>
+        <p class="muted">Created @selectedOrganization.CreatedAtUtc.ToString("u") · Updated @selectedOrganization.UpdatedAtUtc.ToString("u"). Status changes follow the workspace lifecycle rules.</p>
+    </section>
+}
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="eyebrow">Historical participation</div>
+    <h2>Organizations in events</h2>
+    <p class="muted">Choose the organizations that participate in each event. These links use OrganizationParticipantIds and never alter the event's character participants.</p>
+    @if (Session.Workspace.Events.Count == 0)
+    {
+        <div class="empty">Create a timeline event before assigning organizational participants.</div>
+    }
+    else if (Session.Workspace.Organizations.Count == 0)
+    {
+        <div class="empty">Create an organization before assigning it to an event.</div>
+    }
+    else
+    {
+        <div class="list">
+            @foreach (var storyEvent in Session.Workspace.Events.OrderBy(item => item.Title))
+            {
+                <div class="list-item">
+                    <div class="row">
+                        <strong>@storyEvent.Title</strong>
+                        <span class="chip">@storyEvent.Status</span>
+                        <span class="chip">@(storyEvent.ParticipantIds.Count) character(s)</span>
+                        <span class="chip">@(storyEvent.OrganizationParticipantIds.Count) organization(s)</span>
+                    </div>
+                    @if (!string.IsNullOrWhiteSpace(storyEvent.InWorldDateOrPeriod))
+                    {
+                        <p class="muted">@storyEvent.InWorldDateOrPeriod</p>
+                    }
+                    <div class="field">
+                        <label>Organizational participants</label>
+                        @foreach (var organization in Session.Workspace.Organizations.OrderBy(item => item.Name))
+                        {
+                            <label class="row" style="align-items:center;gap:.55rem">
+                                <input type="checkbox"
+                                       checked="@storyEvent.OrganizationParticipantIds.Contains(organization.Id)"
+                                       @onchange="args => SetOrganizationParticipant(storyEvent, organization.Id, args)" />
+                                <span>@organization.Name</span>
+                                <span class="chip">@organization.Kind</span>
+                            </label>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    private string draftName = string.Empty;
+    private string draftKind = "Organization";
+    private string draftDescription = string.Empty;
+    private string editName = string.Empty;
+    private string editKind = string.Empty;
+    private string editDescription = string.Empty;
+    private string message = string.Empty;
+    private OrganizationRecord? selectedOrganization;
+
+    protected override void OnInitialized() => Session.Changed += OnSessionChanged;
+
+    private void CreateOrganization()
+    {
+        if (string.IsNullOrWhiteSpace(draftName))
+            return;
+
+        selectedOrganization = Session.CreateOrganization(draftName, draftKind, draftDescription);
+        LoadSelectedOrganization();
+        draftName = string.Empty;
+        draftKind = "Organization";
+        draftDescription = string.Empty;
+        message = $"Created '{selectedOrganization.Name}' as a draft. It has not been accepted as canon.";
+    }
+
+    private void SelectOrganization(OrganizationRecord organization)
+    {
+        selectedOrganization = organization;
+        LoadSelectedOrganization();
+        message = string.Empty;
+    }
+
+    private void LoadSelectedOrganization()
+    {
+        if (selectedOrganization is null)
+            return;
+
+        editName = selectedOrganization.Name;
+        editKind = selectedOrganization.Kind;
+        editDescription = selectedOrganization.Description;
+    }
+
+    private void SaveOrganization()
+    {
+        if (selectedOrganization is null)
+            return;
+
+        selectedOrganization = Session.UpdateOrganization(selectedOrganization with
+        {
+            Name = editName,
+            Kind = editKind,
+            Description = editDescription
+        });
+        message = $"Saved '{selectedOrganization.Name}'. Its review status remains {selectedOrganization.Status}.";
+    }
+
+    private void RequestStatus(CanonStatus requestedStatus)
+    {
+        if (selectedOrganization is null)
+            return;
+
+        var previousStatus = selectedOrganization.Status;
+        var lifecycle = Lifecycles.GetSession(selectedOrganization.Id, previousStatus, $"Organization {selectedOrganization.Id}");
+        var reachedStatus = lifecycle.Request(requestedStatus);
+        selectedOrganization = Session.UpdateOrganization(selectedOrganization with { Status = reachedStatus });
+        message = reachedStatus == requestedStatus
+            ? $"Organization status is now {reachedStatus}."
+            : $"That transition is unavailable from {previousStatus}; status remains {reachedStatus}.";
+    }
+
+    private void SetOrganizationParticipant(StoryEvent storyEvent, Guid organizationId, ChangeEventArgs args)
+    {
+        var participantIds = storyEvent.OrganizationParticipantIds.ToList();
+        var isChecked = args.Value is bool value && value;
+        if (isChecked && !participantIds.Contains(organizationId))
+            participantIds.Add(organizationId);
+        else if (!isChecked)
+            participantIds.Remove(organizationId);
+
+        Session.UpdateTimelineEvent(storyEvent with { OrganizationParticipantIds = participantIds });
+    }
+
+    private void OnSessionChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Session.Changed -= OnSessionChanged;
+}
