@@ -13,3 +13,8 @@ The document is versioned and bounded. It uses the FSM_Serialization byte-stream
 ## Verification
 
 Run the test project from the repository root using the Development guide. The round-trip case asserts that a timeline event's identity survives links to both a manuscript section and a specific scene beat. Visual composition tests assert that the selected revision survives a binary round-trip, and that adding or replacing a composition with a revision from another asset fails without mutating the workspace.
+
+
+## Current development schema
+
+The persistence tests exercise the single current `SBW1` workspace signature and schema version 1. They reject the retired `SBWS` development signature and unsupported schema versions; they do not preserve unpublished historical binary snapshots.
