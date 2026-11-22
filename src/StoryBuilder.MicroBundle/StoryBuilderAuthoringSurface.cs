@@ -71,4 +71,8 @@ public sealed class StoryBuilderAuthoringSurface
     /// <summary>Dispatches a stable StoryBuilder command ID; unknown IDs are rejected without mutation.</summary>
     public StoryBuilderCommandResult Execute(string commandId, string? value = null) =>
         _controller.Execute(commandId, value);
+
+    /// <summary>Issues an immutable in-world publication edition through the same authoring boundary.</summary>
+    public StoryBuilderCommandResult IssuePublicationEdition(StoryBuilderPublicationEditionDraft draft) =>
+        _controller.IssuePublicationEdition(draft);
 }
