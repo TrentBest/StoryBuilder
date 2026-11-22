@@ -152,6 +152,42 @@ public sealed class PublicationSnapshotExporterTests
     }
 
     [Fact]
+    public void Serialize_and_deserialize_reject_incomplete_snapshot_objects()
+    {
+        var fixture = CreateComposedStory();
+        fixture.Session.ReviewVisualAssetRevision(
+            fixture.AssetId, fixture.RevisionId, VisualAssetReviewDecision.Approved, "Author",
+            reviewedAtUtc: DateTimeOffset.Parse("2026-11-21T18:00:00Z"));
+        var snapshot = PublicationSnapshotExporter.Export(
+            fixture.Session, fixture.ManuscriptId, "manifest.json", SourceManifestBlobSha, fixture.SourceIds);
+        var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Serialize(snapshot with { Source = null! }));
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Serialize(snapshot with { Manuscript = null! }));
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Serialize(snapshot with { Sections = null! }));
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Serialize(snapshot with
+        {
+            Sections = new[] { snapshot.Sections[0] with { Body = null! } }
+        }));
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Serialize(snapshot with
+        {
+            Sections = new[]
+            {
+                snapshot.Sections[0] with
+                {
+                    Composition = snapshot.Sections[0].Composition! with
+                    {
+                        VisualAsset = snapshot.Sections[0].Composition!.VisualAsset with { Approval = null! }
+                    }
+                }
+            }
+        }));
+
+        var malformedJson = JsonSerializer.Serialize(snapshot with { Source = null! }, jsonOptions);
+        Assert.Throws<InvalidDataException>(() => PublicationSnapshotExporter.Deserialize(malformedJson));
+    }
+
+    [Fact]
     public void Export_uses_source_provenance_from_the_same_manifest_import_result()
     {
         var session = new StoryBuilderSession("Lenny");
