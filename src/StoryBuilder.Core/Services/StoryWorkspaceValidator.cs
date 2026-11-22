@@ -248,6 +248,25 @@ public static class StoryWorkspaceValidator
                         $"Visual revision '{revision.Id}' has an invalid SHA-256 hash."));
         }
 
+        foreach (var composition in workspace.PageCompositions)
+        {
+            if (!workspace.Manuscripts.Any(item => item.Sections.Any(section => section.Id == composition.ManuscriptSectionId)))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(PageComposition), composition.Id, "manuscript section", composition.ManuscriptSectionId,
+                    $"Page composition '{composition.Id}' references missing manuscript section '{composition.ManuscriptSectionId}'."));
+            if (composition.VisualAssetId is Guid assetId)
+            {
+                Missing(nameof(PageComposition), composition.Id, "visual asset", assetId, visualAssets);
+                var asset = workspace.VisualAssets.FirstOrDefault(item => item.Id == assetId);
+                if (composition.VisualAssetRevisionId is Guid revisionId &&
+                    (asset is null || !asset.Revisions.Any(item => item.Id == revisionId)))
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(PageComposition), composition.Id, "visual asset revision", revisionId,
+                        $"Page composition '{composition.Id}' selects a revision that does not belong to visual asset '{assetId}'."));
+            }
+            else if (composition.VisualAssetRevisionId is not null)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(PageComposition), composition.Id, "visual asset", composition.VisualAssetRevisionId.Value,
+                    $"Page composition '{composition.Id}' selects a visual revision without selecting its visual asset."));
+        }
+
         foreach (var review in workspace.VisualAssetReviews)
         {
             Missing(nameof(VisualAssetReview), review.Id, "visual asset", review.AssetId, visualAssets);
