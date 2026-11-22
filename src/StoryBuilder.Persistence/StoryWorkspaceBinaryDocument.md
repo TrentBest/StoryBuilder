@@ -12,16 +12,37 @@ See [StoryWorkspaceBinaryDocument UML](../../docs/UML/StoryWorkspaceBinaryDocume
 
 ## Safety and compatibility
 
-The format starts with the SBWS magic and version 12. Version 1 payloads default NarrativeRole to Undecided and have no premises or timelines. Version 2 adds premises. Version 3 adds ordered timeline definitions. Version 4 adds manuscripts and ordered manuscript sections. Version 5 adds provisional timeline planning points. Version 6 adds timeline assignment and placement certainty to world events. Version 7 adds observer-knowledge records. Version 8 adds stable event links on scene beats. Version 9 preserves the original legacy project payload. Version 10 adds canonical places and scene place IDs. Version 11 adds immutable published Markdown snapshots, SHA-256 content integrity, section/scene/event provenance, and corrected-edition lineage. Version 12 adds a durable promoted-event identity to planning points. Readers retain compatibility with versions 1 through 11. Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. Future incompatible schemas require a new format version and migration tests.
+The format starts with the SBWS magic and version 18. The schema evolves by appending version-gated fields and collections while preserving the interpretation of prior versions:
+
+| Version | Added persisted data |
+| --- | --- |
+| 1 | Initial workspace and character records |
+| 2 | Story premises |
+| 3 | Ordered timeline definitions |
+| 4 | Manuscripts and ordered manuscript sections |
+| 5 | Timeline planning points |
+| 6 | Timeline assignment and placement certainty for world events |
+| 7 | Observer-knowledge records |
+| 8 | Stable event links on scene beats |
+| 9 | Original legacy project JSON |
+| 10 | Canonical places and scene place IDs |
+| 11 | Immutable published Markdown snapshots, SHA-256 integrity, provenance, and correction lineage |
+| 12 | Durable promoted-event identity on planning points |
+| 13 | Visual asset records and immutable revisions |
+| 14 | Append-only visual asset review decisions |
+| 15 | Page-composition layouts |
+| 16 | Optional discovery-interaction settings |
+| 17 | Organizations and organization participant IDs on events |
+| 18 | Exact visual asset revision identity selected by each page composition |
+
+Readers retain compatibility with formats 1–17. A composition restored from a format before 18 has no selected visual revision; the reader does not infer one from the asset's current revision list. Publication export requires an explicit selection and an unambiguous latest Approved review on that exact revision.
+
+Strings and collection sizes are bounded; enum values, booleans, UTF-8, and end-of-payload are validated. Future incompatible schemas require a new format version and migration tests.
 
 ## Restore behavior
 
-Timeline definitions are restored before planning points and timeline-assigned events so their references can be validated. Manuscript sections preserve authored text and event references. Scene beats preserve event IDs in version 8; older payloads restore with empty beat event links. Published editions are restored after their source manuscripts and prior editions, preserving the correction chain. Planning-point promotion identity is stored in version 12; older planning points restore without a promoted-event link. Observer knowledge preserves its observer, event, acquisition anchor, source, and claim framing. Runtime FSM handles and UI state are not serialized.
-
-# StoryWorkspaceBinaryDocument
-
-## Organization persistence (format 17)
-Format 17 appends the organization collection to the workspace payload and appends organization participant IDs to each event record. Readers for formats 1–16 remain compatible: they restore no organizations and no organization event participants. The format version is incremented rather than changing the interpretation of older payloads.
+Records are restored in dependency order so references can be validated: timelines before planning points and timeline-assigned events; manuscripts before published editions; assets before reviews and page compositions; organizations before event organization references are validated. Published editions preserve correction lineage. Planning-point promotion identity is stored from version 12 onward. Observer knowledge preserves its observer, event, acquisition anchor, source, and claim framing. Visual asset revisions and review decisions remain append-only. Page compositions preserve their exact selected revision from version 18 onward. Runtime FSM handles and UI state are not serialized.
 
 ## Verification
-Organization round-trip coverage is in `tests/StoryBuilder.Core.Tests/OrganizationAuthoringTests.cs`.
+
+Persistence and compatibility coverage is in `tests/StoryBuilder.Core.Tests/StoryWorkspacePersistenceTests.cs`. Organization authoring and event-participant coverage is in `tests/StoryBuilder.Core.Tests/OrganizationAuthoringTests.cs`.
