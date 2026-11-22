@@ -32,6 +32,9 @@ public static class CompositionManifestImporter
         var sourceElement = root.GetProperty("source");
         var sourcePath = RequiredString(sourceElement, "path");
         var sourceSha = RequiredString(sourceElement, "blobSha");
+        if (!IsGitBlobSha1(sourceSha))
+            throw new InvalidDataException("The source manifest blob SHA must be a 40-character hexadecimal Git SHA-1.");
+
         var source = new SourceRecord
         {
             Id = StableId($"source:{sourcePath}:{sourceSha}"),
@@ -183,6 +186,9 @@ public static class CompositionManifestImporter
             ? throw new InvalidDataException($"Manifest property '{propertyName}' is required.")
             : value;
     }
+
+    private static bool IsGitBlobSha1(string value) =>
+        value.Length == 40 && value.All(Uri.IsHexDigit);
 
     private static Guid StableId(string value)
     {
