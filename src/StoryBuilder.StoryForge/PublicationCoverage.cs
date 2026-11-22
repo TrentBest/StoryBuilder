@@ -39,11 +39,24 @@ public sealed record PublishedEdition
         if (string.IsNullOrWhiteSpace(workId)) throw new ArgumentException("Work id is required.", nameof(workId));
         if (string.IsNullOrWhiteSpace(version)) throw new ArgumentException("Version is required.", nameof(version));
         if (string.IsNullOrWhiteSpace(contentHash)) throw new ArgumentException("Content hash is required.", nameof(contentHash));
+
+        var snapshot = (coverage ?? throw new ArgumentNullException(nameof(coverage))).ToArray();
+        if (snapshot.Length == 0)
+            throw new ArgumentException("A published edition must cover at least one authored unit.", nameof(coverage));
+        if (snapshot.Any(item => item is null))
+            throw new ArgumentException("Publication coverage cannot contain null entries.", nameof(coverage));
+        if (snapshot.Any(item => !string.Equals(item.WorkId, workId, StringComparison.Ordinal)))
+            throw new ArgumentException("Every coverage record must belong to the edition's work.", nameof(coverage));
+        if (snapshot.Select(item => item.UnitId).Distinct(StringComparer.Ordinal).Count() != snapshot.Length)
+            throw new ArgumentException("Publication unit identifiers must be unique within an edition.", nameof(coverage));
+        if (snapshot.Select(item => item.Sequence).Distinct().Count() != snapshot.Length)
+            throw new ArgumentException("Publication sequence numbers must be unique within an edition.", nameof(coverage));
+
         EditionId = editionId;
         WorkId = workId;
         Version = version;
         ContentHash = contentHash;
-        Coverage = Array.AsReadOnly((coverage ?? throw new ArgumentNullException(nameof(coverage))).ToArray());
+        Coverage = Array.AsReadOnly(snapshot);
     }
 
     /// <summary>Gets the immutable edition identifier.</summary>
