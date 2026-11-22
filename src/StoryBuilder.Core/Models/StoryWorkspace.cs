@@ -473,6 +473,7 @@ public sealed class StoryWorkspace
         CharacterProfile character => character.Id,
         OrganizationRecord organization => organization.Id,
         SceneRecord scene => scene.Id,
+        PageComposition composition => composition.Id,
         ParticipantAction action => action.Id,
         _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
     };
