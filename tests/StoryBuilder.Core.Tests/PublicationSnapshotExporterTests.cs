@@ -31,8 +31,9 @@ public sealed class PublicationSnapshotExporterTests
         Assert.Equal(1, snapshot.SchemaVersion);
         Assert.Equal("lenny-page-01", Assert.Single(snapshot.Sections).SourceId);
         Assert.Equal(fixture.SectionId, snapshot.Sections[0].SectionId);
-        Assert.Equal(fixture.RevisionId, snapshot.Sections[0].Composition!.VisualAsset.RevisionId);
-        Assert.Equal("Author", snapshot.Sections[0].Composition.VisualAsset.Approval.Reviewer);
+        var composition = snapshot.Sections[0].Composition!;
+        Assert.Equal(fixture.RevisionId, composition.VisualAsset.RevisionId);
+        Assert.Equal("Author", composition.VisualAsset.Approval.Reviewer);
 
         var json = PublicationSnapshotExporter.Serialize(snapshot);
         using var document = JsonDocument.Parse(json);
