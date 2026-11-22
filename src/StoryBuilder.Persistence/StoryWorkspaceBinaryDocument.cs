@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 17;
+    private const int FormatVersion = 18;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBWS");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,7 +64,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not 15 and not 16 and not FormatVersion)
+        if (version is not 1 and not 2 and not 3 and not 4 and not 5 and not 6 and not 7 and not 8 and not 9 and not 10 and not 11 and not 12 and not 13 and not 14 and not 15 and not 16 and not 17 and not FormatVersion)
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
         Workspace = ReadWorkspace(stream, version);
@@ -922,6 +922,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         if (value.DiscoveryRegion is not null) WritePageCompositionRegion(stream, value.DiscoveryRegion);
         BinaryCodec.WriteString(stream, value.DiscoveryPrompt);
         BinaryCodec.WriteInt32(stream, value.DiscoveryHintDelaySeconds);
+        BinaryCodec.WriteNullableGuid(stream, value.VisualAssetRevisionId);
     }
 
     private static PageComposition ReadPageComposition(IBinaryStream stream, int version) => new()
@@ -938,7 +939,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         LayerOrder = BinaryCodec.ReadInt32(stream),
         DiscoveryRegion = version >= 16 && BinaryCodec.ReadBoolean(stream) ? ReadPageCompositionRegion(stream) : null,
         DiscoveryPrompt = version >= 16 ? BinaryCodec.ReadString(stream) : null,
-        DiscoveryHintDelaySeconds = version >= 16 ? BinaryCodec.ReadInt32(stream) : 12
+        DiscoveryHintDelaySeconds = version >= 16 ? BinaryCodec.ReadInt32(stream) : 12,
+        VisualAssetRevisionId = version >= 18 ? BinaryCodec.ReadNullableGuid(stream) : null
     };
 
     private static void WritePageCompositionRegion(IBinaryStream stream, PageCompositionRegion value)
