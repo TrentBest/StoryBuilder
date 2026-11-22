@@ -14,6 +14,8 @@ This is distinct from:
 
 A publication edition freezes the issued artifact; it does not imply that any character or player encountered it.
 
+![In-world publication lineage](assets/InWorldPublicationLineage.svg)
+
 ## Domain records
 
 ### PublicationOutlet
