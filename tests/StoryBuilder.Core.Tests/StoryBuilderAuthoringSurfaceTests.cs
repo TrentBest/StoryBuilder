@@ -45,6 +45,29 @@ public sealed class StoryBuilderAuthoringSurfaceTests
     }
 
     [Fact]
+    public void PublicationCommandsRefreshTheSemanticProjection()
+    {
+        var surface = new StoryBuilderAuthoringSurface(new StoryBuilderSession("Publication surface"));
+
+        var outletResult = surface.Execute(StoryBuilderAuthoringCommands.CreatePublicationOutlet, "Station Bulletin");
+        Assert.True(outletResult.Succeeded);
+        var editionResult = surface.IssuePublicationEdition(new StoryBuilderPublicationEditionDraft(
+            outletResult.RecordId!.Value,
+            1,
+            "Preliminary bulletin",
+            "An anomalous signal has been detected.",
+            "Station shift 41",
+            "Station residents",
+            "Public"));
+
+        Assert.True(editionResult.Succeeded);
+        var root = surface.Root;
+        Assert.Contains("Publication outlets: 1", root.Children.Single(node => node.Id == "storybuilder-counts").Text);
+        Assert.Contains(root.Children, node => node.Id == $"storybuilder-publication-outlet-{outletResult.RecordId.Value:N}");
+        Assert.Contains(root.Children, node => node.Id == $"storybuilder-publication-edition-{editionResult.RecordId.Value:N}");
+    }
+
+    [Fact]
     public void UnsupportedCommandLeavesProjectionUnchanged()
     {
         var surface = new StoryBuilderAuthoringSurface(new StoryBuilderSession("Safe surface"));
