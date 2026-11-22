@@ -93,7 +93,7 @@ public sealed class CompositionManifestImporterTests
     [InlineData("012345678901234567890123456789012345678g")]
     public void RejectsMalformedSourceManifestBlobSha(string blobSha)
     {
-        var json = $"""
+        var json = $$"""
         {
           "title": "Lenny",
           "source": { "path": "source.md", "blobSha": "{{blobSha}}" },
