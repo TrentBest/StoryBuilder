@@ -395,7 +395,23 @@ public sealed class StoryWorkspace
     {
         ArgumentNullException.ThrowIfNull(campaign);
         EnsureUnique(_campaigns.Select(x => x.Id), campaign.Id, nameof(campaign));
-        _campaigns.Add(campaign);
+
+        foreach (var id in campaign.ParticipantCharacterIds)
+            if (!_characters.Any(item => item.Id == id))
+                throw new KeyNotFoundException($"Participant character '{id}' must exist before a campaign can reference it.");
+        foreach (var id in campaign.SceneIds)
+            if (!_scenes.Any(item => item.Id == id))
+                throw new KeyNotFoundException($"Scene '{id}' must exist before a campaign can reference it.");
+        foreach (var id in campaign.EventIds)
+            if (!_events.Any(item => item.Id == id))
+                throw new KeyNotFoundException($"Event '{id}' must exist before a campaign can reference it.");
+
+        _campaigns.Add(campaign with
+        {
+            ParticipantCharacterIds = campaign.ParticipantCharacterIds.Distinct().ToList(),
+            SceneIds = campaign.SceneIds.Distinct().ToList(),
+            EventIds = campaign.EventIds.Distinct().ToList()
+        });
     }
 
     public void ReplaceParticipantAction(ParticipantAction action)
@@ -408,6 +424,12 @@ public sealed class StoryWorkspace
     {
         ArgumentNullException.ThrowIfNull(action);
         EnsureUnique(_participantActions.Select(x => x.Id), action.Id, nameof(action));
+        if (!_campaigns.Any(item => item.Id == action.CampaignId))
+            throw new KeyNotFoundException($"Campaign '{action.CampaignId}' must exist before a participant action can be recorded.");
+        if (action.CharacterId is Guid characterId && !_characters.Any(item => item.Id == characterId))
+            throw new KeyNotFoundException($"Character '{characterId}' must exist before a participant action can reference it.");
+        if (action.ResultingEventId is Guid eventId && !_events.Any(item => item.Id == eventId))
+            throw new KeyNotFoundException($"Event '{eventId}' must exist before a participant action can reference it.");
         _participantActions.Add(action);
     }
 
