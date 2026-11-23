@@ -257,13 +257,19 @@
         }
         @if (narrationRequested)
         {
-            <div class="field">
-                <label for="narrator-draft">Editable narration draft</label>
-                <textarea id="narrator-draft" @bind="narrationDraft" rows="10"></textarea>
-                <span class="muted">This is an author-edited draft, not generated creative prose. No manuscript content changes until you submit it below.</span>
+            <div class="stack">
+                <p class="muted">Edit each beat's passage independently. Every non-empty block is mapped only to the source beat shown above it; linked world events remain attached to that beat. Empty blocks are omitted.</p>
+                @foreach (var segment in narrationSegments)
+                {
+                    <div class="field">
+                        <label for="narration-segment-@segment.BeatId">Beat @segment.Sequence · @segment.Kind · @(segment.ActorLabel ?? "Unattributed participant")</label>
+                        <textarea id="narration-segment-@segment.BeatId" @bind="segment.Text" rows="3"></textarea>
+                        <span class="muted">Source beat: @segment.BeatId · @DescribeEvents(segment)</span>
+                    </div>
+                }
             </div>
-            <button @onclick="AcceptAuthoredNarration">Accept this author-written passage</button>
-                <span class="muted">Acceptance validates the exact source-beat snapshot and appends an immutable provenance record. This is author-authored text; no AI provider is implied.</span>
+            <button @onclick="AcceptAuthoredNarration">Accept these author-written segments</button>
+            <span class="muted">Acceptance validates the exact source-beat snapshot and appends immutable, segment-level provenance. This is author-authored text; no AI provider is implied.</span>
         }
         @if (!string.IsNullOrWhiteSpace(narratorMessage))
         {
@@ -293,7 +299,7 @@
     private string selectedObserverId = string.Empty;
     private string selectedManuscriptId = string.Empty;
     private string selectedSectionId = string.Empty;
-    private string narrationDraft = string.Empty;
+    private readonly List<NarrationSegmentDraft> narrationSegments = [];
     private string narratorMessage = string.Empty;
     private bool narrationRequested;
     private NarrationDraftRequest? pendingNarrationRequest;
@@ -322,6 +328,8 @@
             .OrderBy(item => item.Sequence)
             .FirstOrDefault()?.Id.ToString() ?? string.Empty;
         narrationRequested = false;
+        pendingNarrationRequest = null;
+        narrationSegments.Clear();
     }
 
     private void CreateNarrationManuscript()
@@ -332,6 +340,8 @@
         selectedSectionId = manuscript.Sections.OrderBy(item => item.Sequence).First().Id.ToString();
         narratorMessage = "Created a manuscript and its first chapter.";
         narrationRequested = false;
+        pendingNarrationRequest = null;
+        narrationSegments.Clear();
     }
 
     private void PrepareNarrationDraft()
@@ -355,7 +365,20 @@
                 NarrationPerspective.ThirdPersonLimited,
                 observerId: observerId);
 
-            narrationDraft = Session.SceneComposer.ComposeNarration(currentScene);
+            narrationSegments.Clear();
+            foreach (var source in pendingNarrationRequest.SourceBeats)
+            {
+                var beat = currentScene.Beats.Single(item => item.Id == source.BeatId);
+                narrationSegments.Add(new NarrationSegmentDraft
+                {
+                    BeatId = source.BeatId,
+                    Sequence = source.Sequence,
+                    Kind = source.Kind,
+                    ActorLabel = source.ActorLabel,
+                    EventIds = source.EventIds,
+                    Text = Session.SceneComposer.ComposeNarrationBeat(beat)
+                });
+            }
             narrationRequested = true;
             narratorMessage = observerId is null
                 ? "Draft prepared from the selected scene beats. Review and edit it; acceptance will preserve its source snapshot."
@@ -365,6 +388,7 @@
         {
             pendingNarrationRequest = null;
             narrationRequested = false;
+            narrationSegments.Clear();
             narratorMessage = $"Cannot prepare this narration request: {exception.Message}";
         }
     }
@@ -374,29 +398,42 @@
         if (pendingNarrationRequest is null || !narrationRequested)
             return;
 
-        if (string.IsNullOrWhiteSpace(narrationDraft))
+        var populatedSegments = narrationSegments
+            .Where(segment => !string.IsNullOrWhiteSpace(segment.Text))
+            .ToArray();
+        if (populatedSegments.Length == 0)
         {
-            narratorMessage = "Write or retain some narration text before accepting it.";
+            narratorMessage = "Write or retain text in at least one beat segment before accepting it.";
             return;
         }
 
-        var sourceBeatIds = pendingNarrationRequest.SourceBeats.Select(beat => beat.BeatId).ToArray();
-        var eventIds = pendingNarrationRequest.SourceBeats
-            .SelectMany(beat => beat.EventIds).Distinct().ToArray();
+        var passageParts = new List<string>();
+        var proposalSegments = new List<NarrationDraftSegment>();
+        var textOffset = 0;
+        foreach (var segment in populatedSegments)
+        {
+            var text = segment.Text.Trim();
+            if (passageParts.Count > 0)
+                textOffset += (Environment.NewLine.Length * 2);
+
+            var source = pendingNarrationRequest.SourceBeats.Single(item => item.BeatId == segment.BeatId);
+            proposalSegments.Add(new NarrationDraftSegment(
+                textOffset,
+                text.Length,
+                Array.AsReadOnly([segment.BeatId]),
+                Array.AsReadOnly(source.EventIds.ToArray())));
+            passageParts.Add(text);
+            textOffset += text.Length;
+        }
+
+        var proposalText = string.Join(Environment.NewLine + Environment.NewLine, passageParts);
         var proposal = new NarrationDraftProposal
         {
             RequestId = pendingNarrationRequest.RequestId,
-            Text = narrationDraft,
+            Text = proposalText,
             ProviderId = "author",
             ModelId = "manual-authoring",
-            Segments =
-            [
-                new NarrationDraftSegment(
-                    0,
-                    narrationDraft.Length,
-                    Array.AsReadOnly(sourceBeatIds),
-                    Array.AsReadOnly(eventIds))
-            ],
+            Segments = Array.AsReadOnly(proposalSegments.ToArray()),
             Claims = Array.Empty<NarrationEventClaim>()
         };
 
@@ -404,13 +441,30 @@
         {
             Session.AcceptNarrationDraft(pendingNarrationRequest, proposal, "Author");
             narrationRequested = false;
-            narratorMessage = "Accepted into the manuscript. The exact text, source-beat range, linked events, and author attribution are now recorded in the acceptance history.";
+            narratorMessage = "Accepted into the manuscript. Each text range, its source beat, linked events, and author attribution are now recorded in the acceptance history.";
             pendingNarrationRequest = null;
+            narrationSegments.Clear();
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
         {
             narratorMessage = $"Passage not accepted: {exception.Message} Prepare a fresh draft if the source beats have changed.";
         }
+    }
+
+    private string DescribeEvents(NarrationSegmentDraft segment) =>
+        segment.EventIds.Count == 0
+            ? "No linked world events; beat-level provenance only"
+            : string.Join(" · ", segment.EventIds.Select(eventId =>
+                Session.Workspace.Events.FirstOrDefault(item => item.Id == eventId)?.Title ?? $"Missing event {eventId}"));
+
+    private sealed class NarrationSegmentDraft
+    {
+        public Guid BeatId { get; init; }
+        public int Sequence { get; init; }
+        public SceneBeatKind Kind { get; init; }
+        public string? ActorLabel { get; init; }
+        public IReadOnlyList<Guid> EventIds { get; init; } = Array.Empty<Guid>();
+        public string Text { get; set; } = string.Empty;
     }
 
     private void CreateScene()
@@ -428,6 +482,8 @@
     {
         currentScene = scene;
         narrationRequested = false;
+        pendingNarrationRequest = null;
+        narrationSegments.Clear();
         sceneTitle = scene.Title;
         sceneLocation = scene.Location ?? string.Empty;
         scenePurpose = scene.Purpose ?? string.Empty;
