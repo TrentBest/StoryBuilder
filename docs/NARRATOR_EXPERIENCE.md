@@ -146,7 +146,7 @@ The Core model now defines a provider-neutral request/proposal boundary in `Narr
 - The validator rejects mismatched request identities, empty proposals, out-of-range text spans, unknown beat references, event provenance not associated with the cited beats, claims outside the supplied event set, and claims not permitted by the supplied observer projection.
 - Omniscient perspective requires explicit author permission. Observer-constrained requests must carry the matching observer projection and event horizon.
 
-This is a contract and validation slice, not a connected drafting provider, request builder, UI diff, or creative generation feature. The host still needs to construct requests from selected workspace records, invoke an optional provider, present the proposal and diff, and route explicit author acceptance through the existing manuscript save gate. Tests have been added for accepted provenance and rejection boundaries; execution remains pending.
+This is a contract and validation slice, not a connected concrete drafting provider, author-facing diff, or creative generation feature. The workspace-backed request builder and optional host provider coordinator are now implemented; the host still needs a concrete provider registration, proposal/diff presentation, and explicit author acceptance through the existing manuscript save gate. Tests have been added for provenance boundaries; execution is verified by CI below.
 
 
 ## Workspace-backed narration request builder — 2026-11-23
@@ -162,3 +162,15 @@ The Core service `NarrationDraftRequestBuilder` now constructs the provider-neut
 The builder passes only selected beat snapshots and the observer projection to the provider boundary; it does not pass the whole workspace, invoke a provider, persist a proposal, or accept manuscript changes. The existing `SaveManuscriptDraft` remains the author-acceptance write path.
 
 The proposal validator also now fails closed on malformed deserialized provenance collections, empty identities, and invalid claim modes. Every non-whitespace character in a proposal must be covered by a source-beat provenance segment; providers cannot submit ungrounded prose by omitting segments. Tests cover selected-beat ordering, manuscript context, foreign-beat rejection, observer-projection gating, unlinked-beat rejection, and duplicate selections. Test execution remains unverified until CI or a local .NET run reports a result.
+
+
+## Optional provider host boundary — 2026-11-23
+
+The composition/host adapter now defines `INarrationDraftProvider` and `NarrationDraftCoordinator`:
+
+- A host may supply an implementation without adding a concrete provider dependency to StoryBuilder.Core.
+- The coordinator builds the bounded request, passes cancellation to the provider, stamps or verifies provider attribution, and validates the returned proposal against the exact request.
+- The result is a `NarrationDraftReview` containing the request and validated proposal. It remains untrusted, non-canonical content.
+- The coordinator never writes to the workspace. A provider cannot accept canon by returning text.
+
+No concrete provider is currently registered by the WebDemo, and no proposal diff/acceptance UI is connected yet. The next slice is to register a real optional provider and present its validated proposal for comparison and author editing, while preserving the existing explicit save gate.
