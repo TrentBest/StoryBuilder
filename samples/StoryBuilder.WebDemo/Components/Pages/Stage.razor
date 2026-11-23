@@ -50,7 +50,7 @@
             <div class="list">
                 @foreach (var scene in Session.Workspace.Scenes)
                 {
-                    <button class="list-item @(currentScene?.Id == scene.Id ? "selected" : "")" @onclick="() => SelectScene(scene)">
+                    <button class="list-item @(currentScene?.Id == scene.Id ? "selected" : "")" @onclick="() => SelectScene(scene)" disabled="@narrationRequested">
                         <strong>@scene.Title</strong>
                         <span class="chip">@scene.CaptureMode</span>
                         <span>@scene.Beats.Count beat(s) · @(scene.Location ?? "Location unknown")</span>
@@ -216,7 +216,7 @@
         <hr />
         <div class="eyebrow">Narrator workbench · author review</div>
         <h2>Prepare a manuscript passage</h2>
-        <p class="muted">Choose a point of view, prepare the draft, edit it, then explicitly submit it for knowledge review and save. Linked world events are checked against what the selected observer is allowed to know.</p>
+        <p class="muted">Optionally choose a point-of-view character to apply an observer-knowledge boundary. Prepare the passage, edit each beat-linked block, then explicitly accept it into the selected manuscript section.</p>
         <div class="field-grid">
             <div class="field">
                 <label for="narrator-observer">Point-of-view character</label>
@@ -240,8 +240,8 @@
             </div>
         </div>
         <div class="row">
-            <button class="secondary" @onclick="CreateNarrationManuscript">Create manuscript + chapter</button>
-            <button class="secondary" @onclick="PrepareNarrationDraft" disabled="@(!CanPrepareNarration)">Prepare draft for review</button>
+            <button class="secondary" @onclick="CreateNarrationManuscript" disabled="@narrationRequested">Create manuscript + chapter</button>
+            <button class="secondary" @onclick="PrepareNarrationDraft" disabled="@(!CanPrepareNarration || narrationRequested)">Prepare draft for review</button>
         </div>
         @if (SelectedManuscript is not null)
         {
@@ -268,7 +268,10 @@
                     </div>
                 }
             </div>
-            <button @onclick="AcceptAuthoredNarration">Accept these author-written segments</button>
+            <div class="row">
+                <button @onclick="AcceptAuthoredNarration">Accept these author-written segments</button>
+                <button class="secondary" @onclick="DiscardNarrationDraft">Discard prepared passage</button>
+            </div>
             <span class="muted">Acceptance validates the exact source-beat snapshot and appends immutable, segment-level provenance. This is author-authored text; no AI provider is implied.</span>
         }
         @if (!string.IsNullOrWhiteSpace(narratorMessage))
@@ -449,6 +452,14 @@
         {
             narratorMessage = $"Passage not accepted: {exception.Message} Prepare a fresh draft if the source beats have changed.";
         }
+    }
+
+    private void DiscardNarrationDraft()
+    {
+        narrationRequested = false;
+        pendingNarrationRequest = null;
+        narrationSegments.Clear();
+        narratorMessage = "Prepared passage discarded. The manuscript was not changed.";
     }
 
     private string DescribeEvents(NarrationSegmentDraft segment) =>
