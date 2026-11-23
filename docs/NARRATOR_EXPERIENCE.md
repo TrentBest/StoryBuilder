@@ -176,13 +176,19 @@ The composition/host adapter now defines `INarrationDraftProvider` and `Narratio
 No concrete provider is currently registered by the WebDemo, and no proposal diff/acceptance UI is connected yet. The next slice is to register a real optional provider and present its validated proposal for comparison and author editing, while preserving the existing explicit save gate.
 
 
+
+## Author acceptance and persisted narration provenance — 2026-11-23
+
+Validated proposals now have an explicit acceptance operation: `StoryBuilderSession.AcceptNarrationDraft(request, proposal, author)`.
+
+- Acceptance re-runs proposal validation and verifies the manuscript, section, scene, referenced events, and current source-beat snapshots before mutation. If selected beat content, attribution, identity, sequence, or event links changed after drafting, the proposal is rejected as stale.
+- A successful acceptance updates section text, adds referenced event links, and appends one immutable `NarrationAcceptanceRecord` in the same manuscript/workspace replacement.
+- Each record preserves exact accepted text, request/scene IDs, author, provider/model attribution, acceptance timestamp, source-beat text ranges, and event claims. Later edits to the section body do not erase earlier acceptance records.
+- Provider proposals remain non-canonical until this operation is called. The coordinator still does not accept or persist anything automatically.
+
+This is persistence at the StoryBuilder domain-model/workspace serialization boundary. It does not claim a database transaction, concurrent-write isolation, or a connected durable database adapter. No concrete provider or author-facing diff/acceptance UI is registered in WebDemo yet; this establishes the safe domain operation that such a UI must call.
+
+
 ## Verification — 2026-11-23
 
-GitHub Actions `dotnet` workflow run [#1234](https://github.com/TrentBest/StoryBuilder/actions/runs/45272789664) passed on code/test commit `b3987a3d9729efa35d7c6f855e251357202aee47`:
-
-- Core authoring/lifecycle/composition/persistence: **180 passed**
-- Story Forge: **21 passed**
-- WebDemo browser persistence/restart: **2 passed**
-- All configured project builds succeeded.
-
-The earlier run exposed one pre-existing unverified Narrator acceptance test whose fixture placed two events at separate acquisition anchors without a causal edge between them. The fixture now declares the cause-to-consequence relationship explicitly through `LinkEventCausality`; the production evaluator's causal-horizon behavior was not weakened.
+The previous verified baseline is GitHub Actions run [#1234](https://github.com/TrentBest/StoryBuilder/actions/runs/45272789664), which passed 180 Core tests, 21 Story Forge tests, 2 WebDemo browser tests, and all configured project builds. The acceptance/provenance changes above are newer and still require a fresh CI result.
