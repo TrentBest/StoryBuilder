@@ -76,6 +76,45 @@ public sealed class NarratorAgentTests
     }
 
     [Fact]
+    public void AcceptedNarrationDraftSavesTextAndEventProvenanceWithOneWorkspaceChange()
+    {
+        var session = new StoryBuilderSession();
+        var timeline = session.CreateTimeline("Main history");
+        var observer = session.CreateCharacter("Mara");
+        var firstEvent = session.CreateTimelineEvent(timeline.Id, "The gate opens");
+        var secondEvent = session.CreateTimelineEvent(timeline.Id, "The bell rings");
+        foreach (var storyEvent in new[] { firstEvent, secondEvent })
+        {
+            session.AddObserverKnowledge(new ObserverKnowledgeRecord
+            {
+                ObserverId = observer.Id,
+                EventId = storyEvent.Id,
+                Kind = ObserverKnowledgeKind.Witnessed,
+                AcquiredAtEventId = storyEvent.Id,
+                Status = CanonStatus.Accepted
+            });
+        }
+
+        var manuscript = session.CreateManuscript("The Lost Cartographer");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
+        var changes = 0;
+        session.Changed += () => changes++;
+        using var narrator = new NarratorAgent(session);
+        narrator.RequestDraft(manuscript.Id, section.Sections[0].Id, observer.Id);
+
+        var submission = narrator.SubmitDraft(
+            "Mara watched the gate open as the bell rang.",
+            [firstEvent.Id, secondEvent.Id, firstEvent.Id],
+            secondEvent.Id);
+
+        Assert.True(submission.Accepted);
+        Assert.Equal(1, changes);
+        var saved = Assert.Single(session.Workspace.Manuscripts).Sections.Single();
+        Assert.Equal("Mara watched the gate open as the bell rang.", saved.Body);
+        Assert.Equal(new[] { firstEvent.Id, secondEvent.Id }, saved.EventIds);
+    }
+
+    [Fact]
     public void SeparateNarratorAgentsDoNotShareIntentState()
     {
         var firstSession = new StoryBuilderSession();
