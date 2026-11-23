@@ -116,6 +116,9 @@ public sealed class StoryWorkspacePersistenceTests
             SourceUri = "https://github.com/TrentBest/FSM_Dungeon/blob/development/docs/books/elves.md",
             EntryIds = ["people.aelvarin", "story.archive-beneath-the-roots"]
         });
+        var adventure = session.CreateAdventure(campaign.Id, "The Broken Gate", "A route into the buried archive.");
+        var quest = session.CreateQuest(campaign.Id, adventure.Id, "Find the keeper", "Locate the witness before the gate opens.");
+        var objective = session.CreateQuestObjective(quest.Id, "Trace the signal", "Follow the signal to its source.");
         session.AddParticipantAction(new ParticipantAction
         {
             CampaignId = campaign.Id,
@@ -214,6 +217,17 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal(source.Id, Assert.Single(restoredSession.Workspace.Sources).Id);
         Assert.Equal(campaign.Id, Assert.Single(restoredSession.Workspace.Campaigns).Id);
         Assert.Equal(CanonStatus.Proposed, Assert.Single(restoredSession.Workspace.ParticipantActions).Status);
+        var restoredAdventure = Assert.Single(restoredSession.Workspace.Adventures);
+        Assert.Equal(adventure.Id, restoredAdventure.Id);
+        Assert.Equal(campaign.Id, restoredAdventure.CampaignId);
+        Assert.Equal("The Broken Gate", restoredAdventure.Title);
+        var restoredQuest = Assert.Single(restoredSession.Workspace.Quests);
+        Assert.Equal(quest.Id, restoredQuest.Id);
+        Assert.Equal(adventure.Id, restoredQuest.AdventureId);
+        var restoredObjective = Assert.Single(restoredSession.Workspace.QuestObjectives);
+        Assert.Equal(objective.Id, restoredObjective.Id);
+        Assert.Equal(quest.Id, restoredObjective.QuestId);
+        Assert.Equal(campaign.Id, restoredObjective.CampaignId);
         Assert.Equal("courageous", Assert.Single(restoredSession.Vocabulary.Search("brave")).CanonicalTerm);
         Assert.Contains(restoredSession.Vocabulary.Search("brave"), usage => usage.OccurrenceCount >= 1);
     }
