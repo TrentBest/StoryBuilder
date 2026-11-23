@@ -132,6 +132,7 @@ public static class NarrationDraftProposalValidator
         if (proposal.Claims.Any(claim =>
                 claim is null || claim.EventId == Guid.Empty || !Enum.IsDefined(claim.Mode)))
             throw new ArgumentException("Every proposed event claim must contain valid event and claim-mode identities.", nameof(proposal));
+        var segmentEventIds = proposal.Segments.SelectMany(segment => segment.EventIds).ToHashSet();
 
         if (request.ObserverKnowledge is not null)
         {
@@ -150,6 +151,8 @@ public static class NarrationDraftProposalValidator
         {
             if (!eventIds.Contains(claim.EventId))
                 throw new ArgumentException("A proposed claim refers to an event that was not supplied.", nameof(proposal));
+            if (!segmentEventIds.Contains(claim.EventId))
+                throw new ArgumentException("A proposed event claim must be linked to a source-provenance text segment.", nameof(proposal));
             if (request.ObserverKnowledge is not null &&
                 !request.ObserverKnowledge.Events.Any(item =>
                     item.EventId == claim.EventId &&
