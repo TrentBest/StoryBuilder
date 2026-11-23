@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 2;
+    private const int FormatVersion = 3;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBW1");
 
     public StoryWorkspaceBinaryDocument()
@@ -146,7 +146,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.Organizations, WriteOrganization);
         BinaryCodec.WriteList(stream, workspace.PublicationOutlets, WritePublicationOutlet);
         BinaryCodec.WriteList(stream, workspace.InWorldPublicationEditions, WriteInWorldPublicationEdition);
-        BinaryCodec.WriteList(stream, workspace.SourcebookAttachments, WriteSourcebookAttachment);
+        BinaryCodec.WriteList(stream, workspace.SourcebookAttachments, WriteSourcebookAttachment);\n        BinaryCodec.WriteList(stream, workspace.Adventures, WriteAdventure);\n        BinaryCodec.WriteList(stream, workspace.Quests, WriteQuest);\n        BinaryCodec.WriteList(stream, workspace.QuestObjectives, WriteQuestObjective);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
@@ -176,7 +176,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var organizations = BinaryCodec.ReadList(stream, ReadOrganization);
         var publicationOutlets = BinaryCodec.ReadList(stream, ReadPublicationOutlet);
         var inWorldPublicationEditions = BinaryCodec.ReadList(stream, ReadInWorldPublicationEdition);
-        var sourcebookAttachments = BinaryCodec.ReadList(stream, ReadSourcebookAttachment);
+        var sourcebookAttachments = BinaryCodec.ReadList(stream, ReadSourcebookAttachment);\n        var adventures = BinaryCodec.ReadList(stream, ReadAdventure);\n        var quests = BinaryCodec.ReadList(stream, ReadQuest);\n        var questObjectives = BinaryCodec.ReadList(stream, ReadQuestObjective);
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -201,7 +201,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in organizations) workspace.AddOrganization(item);
         foreach (var item in publicationOutlets) workspace.AddPublicationOutlet(item);
         foreach (var item in inWorldPublicationEditions) workspace.AddInWorldPublicationEdition(item);
-        foreach (var item in sourcebookAttachments) workspace.AddSourcebookAttachment(item);
+        foreach (var item in sourcebookAttachments) workspace.AddSourcebookAttachment(item);\n        foreach (var item in adventures) workspace.AddAdventure(item);\n        foreach (var item in quests) workspace.AddQuest(item);\n        foreach (var item in questObjectives) workspace.AddQuestObjective(item);
         return workspace;
     }
 
@@ -1022,6 +1022,44 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         EventIds = BinaryCodec.ReadGuidList(stream),
         SupersedesEditionId = BinaryCodec.ReadNullableGuid(stream),
         CorrectionNotes = BinaryCodec.ReadString(stream)
+    };
+
+    private static void WriteAdventure(IBinaryStream stream, AdventureRecord item)
+    {
+        BinaryCodec.WriteGuid(stream,item.Id); BinaryCodec.WriteGuid(stream,item.CampaignId); BinaryCodec.WriteString(stream,item.Title);
+        BinaryCodec.WriteString(stream,item.Summary); BinaryCodec.WriteInt32(stream,item.Sequence); BinaryCodec.WriteEnum(stream,item.Status);
+        BinaryCodec.WriteDateTimeOffset(stream,item.CreatedAtUtc); BinaryCodec.WriteDateTimeOffset(stream,item.UpdatedAtUtc);
+    }
+    private static AdventureRecord ReadAdventure(IBinaryStream stream) => new()
+    {
+        Id=BinaryCodec.ReadGuid(stream), CampaignId=BinaryCodec.ReadGuid(stream), Title=BinaryCodec.ReadRequiredString(stream,nameof(AdventureRecord.Title)),
+        Summary=BinaryCodec.ReadRequiredString(stream,nameof(AdventureRecord.Summary)), Sequence=BinaryCodec.ReadInt32(stream),
+        Status=BinaryCodec.ReadEnum<CanonStatus>(stream), CreatedAtUtc=BinaryCodec.ReadDateTimeOffset(stream), UpdatedAtUtc=BinaryCodec.ReadDateTimeOffset(stream)
+    };
+    private static void WriteQuest(IBinaryStream stream, QuestRecord item)
+    {
+        BinaryCodec.WriteGuid(stream,item.Id); BinaryCodec.WriteGuid(stream,item.CampaignId); BinaryCodec.WriteNullableGuid(stream,item.AdventureId);
+        BinaryCodec.WriteString(stream,item.Title); BinaryCodec.WriteString(stream,item.Summary); BinaryCodec.WriteInt32(stream,item.Sequence);
+        BinaryCodec.WriteEnum(stream,item.Status); BinaryCodec.WriteDateTimeOffset(stream,item.CreatedAtUtc); BinaryCodec.WriteDateTimeOffset(stream,item.UpdatedAtUtc);
+    }
+    private static QuestRecord ReadQuest(IBinaryStream stream) => new()
+    {
+        Id=BinaryCodec.ReadGuid(stream), CampaignId=BinaryCodec.ReadGuid(stream), AdventureId=BinaryCodec.ReadNullableGuid(stream),
+        Title=BinaryCodec.ReadRequiredString(stream,nameof(QuestRecord.Title)), Summary=BinaryCodec.ReadRequiredString(stream,nameof(QuestRecord.Summary)),
+        Sequence=BinaryCodec.ReadInt32(stream), Status=BinaryCodec.ReadEnum<CanonStatus>(stream), CreatedAtUtc=BinaryCodec.ReadDateTimeOffset(stream), UpdatedAtUtc=BinaryCodec.ReadDateTimeOffset(stream)
+    };
+    private static void WriteQuestObjective(IBinaryStream stream, QuestObjectiveRecord item)
+    {
+        BinaryCodec.WriteGuid(stream,item.Id); BinaryCodec.WriteGuid(stream,item.CampaignId); BinaryCodec.WriteGuid(stream,item.QuestId);
+        BinaryCodec.WriteString(stream,item.Title); BinaryCodec.WriteString(stream,item.Description); BinaryCodec.WriteInt32(stream,item.Sequence);
+        BinaryCodec.WriteEnum(stream,item.Status); BinaryCodec.WriteNullableGuid(stream,item.RelatedSceneId); BinaryCodec.WriteNullableGuid(stream,item.TargetEventId);
+    }
+    private static QuestObjectiveRecord ReadQuestObjective(IBinaryStream stream) => new()
+    {
+        Id=BinaryCodec.ReadGuid(stream), CampaignId=BinaryCodec.ReadGuid(stream), QuestId=BinaryCodec.ReadGuid(stream),
+        Title=BinaryCodec.ReadRequiredString(stream,nameof(QuestObjectiveRecord.Title)), Description=BinaryCodec.ReadRequiredString(stream,nameof(QuestObjectiveRecord.Description)),
+        Sequence=BinaryCodec.ReadInt32(stream), Status=BinaryCodec.ReadEnum<CanonStatus>(stream),
+        RelatedSceneId=BinaryCodec.ReadNullableGuid(stream), TargetEventId=BinaryCodec.ReadNullableGuid(stream)
     };
 
     private static void WriteSourcebookAttachment(IBinaryStream stream, SourcebookAttachment value)
