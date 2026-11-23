@@ -230,7 +230,7 @@
             </div>
             <div class="field">
                 <label for="narrator-manuscript">Manuscript</label>
-                <select id="narrator-manuscript" @bind="selectedManuscriptId">
+                <select id="narrator-manuscript" @bind="selectedManuscriptId" @bind:after="SyncSelectedSection">
                     <option value="">Choose a manuscript</option>
                     @foreach (var manuscript in Session.Workspace.Manuscripts)
                     {
@@ -326,6 +326,15 @@
         selectedEventId = Session.Workspace.Events.FirstOrDefault()?.Id.ToString() ?? string.Empty;
     }
 
+    private void SyncSelectedSection()
+    {
+        selectedSectionId = SelectedManuscript?.Sections
+            .OrderBy(item => item.Sequence)
+            .FirstOrDefault()?.Id.ToString() ?? string.Empty;
+        narrationRequested = false;
+        lastNarrationSubmission = null;
+    }
+
     private void CreateNarrationManuscript()
     {
         var manuscript = Session.CreateManuscript("Untitled story");
@@ -358,6 +367,9 @@
     {
         if (currentScene is null || !narrationRequested)
             return;
+
+        if (Narrator.DraftState == "NeedsReview")
+            Narrator.RequestRevision();
 
         var eventIds = currentScene.Beats.SelectMany(beat => beat.EventIds).Distinct().ToArray();
         var asOfEventId = eventIds.LastOrDefault();
