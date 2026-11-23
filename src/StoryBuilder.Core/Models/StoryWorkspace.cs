@@ -87,6 +87,47 @@ public sealed record CampaignRecord
     public CanonStatus Status { get; init; } = CanonStatus.Draft;
 }
 
+/// <summary>An authored adventure within a campaign; it groups quests without prescribing outcomes.</summary>
+public sealed record AdventureRecord
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid CampaignId { get; init; }
+    public string Title { get; init; } = "Untitled adventure";
+    public string Summary { get; init; } = string.Empty;
+    public int Sequence { get; init; } = 1;
+    public CanonStatus Status { get; init; } = CanonStatus.Draft;
+    public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+}
+
+/// <summary>A quest is playable intent; its objectives may be completed in any order or not at all.</summary>
+public sealed record QuestRecord
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid CampaignId { get; init; }
+    public Guid? AdventureId { get; init; }
+    public string Title { get; init; } = "Untitled quest";
+    public string Summary { get; init; } = string.Empty;
+    public int Sequence { get; init; } = 1;
+    public CanonStatus Status { get; init; } = CanonStatus.Draft;
+    public DateTimeOffset CreatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset UpdatedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+}
+
+/// <summary>A player-facing objective or line of inquiry within a quest.</summary>
+public sealed record QuestObjectiveRecord
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid CampaignId { get; init; }
+    public Guid QuestId { get; init; }
+    public string Title { get; init; } = "Untitled objective";
+    public string Description { get; init; } = string.Empty;
+    public int Sequence { get; init; } = 1;
+    public CanonStatus Status { get; init; } = CanonStatus.Draft;
+    public Guid? RelatedSceneId { get; init; }
+    public Guid? TargetEventId { get; init; }
+}
+
 /// <summary>A participant-authored choice; it does not become canon until deliberately accepted.</summary>
 public sealed record ParticipantAction
 {
@@ -144,7 +185,7 @@ public sealed class StoryWorkspace
     private readonly List<SceneRecord> _scenes = [];
     private readonly List<HistoricalClaim> _historicalClaims = [];
     private readonly List<StoryEvent> _events = [];
-    private readonly List<CampaignRecord> _campaigns = [];
+    private readonly List<CampaignRecord> _campaigns = [];\n    private readonly List<AdventureRecord> _adventures = [];\n    private readonly List<QuestRecord> _quests = [];\n    private readonly List<QuestObjectiveRecord> _questObjectives = [];
     private readonly List<SourcebookAttachment> _sourcebookAttachments = [];
     private readonly List<ParticipantAction> _participantActions = [];
     private readonly List<SourceRecord> _sources = [];
@@ -172,7 +213,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
     public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
-    public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();
+    public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();\n    public IReadOnlyList<AdventureRecord> Adventures => _adventures.AsReadOnly();\n    public IReadOnlyList<QuestRecord> Quests => _quests.AsReadOnly();\n    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();
     public IReadOnlyList<SourcebookAttachment> SourcebookAttachments => _sourcebookAttachments.AsReadOnly();
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
@@ -414,6 +455,67 @@ public sealed class StoryWorkspace
             SceneIds = campaign.SceneIds.Distinct().ToList(),
             EventIds = campaign.EventIds.Distinct().ToList()
         });
+    }
+
+    public void AddAdventure(AdventureRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        EnsureUnique(_adventures.Select(x => x.Id), item.Id, nameof(item));
+        if (!_campaigns.Any(x => x.Id == item.CampaignId)) throw new KeyNotFoundException($"Campaign '{item.CampaignId}' must exist before an adventure can be added.");
+        if (item.Sequence < 1) throw new ArgumentOutOfRangeException(nameof(item));
+        _adventures.Add(item);
+    }
+
+    public void ReplaceAdventure(AdventureRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        if (!_campaigns.Any(x => x.Id == item.CampaignId)) throw new KeyNotFoundException($"Campaign '{item.CampaignId}' does not exist.");
+        if (item.Sequence < 1) throw new ArgumentOutOfRangeException(nameof(item));
+        if (_quests.Any(x => x.AdventureId == item.Id && x.CampaignId != item.CampaignId)) throw new InvalidOperationException("Adventure campaign ownership cannot change while quests reference it.");
+        ReplaceById(_adventures, item.Id, item, nameof(item));
+    }
+
+    public void AddQuest(QuestRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        EnsureUnique(_quests.Select(x => x.Id), item.Id, nameof(item));
+        if (!_campaigns.Any(x => x.Id == item.CampaignId)) throw new KeyNotFoundException($"Campaign '{item.CampaignId}' must exist before a quest can be added.");
+        if (item.AdventureId is Guid adventureId && !_adventures.Any(x => x.Id == adventureId && x.CampaignId == item.CampaignId))
+            throw new KeyNotFoundException($"Adventure '{adventureId}' must belong to campaign '{item.CampaignId}'.");
+        if (item.Sequence < 1) throw new ArgumentOutOfRangeException(nameof(item));
+        _quests.Add(item);
+    }
+
+    public void ReplaceQuest(QuestRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        if (!_campaigns.Any(x => x.Id == item.CampaignId)) throw new KeyNotFoundException($"Campaign '{item.CampaignId}' does not exist.");
+        if (item.AdventureId is Guid adventureId && !_adventures.Any(x => x.Id == adventureId && x.CampaignId == item.CampaignId))
+            throw new KeyNotFoundException($"Adventure '{adventureId}' must belong to campaign '{item.CampaignId}'.");
+        if (item.Sequence < 1) throw new ArgumentOutOfRangeException(nameof(item));
+        if (_questObjectives.Any(x => x.QuestId == item.Id && x.CampaignId != item.CampaignId)) throw new InvalidOperationException("Quest campaign ownership cannot change while objectives reference it.");
+        ReplaceById(_quests, item.Id, item, nameof(item));
+    }
+
+    public void AddQuestObjective(QuestObjectiveRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        EnsureUnique(_questObjectives.Select(x => x.Id), item.Id, nameof(item));
+        if (!_quests.Any(x => x.Id == item.QuestId && x.CampaignId == item.CampaignId)) throw new KeyNotFoundException($"Quest '{item.QuestId}' must belong to campaign '{item.CampaignId}'.");
+        if (item.Sequence < 1) throw new ArgumentOutOfRangeException(nameof(item));
+        if (item.RelatedSceneId is Guid sceneId && !_scenes.Any(x => x.Id == sceneId)) throw new KeyNotFoundException($"Scene '{sceneId}' does not exist.");
+        if (item.TargetEventId is Guid eventId && !_events.Any(x => x.Id == eventId)) throw new KeyNotFoundException($"Event '{eventId}' does not exist.");
+        _questObjectives.Add(item);
+    }
+
+    public void ReplaceQuestObjective(QuestObjectiveRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        if (!_quests.Any(x => x.Id == item.QuestId && x.CampaignId == item.CampaignId)) throw new KeyNotFoundException($"Quest '{item.QuestId}' must belong to campaign '{item.CampaignId}'.");
+        if (item.Sequence < 1) throw new ArgumentOutOfRangeException(nameof(item));
+        if (item.RelatedSceneId is Guid sceneId && !_scenes.Any(x => x.Id == sceneId)) throw new KeyNotFoundException($"Scene '{sceneId}' does not exist.");
+        if (item.TargetEventId is Guid eventId && !_events.Any(x => x.Id == eventId)) throw new KeyNotFoundException($"Event '{eventId}' does not exist.");
+        ReplaceById(_questObjectives, item.Id, item, nameof(item));
     }
 
     /// <summary>Attaches an exact sourcebook edition to a campaign without copying or mutating its content.</summary>
