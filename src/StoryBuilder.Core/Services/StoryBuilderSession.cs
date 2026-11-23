@@ -302,8 +302,19 @@ public sealed class StoryBuilderSession
         foreach (var source in request.SourceBeats)
         {
             if (!currentBeats.TryGetValue(source.BeatId, out var current) ||
+                current.Sequence != source.Sequence ||
+                current.Kind != source.Kind ||
+                current.ActorId != source.ActorId ||
+                !string.Equals(current.ActorLabel, source.ActorLabel, StringComparison.Ordinal) ||
+                !string.Equals(current.Action, source.Action, StringComparison.Ordinal) ||
+                !string.Equals(current.Reaction, source.Reaction, StringComparison.Ordinal) ||
+                !string.Equals(current.Dialogue, source.Dialogue, StringComparison.Ordinal) ||
+                !string.Equals(current.PoseOrPosition, source.PoseOrPosition, StringComparison.Ordinal) ||
+                !string.Equals(current.EmotionalTone, source.EmotionalTone, StringComparison.Ordinal) ||
+                !string.Equals(current.CaptureNote, source.CaptureNote, StringComparison.Ordinal) ||
+                !string.Equals(current.Attribution, source.Attribution, StringComparison.Ordinal) ||
                 !current.EventIds.Order().SequenceEqual(source.EventIds.Order()))
-                throw new InvalidOperationException("The proposal is stale because one or more source beats or event links changed after drafting.");
+                throw new InvalidOperationException("The proposal is stale because one or more source beats changed after drafting.");
         }
 
         var referencedEventIds = proposal.Segments.SelectMany(item => item.EventIds)
