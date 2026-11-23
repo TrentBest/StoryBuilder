@@ -164,6 +164,45 @@ public sealed class StoryWorkspacePersistenceTests
             Status = CanonStatus.Accepted
         });
 
+        var currentBeat = session.Workspace.Scenes.Single(item => item.Id == scene.Id).Beats.Single();
+        var narrationRequest = new NarrationDraftRequest
+        {
+            SceneId = scene.Id,
+            ManuscriptId = manuscript.Id,
+            SectionId = chapter.Sections[0].Id,
+            SourceBeats =
+            [
+                new NarrationSourceBeat(
+                    currentBeat.Id,
+                    currentBeat.Sequence,
+                    currentBeat.Kind,
+                    currentBeat.ActorId,
+                    currentBeat.ActorLabel,
+                    currentBeat.Action,
+                    currentBeat.Reaction,
+                    currentBeat.Dialogue,
+                    currentBeat.PoseOrPosition,
+                    currentBeat.EmotionalTone,
+                    currentBeat.CaptureNote,
+                    currentBeat.Attribution,
+                    currentBeat.EventIds)
+            ]
+        };
+        var narrationText = "Mara placed her hand on the latch.";
+        var narrationProposal = new NarrationDraftProposal
+        {
+            RequestId = narrationRequest.RequestId,
+            Text = narrationText,
+            ProviderId = "persistence-test-provider",
+            ModelId = "test-model",
+            Segments =
+            [
+                new NarrationDraftSegment(0, narrationText.Length, [currentBeat.Id], [timelineEvent.Id])
+            ],
+            Claims = [new NarrationEventClaim(timelineEvent.Id, NarrationClaimMode.DirectFact)]
+        };
+        session.AcceptNarrationDraft(narrationRequest, narrationProposal, "T. Best");
+
         var document = StoryWorkspaceBinaryDocument.FromSession(session);
         using var output = new MemoryBinaryStream();
         document.Pack(output);
@@ -192,6 +231,17 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Equal("Mara placed her hand on the latch.", Assert.Single(restoredManuscript.Sections).Body);
         Assert.Contains(scene.Id, Assert.Single(restoredManuscript.Sections).SceneIds);
         Assert.Contains(timelineEvent.Id, Assert.Single(restoredManuscript.Sections).EventIds);
+        var restoredNarration = Assert.Single(Assert.Single(restoredManuscript.Sections).NarrationAcceptances);
+        Assert.Equal(narrationRequest.RequestId, restoredNarration.RequestId);
+        Assert.Equal(narrationRequest.SceneId, restoredNarration.SceneId);
+        Assert.Equal(narrationText, restoredNarration.AcceptedText);
+        Assert.Equal("T. Best", restoredNarration.Author);
+        Assert.Equal("persistence-test-provider", restoredNarration.ProviderId);
+        Assert.Equal("test-model", restoredNarration.ModelId);
+        var restoredNarrationSegment = Assert.Single(restoredNarration.Segments);
+        Assert.Equal(currentBeat.Id, Assert.Single(restoredNarrationSegment.SourceBeatIds));
+        Assert.Equal(timelineEvent.Id, Assert.Single(restoredNarrationSegment.EventIds));
+        Assert.Equal(timelineEvent.Id, Assert.Single(restoredNarration.Claims).EventId);
         var restoredTimelineEvent = Assert.Single(restoredSession.Workspace.Events);
         Assert.Equal(timelineEvent.Id, restoredTimelineEvent.Id);
         Assert.Equal(originalTimeline.Id, restoredTimelineEvent.TimelineId);
