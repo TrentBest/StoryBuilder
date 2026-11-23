@@ -102,6 +102,7 @@ public static class NarrationDraftProposalValidator
 
         var beatsById = request.SourceBeats.ToDictionary(beat => beat.BeatId);
         var eventIds = request.SourceBeats.SelectMany(beat => beat.EventIds).ToHashSet();
+        var coveredText = new bool[proposal.Text.Length];
         foreach (var segment in proposal.Segments)
         {
             if (segment is null || segment.SourceBeatIds is null || segment.EventIds is null)
@@ -119,6 +120,13 @@ public static class NarrationDraftProposalValidator
                 .ToHashSet();
             if (segment.EventIds.Any(id => !segmentEventIds.Contains(id)))
                 throw new ArgumentException("A provenance segment links an event not associated with its cited beats.", nameof(proposal));
+            Array.Fill(coveredText, true, segment.Start, segment.Length);
+        }
+
+        for (var index = 0; index < proposal.Text.Length; index++)
+        {
+            if (!char.IsWhiteSpace(proposal.Text[index]) && !coveredText[index])
+                throw new ArgumentException("Every non-whitespace character in the proposal must have source-beat provenance.", nameof(proposal));
         }
 
         if (proposal.Claims.Any(claim =>
