@@ -28,7 +28,7 @@ public static class StoryWorkspaceValidator
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
         var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();
         var adventures = workspace.Adventures.Select(x => x.Id).ToHashSet();
-        var quests = workspace.Quests.Select(x => x.Id).ToHashSet();
+        var quests = workspace.Quests.Select(x => x.Id).ToHashSet();\n        var campaignSessions = workspace.CampaignSessions.Select(x => x.Id).ToHashSet();
         var premises = workspace.Premises.Select(x => x.Id).ToHashSet();
         var claims = workspace.HistoricalClaims.Select(x => x.Id).ToHashSet();
         var knowledgeRecords = workspace.ObserverKnowledge.Select(x => x.Id).ToHashSet();
@@ -39,7 +39,7 @@ public static class StoryWorkspaceValidator
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
             .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(publicationOutlets).Concat(inWorldPublicationEditions).Concat(sources).Concat(campaigns).Concat(premises)
             .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(organizations).Concat(visualAssets)
-            .Concat(adventures).Concat(quests).Concat(workspace.QuestObjectives.Select(x => x.Id))
+            .Concat(adventures).Concat(quests).Concat(workspace.QuestObjectives.Select(x => x.Id)).Concat(campaignSessions)
             .Concat(workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id))
             .Concat(workspace.VisualAssetReviews.Select(item => item.Id))
             .Concat(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => item.Id))
@@ -81,7 +81,7 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));
         DuplicateIds(workspace.Adventures, item => item.Id, nameof(AdventureRecord));
         DuplicateIds(workspace.Quests, item => item.Id, nameof(QuestRecord));
-        DuplicateIds(workspace.QuestObjectives, item => item.Id, nameof(QuestObjectiveRecord));
+        DuplicateIds(workspace.QuestObjectives, item => item.Id, nameof(QuestObjectiveRecord));\n        DuplicateIds(workspace.CampaignSessions, item => item.Id, nameof(CampaignSessionRecord));
         DuplicateIds(workspace.HistoricalClaims, item => item.Id, nameof(HistoricalClaim));
         DuplicateIds(workspace.ObserverKnowledge, item => item.Id, nameof(ObserverKnowledgeRecord));
         DuplicateIds(workspace.ParticipantActions, item => item.Id, nameof(ParticipantAction));
@@ -115,7 +115,7 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));
         typedIds.AddRange(workspace.Adventures.Select(item => (item.Id, nameof(AdventureRecord))));
         typedIds.AddRange(workspace.Quests.Select(item => (item.Id, nameof(QuestRecord))));
-        typedIds.AddRange(workspace.QuestObjectives.Select(item => (item.Id, nameof(QuestObjectiveRecord))));
+        typedIds.AddRange(workspace.QuestObjectives.Select(item => (item.Id, nameof(QuestObjectiveRecord))));\n        typedIds.AddRange(workspace.CampaignSessions.Select(item => (item.Id, nameof(CampaignSessionRecord))));
         typedIds.AddRange(workspace.Premises.Select(item => (item.Id, nameof(StoryPremise))));
         typedIds.AddRange(workspace.HistoricalClaims.Select(item => (item.Id, nameof(HistoricalClaim))));
         typedIds.AddRange(workspace.ObserverKnowledge.Select(item => (item.Id, nameof(ObserverKnowledgeRecord))));
@@ -396,6 +396,24 @@ public static class StoryWorkspaceValidator
             if (item.RelatedSceneId is Guid sid) Missing(nameof(QuestObjectiveRecord), item.Id, "scene", sid, scenes);
             if (item.TargetEventId is Guid eid) Missing(nameof(QuestObjectiveRecord), item.Id, "event", eid, events);
             if (item.Sequence < 1) issues.Add(new WorkspaceIntegrityIssue(nameof(QuestObjectiveRecord), item.Id, "sequence", item.Id, "Objective sequence must be positive."));
+        }
+
+        foreach (var item in workspace.CampaignSessions)
+        {
+            Missing(nameof(CampaignSessionRecord), item.Id, "campaign", item.CampaignId, campaigns);
+            if (item.Sequence < 1)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(CampaignSessionRecord), item.Id, "sequence", item.Id, "Campaign session sequence must be positive."));
+            if ((item.Status is CampaignSessionStatus.Planned or CampaignSessionStatus.Prepared) &&
+                (item.StartedAtUtc is not null || item.EndedAtUtc is not null))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(CampaignSessionRecord), item.Id, "lifecycle timestamps", item.Id, "A planned or prepared session cannot have execution timestamps."));
+            if ((item.Status is CampaignSessionStatus.InProgress or CampaignSessionStatus.Completed) && item.StartedAtUtc is null)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(CampaignSessionRecord), item.Id, "start timestamp", item.Id, "An in-progress or completed session must have a start timestamp."));
+            if (item.Status == CampaignSessionStatus.InProgress && item.EndedAtUtc is not null)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(CampaignSessionRecord), item.Id, "end timestamp", item.Id, "An in-progress session cannot have an end timestamp."));
+            if (item.Status == CampaignSessionStatus.Completed && item.EndedAtUtc is null)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(CampaignSessionRecord), item.Id, "end timestamp", item.Id, "A completed session must have an end timestamp."));
+            if (item.EndedAtUtc is not null && (item.StartedAtUtc is null || item.EndedAtUtc < item.StartedAtUtc))
+                issues.Add(new WorkspaceIntegrityIssue(nameof(CampaignSessionRecord), item.Id, "timestamp order", item.Id, "Session end timestamp must not precede its start timestamp."));
         }
 
         foreach (var action in workspace.ParticipantActions)
