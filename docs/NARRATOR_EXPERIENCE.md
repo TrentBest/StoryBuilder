@@ -186,7 +186,7 @@ Validated proposals now have an explicit acceptance operation: `StoryBuilderSess
 - Each record preserves exact accepted text, request/scene IDs, author, provider/model attribution, acceptance timestamp, source-beat text ranges, and event claims. Later edits to the section body do not erase earlier acceptance records.
 - Provider proposals remain non-canonical until this operation is called. The coordinator still does not accept or persist anything automatically.
 
-This is persistence at the StoryBuilder domain-model/workspace serialization boundary. It does not claim a database transaction, concurrent-write isolation, or a connected durable database adapter. No concrete provider or author-facing diff/acceptance UI is registered in WebDemo yet; this establishes the safe domain operation that such a UI must call.
+This is persistence at the StoryBuilder domain-model/workspace serialization boundary. It does not claim a database transaction, concurrent-write isolation, or a connected durable database adapter. No concrete provider is registered in WebDemo. The Stage page now exposes a manual author-authored acceptance path that calls this operation; provider-generated proposal comparison and fine-grained editing remain future work.
 
 
 ## Verification — 2026-11-23
