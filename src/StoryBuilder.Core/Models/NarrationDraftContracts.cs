@@ -115,10 +115,10 @@ public static class NarrationDraftProposalValidator
                 throw new ArgumentException("A provenance segment refers to a beat that was not supplied.", nameof(proposal));
             if (segment.EventIds.Any(id => id == Guid.Empty))
                 throw new ArgumentException("A provenance segment contains an empty event identity.", nameof(proposal));
-            var segmentEventIds = segment.SourceBeatIds
+            var beatEventIds = segment.SourceBeatIds
                 .SelectMany(id => beatsById[id].EventIds)
                 .ToHashSet();
-            if (segment.EventIds.Any(id => !segmentEventIds.Contains(id)))
+            if (segment.EventIds.Any(id => !beatEventIds.Contains(id)))
                 throw new ArgumentException("A provenance segment links an event not associated with its cited beats.", nameof(proposal));
             Array.Fill(coveredText, true, segment.Start, segment.Length);
         }
