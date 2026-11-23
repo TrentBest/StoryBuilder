@@ -371,7 +371,8 @@
         if (Narrator.DraftState == "NeedsReview")
             Narrator.RequestRevision();
 
-        var eventIds = currentScene.Beats.SelectMany(beat => beat.EventIds).Distinct().ToArray();
+        var eventIds = currentScene.Beats.OrderBy(beat => beat.Sequence)
+            .SelectMany(beat => beat.EventIds).Distinct().ToArray();
         var asOfEventId = eventIds.LastOrDefault();
         lastNarrationSubmission = Narrator.SubmitDraft(
             narrationDraft,
@@ -396,6 +397,8 @@
     private void SelectScene(SceneRecord scene)
     {
         currentScene = scene;
+        narrationRequested = false;
+        lastNarrationSubmission = null;
         sceneTitle = scene.Title;
         sceneLocation = scene.Location ?? string.Empty;
         scenePurpose = scene.Purpose ?? string.Empty;
