@@ -188,7 +188,8 @@ public sealed class StoryWorkspace
     private readonly List<CampaignRecord> _campaigns = [];
     private readonly List<AdventureRecord> _adventures = [];
     private readonly List<QuestRecord> _quests = [];
-    private readonly List<QuestObjectiveRecord> _questObjectives = [];\n    private readonly List<CampaignSessionRecord> _campaignSessions = [];
+    private readonly List<QuestObjectiveRecord> _questObjectives = [];
+    private readonly List<CampaignSessionRecord> _campaignSessions = [];
     private readonly List<SourcebookAttachment> _sourcebookAttachments = [];
     private readonly List<ParticipantAction> _participantActions = [];
     private readonly List<SourceRecord> _sources = [];
@@ -219,7 +220,8 @@ public sealed class StoryWorkspace
     public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();
     public IReadOnlyList<AdventureRecord> Adventures => _adventures.AsReadOnly();
     public IReadOnlyList<QuestRecord> Quests => _quests.AsReadOnly();
-    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();\n    public IReadOnlyList<CampaignSessionRecord> CampaignSessions => _campaignSessions.AsReadOnly();
+    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();
+    public IReadOnlyList<CampaignSessionRecord> CampaignSessions => _campaignSessions.AsReadOnly();
     public IReadOnlyList<SourcebookAttachment> SourcebookAttachments => _sourcebookAttachments.AsReadOnly();
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
@@ -727,7 +729,8 @@ public sealed class StoryWorkspace
         ParticipantAction action => action.Id,
         AdventureRecord adventure => adventure.Id,
         QuestRecord quest => quest.Id,
-        QuestObjectiveRecord objective => objective.Id,\n        CampaignSessionRecord campaignSession => campaignSession.Id,
+        QuestObjectiveRecord objective => objective.Id,
+        CampaignSessionRecord campaignSession => campaignSession.Id,
         _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
     };
 
