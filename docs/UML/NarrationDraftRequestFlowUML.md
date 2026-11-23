@@ -29,6 +29,17 @@ classDiagram
     class NarrationDraftProposalValidator {
         +Validate(request, proposal) void
     }
+    class INarrationDraftProvider {
+        +string ProviderId
+        +DraftAsync(request, cancellationToken) Task~NarrationDraftProposal~
+    }
+    class NarrationDraftCoordinator {
+        +ProposeAsync(sceneId, selectedBeatIds, manuscriptId, sectionId, perspective, voice, style, observerId, asOfEventId, allowOmniscientPerspective, cancellationToken) Task~NarrationDraftReview~
+    }
+    class NarrationDraftReview {
+        +NarrationDraftRequest Request
+        +NarrationDraftProposal Proposal
+    }
     class ObserverKnowledgeProjectionService {
         +Project(workspace, observerId, asOfEventId) ObserverKnowledgeProjection
     }
@@ -43,6 +54,10 @@ classDiagram
     NarrationDraftRequestBuilder --> ObserverKnowledgeProjectionService : optional observer boundary
     ObserverKnowledgeProjectionService --> ObserverKnowledgeProjection : creates
     NarrationDraftRequest --> NarrationDraftProposalValidator : constrains
+    NarrationDraftCoordinator --> NarrationDraftRequestBuilder : builds bounded request
+    NarrationDraftCoordinator --> INarrationDraftProvider : invokes optional capability
+    NarrationDraftCoordinator --> NarrationDraftProposalValidator : validates untrusted output
+    NarrationDraftCoordinator --> NarrationDraftReview : returns request and proposal
     NarrationDraftProposal --> NarrationDraftProposalValidator : validated as untrusted output
     NarrationDraftProposalValidator ..> StoryBuilderSession : no direct write
     StoryBuilderSession --> NarrationDraftRequestBuilder : accepted text later saved through existing gate
@@ -58,6 +73,7 @@ classDiagram
 
 ## Non-goals
 
-- This flow does not choose an LLM, call a provider, generate creative prose, or silently mutate canon.
+- The host may supply an optional provider through `INarrationDraftProvider`; no concrete provider is bundled or registered by the current WebDemo.
+- This flow does not choose an LLM, generate creative prose by itself, or silently mutate canon.
 - It does not expose the complete workspace to a provider.
 - It does not replace the host's author-review UI or the atomic manuscript save gate.
