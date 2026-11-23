@@ -105,6 +105,78 @@ public sealed class NarrationDraftContractsTests
     }
 
     [Fact]
+    public void ProposalRejectsTextWithoutSourceBeatCoverage()
+    {
+        var requestId = Guid.NewGuid();
+        var beatId = Guid.NewGuid();
+        var request = new NarrationDraftRequest
+        {
+            RequestId = requestId,
+            SourceBeats =
+            [
+                new NarrationSourceBeat(
+                    beatId,
+                    1,
+                    SceneBeatKind.Action,
+                    null,
+                    "Mara",
+                    "opens the gate",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Participant",
+                    [])
+            ]
+        };
+        var proposal = new NarrationDraftProposal
+        {
+            RequestId = requestId,
+            Text = "Mara opened the gate."
+        };
+
+        Assert.Throws<ArgumentException>(() => NarrationDraftProposalValidator.Validate(request, proposal));
+    }
+
+    [Fact]
+    public void ProposalRejectsNullDeserializedClaims()
+    {
+        var requestId = Guid.NewGuid();
+        var beatId = Guid.NewGuid();
+        var request = new NarrationDraftRequest
+        {
+            RequestId = requestId,
+            SourceBeats =
+            [
+                new NarrationSourceBeat(
+                    beatId,
+                    1,
+                    SceneBeatKind.Action,
+                    null,
+                    "Mara",
+                    "opens the gate",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Participant",
+                    [])
+            ]
+        };
+        var proposal = new NarrationDraftProposal
+        {
+            RequestId = requestId,
+            Text = "Mara opened the gate.",
+            Segments = [new NarrationDraftSegment(0, 21, [beatId], [])],
+            Claims = new NarrationEventClaim[] { null! }
+        };
+
+        Assert.Throws<ArgumentException>(() => NarrationDraftProposalValidator.Validate(request, proposal));
+    }
+
+    [Fact]
     public void ProposalRejectsEventProvenanceNotAssociatedWithItsCitedBeat()
     {
         var requestId = Guid.NewGuid();
