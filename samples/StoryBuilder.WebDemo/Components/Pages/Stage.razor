@@ -220,7 +220,7 @@
         <div class="field-grid">
             <div class="field">
                 <label for="narrator-observer">Point-of-view character</label>
-                <select id="narrator-observer" @bind="selectedObserverId">
+                <select id="narrator-observer" @bind="selectedObserverId" disabled="@narrationRequested">
                     <option value="">No character selected</option>
                     @foreach (var character in Session.Workspace.Characters)
                     {
@@ -230,7 +230,7 @@
             </div>
             <div class="field">
                 <label for="narrator-manuscript">Manuscript</label>
-                <select id="narrator-manuscript" @bind="selectedManuscriptId" @bind:after="SyncSelectedSection">
+                <select id="narrator-manuscript" @bind="selectedManuscriptId" @bind:after="SyncSelectedSection" disabled="@narrationRequested">
                     <option value="">Choose a manuscript</option>
                     @foreach (var manuscript in Session.Workspace.Manuscripts)
                     {
@@ -247,7 +247,7 @@
         {
             <div class="field">
                 <label for="narrator-section">Destination section</label>
-                <select id="narrator-section" @bind="selectedSectionId">
+                <select id="narrator-section" @bind="selectedSectionId" disabled="@narrationRequested">
                     @foreach (var section in SelectedManuscript.Sections.OrderBy(item => item.Sequence))
                     {
                         <option value="@section.Id">@section.Title</option>
@@ -381,7 +381,7 @@
             }
             narrationRequested = true;
             narratorMessage = observerId is null
-                ? "Draft prepared from the selected scene beats. Review and edit it; acceptance will preserve its source snapshot."
+                ? "Draft prepared from the selected scene beats. No character-specific knowledge projection was applied because no observer was selected."
                 : $"Draft prepared for {Session.Workspace.Characters.First(item => item.Id == observerId).Name}'s point of view. Observer knowledge constraints were applied.";
         }
         catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
@@ -420,7 +420,7 @@
             proposalSegments.Add(new NarrationDraftSegment(
                 textOffset,
                 text.Length,
-                Array.AsReadOnly([segment.BeatId]),
+                Array.AsReadOnly(new[] { segment.BeatId }),
                 Array.AsReadOnly(source.EventIds.ToArray())));
             passageParts.Add(text);
             textOffset += text.Length;
