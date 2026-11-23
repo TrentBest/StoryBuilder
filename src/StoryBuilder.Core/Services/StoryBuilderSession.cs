@@ -236,6 +236,45 @@ public sealed class StoryBuilderSession
         }));
     }
 
+    /// <summary>Applies authored draft text and its event provenance in one manuscript replacement.</summary>
+    /// <remarks>All referenced records are validated before the workspace is mutated.</remarks>
+    public ManuscriptEdition SaveManuscriptDraft(
+        Guid manuscriptId,
+        Guid sectionId,
+        string title,
+        string body,
+        IEnumerable<Guid> assertedEventIds)
+    {
+        ArgumentNullException.ThrowIfNull(assertedEventIds);
+        var eventIds = assertedEventIds.Distinct().ToList();
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{manuscriptId}' exists in this workspace.");
+        var section = manuscript.Sections.FirstOrDefault(item => item.Id == sectionId)
+            ?? throw new KeyNotFoundException($"No section with ID '{sectionId}' exists in this manuscript.");
+
+        var missingEventId = eventIds.FirstOrDefault(eventId =>
+            !Workspace.Events.Any(storyEvent => storyEvent.Id == eventId));
+        if (missingEventId != Guid.Empty)
+            throw new KeyNotFoundException($"Event '{missingEventId}' does not exist in this workspace.");
+
+        var linkedEventIds = section.EventIds.ToList();
+        foreach (var eventId in eventIds)
+        {
+            if (!linkedEventIds.Contains(eventId))
+                linkedEventIds.Add(eventId);
+        }
+
+        var updatedSection = section with
+        {
+            Title = string.IsNullOrWhiteSpace(title) ? "Untitled section" : title.Trim(),
+            Body = body ?? string.Empty,
+            EventIds = linkedEventIds
+        };
+
+        // A single workspace replacement is the commit point for text and provenance.
+        return UpdateManuscript(manuscript.ReplaceSection(updatedSection));
+    }
+
     /// <summary>Creates a visual asset linked to the story records it illustrates.</summary>
     public VisualAssetRecord CreateVisualAsset(
         string title,
