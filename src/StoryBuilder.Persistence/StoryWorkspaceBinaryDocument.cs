@@ -149,7 +149,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.SourcebookAttachments, WriteSourcebookAttachment);
         BinaryCodec.WriteList(stream, workspace.Adventures, WriteAdventure);
         BinaryCodec.WriteList(stream, workspace.Quests, WriteQuest);
-        BinaryCodec.WriteList(stream, workspace.QuestObjectives, WriteQuestObjective);\n        BinaryCodec.WriteList(stream, workspace.CampaignSessions, WriteCampaignSession);
+        BinaryCodec.WriteList(stream, workspace.QuestObjectives, WriteQuestObjective);
+        BinaryCodec.WriteList(stream, workspace.CampaignSessions, WriteCampaignSession);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
@@ -182,7 +183,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var sourcebookAttachments = BinaryCodec.ReadList(stream, ReadSourcebookAttachment);
         var adventures = BinaryCodec.ReadList(stream, ReadAdventure);
         var quests = BinaryCodec.ReadList(stream, ReadQuest);
-        var questObjectives = BinaryCodec.ReadList(stream, ReadQuestObjective);\n        var campaignSessions = BinaryCodec.ReadList(stream, ReadCampaignSession);
+        var questObjectives = BinaryCodec.ReadList(stream, ReadQuestObjective);
+        var campaignSessions = BinaryCodec.ReadList(stream, ReadCampaignSession);
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -210,7 +212,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in sourcebookAttachments) workspace.AddSourcebookAttachment(item);
         foreach (var item in adventures) workspace.AddAdventure(item);
         foreach (var item in quests) workspace.AddQuest(item);
-        foreach (var item in questObjectives) workspace.AddQuestObjective(item);\n        foreach (var item in campaignSessions) workspace.AddCampaignSession(item);
+        foreach (var item in questObjectives) workspace.AddQuestObjective(item);
+        foreach (var item in campaignSessions) workspace.AddCampaignSession(item);
         return workspace;
     }
 
