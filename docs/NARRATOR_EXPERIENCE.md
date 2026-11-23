@@ -191,7 +191,7 @@ This is persistence at the StoryBuilder domain-model/workspace serialization bou
 
 ## Verification — 2026-11-23
 
-The previous verified baseline is GitHub Actions run [#1234](https://github.com/TrentBest/StoryBuilder/actions/runs/45272789664), which passed 180 Core tests, 21 Story Forge tests, 2 WebDemo browser tests, and all configured project builds. The acceptance/provenance changes above are newer and still require a fresh CI result.
+The previous verified baseline is GitHub Actions run [#1245](https://github.com/TrentBest/StoryBuilder/actions/runs/45281644133), which passed 182 Core tests, 21 Story Forge tests, 2 WebDemo browser tests, all configured project builds, and browser persistence through reload and host restart. The fine-grained beat editor and beat-level composer changes documented below are newer than that baseline and still require a fresh CI result.
 
 
 ## WebDemo author acceptance surface — 2026-11-23
