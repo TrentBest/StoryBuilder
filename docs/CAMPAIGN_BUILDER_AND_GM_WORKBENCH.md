@@ -174,14 +174,15 @@ This document defines a direction and proposed boundaries. It does not claim tha
 
 ## First sourcebook integration pilot: FSM_Dungeon Fantasy Library
 
-The initial cross-repository pilot is the original [FSM_Dungeon Fantasy Library](https://github.com/TrentBest/FSM_Dungeon/tree/development/docs/books). It currently includes Fantasy Foundations, The Living Bestiary, Elves: Peoples of the Long Memory, and The Broken Star campaign seed.
+The initial cross-repository pilot is the original [FSM_Dungeon Fantasy Library](https://github.com/TrentBest/FSM_Dungeon/tree/development/docs/books). It currently includes Fantasy Foundations, The Living Bestiary, Elves: Peoples of the Long Memory, Dragons and Wyrms: Ecology of the Elder Sky, Ruins and Lost Places, and The Broken Star campaign seed.
 
 Use this pilot to prove the sourcebook boundary before attempting a broad marketplace or universal catalogue:
 - browse a domain-owned book without copying its full contents into the campaign;
 - reference a stable book and entry identity;
 - pin the exact revision used by a campaign;
-- attach elf and bestiary knowledge to an adventure;
+- attach elf, bestiary, draconic ecology, and ruin-site knowledge to an adventure;
 - use The Broken Star as a premise proposal, not a forced plot;
+- compose named ruins, creature populations, and draconic lineages as reusable sourcebook references rather than copying their content into campaign canon;
 - keep campaign-specific discoveries and adaptations in StoryBuilder;
 - preserve player decisions and accepted consequences as the campaign's actual history.
 
