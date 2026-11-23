@@ -28,7 +28,8 @@ public static class StoryWorkspaceValidator
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
         var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();
         var adventures = workspace.Adventures.Select(x => x.Id).ToHashSet();
-        var quests = workspace.Quests.Select(x => x.Id).ToHashSet();\n        var campaignSessions = workspace.CampaignSessions.Select(x => x.Id).ToHashSet();
+        var quests = workspace.Quests.Select(x => x.Id).ToHashSet();
+        var campaignSessions = workspace.CampaignSessions.Select(x => x.Id).ToHashSet();
         var premises = workspace.Premises.Select(x => x.Id).ToHashSet();
         var claims = workspace.HistoricalClaims.Select(x => x.Id).ToHashSet();
         var knowledgeRecords = workspace.ObserverKnowledge.Select(x => x.Id).ToHashSet();
@@ -81,7 +82,8 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));
         DuplicateIds(workspace.Adventures, item => item.Id, nameof(AdventureRecord));
         DuplicateIds(workspace.Quests, item => item.Id, nameof(QuestRecord));
-        DuplicateIds(workspace.QuestObjectives, item => item.Id, nameof(QuestObjectiveRecord));\n        DuplicateIds(workspace.CampaignSessions, item => item.Id, nameof(CampaignSessionRecord));
+        DuplicateIds(workspace.QuestObjectives, item => item.Id, nameof(QuestObjectiveRecord));
+        DuplicateIds(workspace.CampaignSessions, item => item.Id, nameof(CampaignSessionRecord));
         DuplicateIds(workspace.HistoricalClaims, item => item.Id, nameof(HistoricalClaim));
         DuplicateIds(workspace.ObserverKnowledge, item => item.Id, nameof(ObserverKnowledgeRecord));
         DuplicateIds(workspace.ParticipantActions, item => item.Id, nameof(ParticipantAction));
@@ -115,7 +117,8 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));
         typedIds.AddRange(workspace.Adventures.Select(item => (item.Id, nameof(AdventureRecord))));
         typedIds.AddRange(workspace.Quests.Select(item => (item.Id, nameof(QuestRecord))));
-        typedIds.AddRange(workspace.QuestObjectives.Select(item => (item.Id, nameof(QuestObjectiveRecord))));\n        typedIds.AddRange(workspace.CampaignSessions.Select(item => (item.Id, nameof(CampaignSessionRecord))));
+        typedIds.AddRange(workspace.QuestObjectives.Select(item => (item.Id, nameof(QuestObjectiveRecord))));
+        typedIds.AddRange(workspace.CampaignSessions.Select(item => (item.Id, nameof(CampaignSessionRecord))));
         typedIds.AddRange(workspace.Premises.Select(item => (item.Id, nameof(StoryPremise))));
         typedIds.AddRange(workspace.HistoricalClaims.Select(item => (item.Id, nameof(HistoricalClaim))));
         typedIds.AddRange(workspace.ObserverKnowledge.Select(item => (item.Id, nameof(ObserverKnowledgeRecord))));
