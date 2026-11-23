@@ -135,3 +135,15 @@ This document records intended product behavior and architecture. It is not evid
 The WebDemo now opens with a Narrator-first interaction. The creator can submit one free-form idea, optionally add scale/genre/approach/target hints, receive an editable StoryPremise proposal with a stable ID, revise it, and accept or reopen it through the FSM_API lifecycle. Premise words enter the shared vocabulary index and the binary persistence schema preserves them.
 
 This is the first low-friction slice, not the full conversational Narrator described above. It does not yet generate an independent LLM interpretation, draft linked characters/events, read the story aloud, or produce publication-ready layouts. The app structures the creator's actual input rather than pretending a template is generative intelligence.
+
+
+## Provider-neutral drafting contract — 2026-11-23
+
+The Core model now defines a provider-neutral request/proposal boundary in `NarrationDraftContracts.cs`:
+
+- A request carries the selected scene identity and beat snapshots, manuscript/section context, existing section text, author-selected perspective, voice/style hints, and (when constrained) an observer-safe knowledge projection with an explicit event horizon.
+- A proposal carries text, provider/model attribution, source-linked text ranges, and explicit event claims. It is a proposal only; it does not save manuscript text or accept canon.
+- The validator rejects mismatched request identities, empty proposals, out-of-range text spans, unknown beat references, event provenance not associated with the cited beats, claims outside the supplied event set, and claims not permitted by the supplied observer projection.
+- Omniscient perspective requires explicit author permission. Observer-constrained requests must carry the matching observer projection and event horizon.
+
+This is a contract and validation slice, not a connected drafting provider, request builder, UI diff, or creative generation feature. The host still needs to construct requests from selected workspace records, invoke an optional provider, present the proposal and diff, and route explicit author acceptance through the existing manuscript save gate. Tests have been added for accepted provenance and rejection boundaries; execution remains pending.
