@@ -531,7 +531,7 @@ public sealed class StoryWorkspace
         if ((item.Status is CampaignSessionStatus.Planned or CampaignSessionStatus.Prepared) &&
             (item.StartedAtUtc is not null || item.EndedAtUtc is not null))
             throw new InvalidOperationException("A planned or prepared session cannot have execution timestamps.");
-        if (item.Status is CampaignSessionStatus.InProgress or CampaignSessionStatus.Completed &&
+        if ((item.Status is CampaignSessionStatus.InProgress or CampaignSessionStatus.Completed) &&
             item.StartedAtUtc is null)
             throw new InvalidOperationException("An in-progress or completed session must have a start timestamp.");
         if (item.Status == CampaignSessionStatus.InProgress && item.EndedAtUtc is not null)
