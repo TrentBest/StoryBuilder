@@ -203,3 +203,12 @@ The author can edit the prepared text and explicitly choose **Accept this author
 This first UI slice uses a single coarse provenance segment for the entire passage, linked to all selected beats and their event IDs. It deliberately records no semantic event claims because the WebDemo does not infer claims from prose. Fine-grained sentence-to-beat mapping and a concrete optional creative provider remain future work. The acceptance record identifies this as author-authored text (`author` / `manual-authoring`), not AI output.
 
 The UI is therefore an explicit manual authoring/acceptance path; it does not imply that a model provider is configured or that generated prose is available.
+
+
+## Fine-grained author provenance editor — 2026-11-23
+
+The Stage's manual authoring surface now prepares one editable text block per selected source beat. The deterministic first-pass line for each beat comes from `SceneComposer.ComposeNarrationBeat`, the same operation used by whole-scene narration assembly.
+
+When the author accepts the passage, the host joins non-empty blocks with paragraph separators and creates one provenance segment per block. Each segment cites exactly its own beat and only the world-event IDs linked to that beat. Empty blocks are omitted; a passage with no non-empty blocks cannot be accepted. The existing proposal validator still checks full non-whitespace text coverage, beat/event association, observer permissions for explicit claims, and request identity. The session still rechecks the source snapshot before its single workspace replacement.
+
+This improves attribution granularity without pretending to infer sentence-level semantics: an author can edit the text inside a beat's block, but the UI does not automatically decide which clause asserts which event. It remains manual authoring (`author` / `manual-authoring`), with no concrete creative provider registered.
