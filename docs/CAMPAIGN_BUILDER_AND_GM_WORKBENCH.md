@@ -174,7 +174,7 @@ The first proof can use a deterministic test resolver behind an interface. That 
 
 Implemented today: campaign records and participant-action proposals in StoryBuilder.Core; a simple Campaign Room for creating campaigns, recording choices, and requesting lifecycle transitions; broader story events, timelines, causality, observer knowledge, scenes, places, and persistence.
 
-Not yet implemented as a complete product: adventure and quest domain models, sourcebook attachment/version pinning, a live GM dashboard, session lifecycle and immutable session snapshots, typed rules-evaluation requests/results, encounter orchestration, campaign permissions, participant-facing projections, and end-to-end save/restore of a running campaign.
+The first campaign-planning records are now implemented: campaign-owned adventures, quests, ordered objectives, optional scene/event references, and exact sourcebook edition pins. The complete product is still in progress: live GM dashboard, session lifecycle and immutable session snapshots, typed rules-evaluation requests/results, encounter orchestration, campaign permissions, participant-facing projections, and end-to-end save/restore of a running campaign.
 
 This document defines a direction and proposed boundaries. It does not claim that SURPS integration, campaign execution, or the dashboard is already implemented.
 
@@ -194,5 +194,5 @@ Use this pilot to prove the sourcebook boundary before attempting a broad market
 
 The Dungeon sourcebook repository owns its setting content and future revisions. StoryBuilder owns the campaign's selected references, preparation, session records, and evolving story. SURPS remains the authority for roleplaying ontology and resolution. The integration work is tracked in [StoryBuilder issue #15](https://github.com/TrentBest/StoryBuilder/issues/15).
 
-This is an authoring/content pilot. It does not imply that sourcebook pinning, adventure/quest models, or the complete GM dashboard are already implemented.
+This remains an authoring/content pilot. Sourcebook edition pinning and the initial adventure/quest authoring records are implemented; the complete GM dashboard and live campaign execution are not yet implemented.
 
