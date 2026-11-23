@@ -185,7 +185,10 @@ public sealed class StoryWorkspace
     private readonly List<SceneRecord> _scenes = [];
     private readonly List<HistoricalClaim> _historicalClaims = [];
     private readonly List<StoryEvent> _events = [];
-    private readonly List<CampaignRecord> _campaigns = [];\n    private readonly List<AdventureRecord> _adventures = [];\n    private readonly List<QuestRecord> _quests = [];\n    private readonly List<QuestObjectiveRecord> _questObjectives = [];
+    private readonly List<CampaignRecord> _campaigns = [];
+    private readonly List<AdventureRecord> _adventures = [];
+    private readonly List<QuestRecord> _quests = [];
+    private readonly List<QuestObjectiveRecord> _questObjectives = [];
     private readonly List<SourcebookAttachment> _sourcebookAttachments = [];
     private readonly List<ParticipantAction> _participantActions = [];
     private readonly List<SourceRecord> _sources = [];
@@ -213,7 +216,10 @@ public sealed class StoryWorkspace
     public IReadOnlyList<SceneRecord> Scenes => _scenes.AsReadOnly();
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
     public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
-    public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();\n    public IReadOnlyList<AdventureRecord> Adventures => _adventures.AsReadOnly();\n    public IReadOnlyList<QuestRecord> Quests => _quests.AsReadOnly();\n    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();
+    public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();
+    public IReadOnlyList<AdventureRecord> Adventures => _adventures.AsReadOnly();
+    public IReadOnlyList<QuestRecord> Quests => _quests.AsReadOnly();
+    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();
     public IReadOnlyList<SourcebookAttachment> SourcebookAttachments => _sourcebookAttachments.AsReadOnly();
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
