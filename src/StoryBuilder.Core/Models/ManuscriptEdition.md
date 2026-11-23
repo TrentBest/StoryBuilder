@@ -19,3 +19,8 @@
 - Revise actual text and see the rendered product update from saved records.
 - Link manuscript sections to scenes and events as those relationships are implemented.
 - Preserve working draft identity separately from future immutable publication editions.
+
+
+## Accepted narration provenance
+
+Each manuscript section retains an append-only `NarrationAcceptanceRecord` history. An accepted record preserves the exact accepted text, request and scene identities, author, provider/model attribution, acceptance timestamp, source-beat text ranges, and event claims. Editing the current section body does not erase earlier accepted records. Provider proposals remain non-canonical until an author explicitly accepts them through `StoryBuilderSession.AcceptNarrationDraft`.
