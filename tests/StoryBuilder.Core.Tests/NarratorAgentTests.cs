@@ -83,6 +83,7 @@ public sealed class NarratorAgentTests
         var observer = session.CreateCharacter("Mara");
         var firstEvent = session.CreateTimelineEvent(timeline.Id, "The gate opens");
         var secondEvent = session.CreateTimelineEvent(timeline.Id, "The bell rings");
+        session.LinkEventCausality(firstEvent.Id, secondEvent.Id);
         foreach (var storyEvent in new[] { firstEvent, secondEvent })
         {
             session.AddObserverKnowledge(new ObserverKnowledgeRecord
