@@ -14,7 +14,7 @@
 
 ## 🟦 01 What
 
-StoryBuilder is a workbench for **creating the tools that capture stories**. It records how an Experience or Tool is built, gives authors low-friction ways to define characters and worlds, and helps campaigns preserve choices, events, and continuity.
+StoryBuilder is a workbench for **creating and running stories**. It records how an Experience or Tool is built, gives authors low-friction ways to define characters and worlds, and helps campaigns preserve choices, events, and continuity. Its longer-term direction is a GM workbench: the story that is actually happening to the players, prepared and operated through a campaign dashboard.
 
 The tool is genre-neutral. Our far-future science-fiction setting is its first demanding demonstration—not a dependency of the product.
 
@@ -33,7 +33,7 @@ The .NET 10 domain core includes:
 - **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder them and copy an editable narration draft.
 - **Vocabulary:** index character and scene words, record explicit synonyms, and refresh counts when an author edits a record.
 - **World Archive and Continuity Review:** record historical claims with optional source provenance and explicit canon status; open Continuity Review from the workbench navigation to inspect causal cycles, inconsistent cause/consequence links, and cyclic timeline branches. Findings are advisory and do not edit records.
-- **Campaign Room:** create campaigns and record participant choices as proposals until deliberately accepted.
+- **Campaign Room:** create campaigns and record participant choices as proposals until deliberately accepted. This is the foundation, not yet a live GM console; see the [Campaign Builder and GM Workbench direction](docs/CAMPAIGN_BUILDER_AND_GM_WORKBENCH.md) for the preparation-to-play model, dashboard areas, SURPS boundary, and first vertical slice.
 - **Review lifecycle:** the optional StoryBuilder.FSM adapter uses FSM_API to govern draft, proposed, accepted, rejected, and deprecated transitions.
 - **Composition contract:** StoryBuilder.MicroBundle exposes authoring capabilities through MicroBundleDomain. An automated test composes it through FSM_COS; the bundle itself does not depend on the composition kernel.
 - **Book output and in-world publication:** render deterministic Markdown and freeze manuscripts as hashed `PublishedBookEdition` snapshots. Separately, `PublicationOutlet` and `InWorldPublicationEdition` preserve the exact artifacts issued inside a fictional setting, their claim/source/event provenance, authored audience/access scope, and append-only correction lineage. Issuance does not imply distribution, delivery, receipt, or observer knowledge.
@@ -75,6 +75,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [Legacy Project Migration](docs/LEGACY_PROJECT_MIGRATION.md) — import the first-generation JSON schema while preserving the original source payload across binary saves.
 - [Story Domain Contract](docs/STORY_DOMAIN_CONTRACT.md) — implemented record meanings, canon and observer-knowledge rules, event-to-prose links, persistence boundaries, and Alpha limitations.
 - [In-World Publication Editions](docs/IN_WORLD_PUBLICATION_EDITIONS.md) — immutable issued artifacts, outlet identity, provenance, correction lineage, and the boundary from runtime delivery.
+- [Campaign Builder and GM Workbench](docs/CAMPAIGN_BUILDER_AND_GM_WORKBENCH.md) — the campaign lifecycle, GM dashboard, adventure/quest model, SURPS execution boundary, and first playable vertical slice.
 - [Runtime and Package Boundaries](docs/ARCHITECTURE.md) — what each package owns, how workspace operations and persistence behave, and current host limitations.
 - [WebDemo Guide](samples/StoryBuilder.WebDemo/README.md) — how to run and explore the interactive prototype, including Continuity Review.
 - [Continuity Review](samples/StoryBuilder.WebDemo/Components/Pages/Continuity.md) — what the live workspace checks report and what they do not establish.
