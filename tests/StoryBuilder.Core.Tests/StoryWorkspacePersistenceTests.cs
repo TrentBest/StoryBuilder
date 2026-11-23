@@ -107,9 +107,9 @@ public sealed class StoryWorkspacePersistenceTests
 
         var campaign = session.AddCampaign(new CampaignRecord { Name = "Lost Cartographers" });
         var campaignSession = session.CreateCampaignSession(campaign.Id, "First expedition");
-        session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.Prepared);
-        session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.InProgress);
-        session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.Completed);
+        campaignSession = session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.Prepared);
+        campaignSession = session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.InProgress);
+        campaignSession = session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.Completed);
         campaignSession = session.UpdateCampaignSession(campaignSession with
         {
             Summary = "The party reached the north gate.",
