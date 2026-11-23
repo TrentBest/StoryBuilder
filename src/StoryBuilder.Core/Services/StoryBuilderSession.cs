@@ -681,6 +681,45 @@ public sealed class StoryBuilderSession
         return campaign;
     }
 
+    public AdventureRecord CreateAdventure(Guid campaignId, string? title = null, string? summary = null, int sequence = 1)
+    {
+        var campaign = Workspace.Campaigns.FirstOrDefault(x => x.Id == campaignId) ?? throw new KeyNotFoundException($"Campaign '{campaignId}' does not exist.");
+        var item = new AdventureRecord { CampaignId = campaignId, Title = NormalizeOptional(title) ?? $"Adventure {sequence}", Summary = NormalizeOptional(summary) ?? string.Empty, Sequence = sequence };
+        Workspace.AddAdventure(item); IndexAdventure(item, campaign.Name); NotifyChanged(); return item;
+    }
+
+    public QuestRecord CreateQuest(Guid campaignId, Guid? adventureId = null, string? title = null, string? summary = null, int sequence = 1)
+    {
+        var campaign = Workspace.Campaigns.FirstOrDefault(x => x.Id == campaignId) ?? throw new KeyNotFoundException($"Campaign '{campaignId}' does not exist.");
+        var item = new QuestRecord { CampaignId = campaignId, AdventureId = adventureId, Title = NormalizeOptional(title) ?? $"Quest {sequence}", Summary = NormalizeOptional(summary) ?? string.Empty, Sequence = sequence };
+        Workspace.AddQuest(item); IndexQuest(item, campaign.Name); NotifyChanged(); return item;
+    }
+
+    public QuestObjectiveRecord CreateQuestObjective(Guid questId, string? title = null, string? description = null, int sequence = 1)
+    {
+        var quest = Workspace.Quests.FirstOrDefault(x => x.Id == questId) ?? throw new KeyNotFoundException($"Quest '{questId}' does not exist.");
+        var item = new QuestObjectiveRecord { CampaignId = quest.CampaignId, QuestId = questId, Title = NormalizeOptional(title) ?? $"Objective {sequence}", Description = NormalizeOptional(description) ?? string.Empty, Sequence = sequence };
+        Workspace.AddQuestObjective(item); IndexQuestObjective(item, quest.Title); NotifyChanged(); return item;
+    }
+
+    public AdventureRecord UpdateAdventure(AdventureRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item); Workspace.ReplaceAdventure(item); Vocabulary.RemoveTarget(item.Id);
+        IndexAdventure(item, Workspace.Campaigns.First(x => x.Id == item.CampaignId).Name); NotifyChanged(); return item;
+    }
+
+    public QuestRecord UpdateQuest(QuestRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item); Workspace.ReplaceQuest(item); Vocabulary.RemoveTarget(item.Id);
+        IndexQuest(item, Workspace.Campaigns.First(x => x.Id == item.CampaignId).Name); NotifyChanged(); return item;
+    }
+
+    public QuestObjectiveRecord UpdateQuestObjective(QuestObjectiveRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item); Workspace.ReplaceQuestObjective(item); Vocabulary.RemoveTarget(item.Id);
+        IndexQuestObjective(item, Workspace.Quests.First(x => x.Id == item.QuestId).Title); NotifyChanged(); return item;
+    }
+
     public ParticipantAction UpdateParticipantAction(ParticipantAction action)
     {
         ArgumentNullException.ThrowIfNull(action);
@@ -750,7 +789,7 @@ public sealed class StoryBuilderSession
             Vocabulary.RecordText(campaign.Description, VocabularyCategory.Other, campaign.Id, campaign.Name,
                 nameof(CampaignRecord.Description), context: campaign.Description, status: campaign.Status);
         }
-        foreach (var action in Workspace.ParticipantActions)
+        foreach (var item in Workspace.Adventures) IndexAdventure(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Adventure");\n        foreach (var item in Workspace.Quests) IndexQuest(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Quest");\n        foreach (var item in Workspace.QuestObjectives) IndexQuestObjective(item, Workspace.Quests.FirstOrDefault(x => x.Id == item.QuestId)?.Title ?? "Quest");\n        foreach (var action in Workspace.ParticipantActions)
         {
             var campaignName = Workspace.Campaigns.FirstOrDefault(c => c.Id == action.CampaignId)?.Name ?? "Campaign action";
             Vocabulary.RecordText(action.Description, VocabularyCategory.Other, action.Id, campaignName,
@@ -770,6 +809,22 @@ public sealed class StoryBuilderSession
             .FirstOrDefault()?.Trim() ?? vision.Trim();
         var words = firstSentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         return words.Length <= 8 ? string.Join(' ', words) : string.Join(' ', words.Take(8)) + "…";
+    }
+
+    private void IndexAdventure(AdventureRecord item, string campaignName)
+    {
+        Vocabulary.RecordText(item.Title, VocabularyCategory.Other, item.Id, item.Title, nameof(AdventureRecord.Title), context: item.Summary, attribution: campaignName, status: item.Status);
+        Vocabulary.RecordText(item.Summary, VocabularyCategory.Other, item.Id, item.Title, nameof(AdventureRecord.Summary), context: item.Summary, attribution: campaignName, status: item.Status);
+    }
+    private void IndexQuest(QuestRecord item, string campaignName)
+    {
+        Vocabulary.RecordText(item.Title, VocabularyCategory.Other, item.Id, item.Title, nameof(QuestRecord.Title), context: item.Summary, attribution: campaignName, status: item.Status);
+        Vocabulary.RecordText(item.Summary, VocabularyCategory.Other, item.Id, item.Title, nameof(QuestRecord.Summary), context: item.Summary, attribution: campaignName, status: item.Status);
+    }
+    private void IndexQuestObjective(QuestObjectiveRecord item, string questName)
+    {
+        Vocabulary.RecordText(item.Title, VocabularyCategory.Other, item.Id, questName, nameof(QuestObjectiveRecord.Title), context: item.Description, status: item.Status);
+        Vocabulary.RecordText(item.Description, VocabularyCategory.Other, item.Id, questName, nameof(QuestObjectiveRecord.Description), context: item.Description, status: item.Status);
     }
 
     private void IndexPremise(StoryPremise premise)
