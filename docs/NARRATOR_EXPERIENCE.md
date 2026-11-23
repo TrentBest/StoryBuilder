@@ -147,3 +147,18 @@ The Core model now defines a provider-neutral request/proposal boundary in `Narr
 - Omniscient perspective requires explicit author permission. Observer-constrained requests must carry the matching observer projection and event horizon.
 
 This is a contract and validation slice, not a connected drafting provider, request builder, UI diff, or creative generation feature. The host still needs to construct requests from selected workspace records, invoke an optional provider, present the proposal and diff, and route explicit author acceptance through the existing manuscript save gate. Tests have been added for accepted provenance and rejection boundaries; execution remains pending.
+
+
+## Workspace-backed narration request builder — 2026-11-23
+
+The Core service `NarrationDraftRequestBuilder` now constructs the provider-neutral request from the live `StoryBuilderSession` workspace:
+
+- The caller explicitly selects the scene, beat IDs, manuscript, and section. The builder rejects missing or duplicate beat selections and unknown scene/manuscript/section identities.
+- Selected beats are snapshotted in scene sequence order, regardless of the order in which their IDs were supplied. The request includes the section's existing text and the scene/manuscript labels needed for drafting context.
+- Optional voice and style hints are normalized without changing the author's source records.
+- When an observer is selected, the builder creates the matching observer-safe projection and refuses to expose a selected beat unless every event linked to that beat is present in the projection. Unlinked beats are rejected for observer-constrained requests rather than being passed through as potentially hidden information.
+- The request carries the same event horizon as the projection. An event horizon without an observer is rejected, and omniscient perspective still requires explicit author permission.
+
+The builder passes only selected beat snapshots and the observer projection to the provider boundary; it does not pass the whole workspace, invoke a provider, persist a proposal, or accept manuscript changes. The existing `SaveManuscriptDraft` remains the author-acceptance write path.
+
+The proposal validator also now fails closed on malformed deserialized provenance collections, empty identities, and invalid claim modes. Tests cover selected-beat ordering, manuscript context, foreign-beat rejection, observer-projection gating, unlinked-beat rejection, and duplicate selections. Test execution remains unverified until CI or a local .NET run reports a result.
