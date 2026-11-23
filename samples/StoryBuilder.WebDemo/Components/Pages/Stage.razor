@@ -1,6 +1,7 @@
 @page "/stage"
 @inject StoryBuilderSession Session
 @inject NarratorAgent Narrator
+@inject NarrationDraftRequestBuilder NarrationRequests
 @inject IJSRuntime JS
 
 <PageTitle>The Stage · StoryBuilder</PageTitle>
@@ -262,7 +263,8 @@
                 <textarea id="narrator-draft" @bind="narrationDraft" rows="10"></textarea>
                 <span class="muted">This is an author-edited draft, not generated creative prose. No manuscript content changes until you submit it below.</span>
             </div>
-            <button @onclick="SubmitNarrationDraft">Review claims and save passage</button>
+            <button @onclick="AcceptAuthoredNarration">Accept this author-written passage</button>
+                <span class="muted">Acceptance validates the exact source-beat snapshot and appends an immutable provenance record. This is author-authored text; no AI provider is implied.</span>
         }
         @if (!string.IsNullOrWhiteSpace(narratorMessage))
         {
@@ -307,6 +309,7 @@
     private string narratorMessage = string.Empty;
     private bool narrationRequested;
     private NarratorDraftSubmission? lastNarrationSubmission;
+    private NarrationDraftRequest? pendingNarrationRequest;
 
     private ManuscriptEdition? SelectedManuscript =>
         Guid.TryParse(selectedManuscriptId, out var manuscriptId)
@@ -347,40 +350,82 @@
 
     private void PrepareNarrationDraft()
     {
-        if (currentScene is null || !CanPrepareNarration || SelectedManuscript is null
-            || !Guid.TryParse(selectedSectionId, out var sectionId))
+        if (currentScene is null || currentScene.Beats.Count == 0 || !CanPrepareNarration
+            || SelectedManuscript is null || !Guid.TryParse(selectedSectionId, out var sectionId))
             return;
 
         Guid? observerId = Guid.TryParse(selectedObserverId, out var parsedObserverId)
             ? parsedObserverId
             : null;
-        Narrator.RequestDraft(SelectedManuscript.Id, sectionId, observerId);
-        narrationDraft = Session.SceneComposer.ComposeNarration(currentScene);
-        narrationRequested = true;
-        lastNarrationSubmission = null;
-        narratorMessage = observerId is null
-            ? "Draft prepared. Without a point-of-view character, linked event claims will be held for review."
-            : $"Draft prepared for {Session.Workspace.Characters.First(item => item.Id == observerId).Name}'s point of view. Review the text before saving.";
+
+        try
+        {
+            pendingNarrationRequest = NarrationRequests.Build(
+                Session,
+                currentScene.Id,
+                currentScene.Beats.OrderBy(beat => beat.Sequence).Select(beat => beat.Id),
+                SelectedManuscript.Id,
+                sectionId,
+                NarrationPerspective.ThirdPersonLimited,
+                observerId: observerId);
+
+            narrationDraft = Session.SceneComposer.ComposeNarration(currentScene);
+            narrationRequested = true;
+            lastNarrationSubmission = null;
+            narratorMessage = observerId is null
+                ? "Draft prepared from the selected scene beats. Review and edit it; acceptance will preserve its source snapshot."
+                : $"Draft prepared for {Session.Workspace.Characters.First(item => item.Id == observerId).Name}'s point of view. Observer knowledge constraints were applied.";
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
+        {
+            pendingNarrationRequest = null;
+            narrationRequested = false;
+            narratorMessage = $"Cannot prepare this narration request: {exception.Message}";
+        }
     }
 
-    private void SubmitNarrationDraft()
+    private void AcceptAuthoredNarration()
     {
-        if (currentScene is null || !narrationRequested)
+        if (pendingNarrationRequest is null || !narrationRequested)
             return;
 
-        if (Narrator.DraftState == "NeedsReview")
-            Narrator.RequestRevision();
+        if (string.IsNullOrWhiteSpace(narrationDraft))
+        {
+            narratorMessage = "Write or retain some narration text before accepting it.";
+            return;
+        }
 
-        var eventIds = currentScene.Beats.OrderBy(beat => beat.Sequence)
+        var sourceBeatIds = pendingNarrationRequest.SourceBeats.Select(beat => beat.BeatId).ToArray();
+        var eventIds = pendingNarrationRequest.SourceBeats
             .SelectMany(beat => beat.EventIds).Distinct().ToArray();
-        var asOfEventId = eventIds.LastOrDefault();
-        lastNarrationSubmission = Narrator.SubmitDraft(
-            narrationDraft,
-            eventIds,
-            eventIds.Length == 0 ? null : asOfEventId);
-        narratorMessage = lastNarrationSubmission.Message;
-        if (lastNarrationSubmission.Accepted)
+        var proposal = new NarrationDraftProposal
+        {
+            RequestId = pendingNarrationRequest.RequestId,
+            Text = narrationDraft,
+            ProviderId = "author",
+            ModelId = "manual-authoring",
+            Segments =
+            [
+                new NarrationDraftSegment(
+                    0,
+                    narrationDraft.Length,
+                    Array.AsReadOnly(sourceBeatIds),
+                    Array.AsReadOnly(eventIds))
+            ],
+            Claims = Array.Empty<NarrationEventClaim>()
+        };
+
+        try
+        {
+            Session.AcceptNarrationDraft(pendingNarrationRequest, proposal, "Author");
             narrationRequested = false;
+            narratorMessage = "Accepted into the manuscript. The exact text, source-beat range, linked events, and author attribution are now recorded in the acceptance history.";
+            pendingNarrationRequest = null;
+        }
+        catch (Exception exception) when (exception is ArgumentException or InvalidOperationException or KeyNotFoundException)
+        {
+            narratorMessage = $"Passage not accepted: {exception.Message} Prepare a fresh draft if the source beats have changed.";
+        }
     }
 
     private void CreateScene()
