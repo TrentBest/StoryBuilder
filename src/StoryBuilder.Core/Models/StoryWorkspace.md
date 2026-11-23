@@ -25,3 +25,8 @@ Campaigns may reference only characters, scenes, and events already present in t
 ## Campaign planning hierarchy
 
 Campaigns own adventures. Adventures group quests. Quests own ordered objectives, but objective order is authoring guidance rather than a mandatory execution sequence. Quests may also belong directly to a campaign without an adventure. Objectives can optionally reference an existing scene or target event. The workspace enforces campaign ownership at creation and update boundaries, and the validator repeats those checks after restore. These records describe intent; they do not dictate participant choices or automatically resolve SURPS rules.
+
+
+## Campaign sessions
+
+A campaign session is a dated unit of actual play, distinct from adventure preparation and quest intent. Its lifecycle is Planned → Prepared → InProgress → Completed, with cancellation permitted before or during play. Start/end timestamps are written by lifecycle transitions and validated by the workspace; completed sessions retain a summary and private Game Master notes. Session records do not automatically promote participant actions or proposed events into canon.
