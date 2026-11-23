@@ -177,6 +177,44 @@ public sealed class NarrationDraftContractsTests
     }
 
     [Fact]
+    public void ProposalRejectsEventClaimNotLinkedToAProvenanceSegment()
+    {
+        var requestId = Guid.NewGuid();
+        var beatId = Guid.NewGuid();
+        var eventId = Guid.NewGuid();
+        var request = new NarrationDraftRequest
+        {
+            RequestId = requestId,
+            SourceBeats =
+            [
+                new NarrationSourceBeat(
+                    beatId,
+                    1,
+                    SceneBeatKind.Action,
+                    null,
+                    "Mara",
+                    "opens the gate",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Participant",
+                    [eventId])
+            ]
+        };
+        var proposal = new NarrationDraftProposal
+        {
+            RequestId = requestId,
+            Text = "Mara opened the gate.",
+            Segments = [new NarrationDraftSegment(0, 21, [beatId], [])],
+            Claims = [new NarrationEventClaim(eventId, NarrationClaimMode.DirectFact)]
+        };
+
+        Assert.Throws<ArgumentException>(() => NarrationDraftProposalValidator.Validate(request, proposal));
+    }
+
+    [Fact]
     public void ProposalRejectsEventProvenanceNotAssociatedWithItsCitedBeat()
     {
         var requestId = Guid.NewGuid();
