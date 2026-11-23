@@ -64,7 +64,7 @@ The existing sequential `WorkflowDefinition` path may remain useful for explicit
 - Core, persistence, standalone, and headless consumers remain free of GUI and Execution dependencies.
 - FSM_COS composition tests prove bundle resolution only and do not claim workflow execution.
 - Execution issue #23 must define the typed RuntimeAssembly handoff and its lifecycle semantics before StoryBuilder implements a concrete adapter.
-- A Execution integration test composes a StoryBuilder Experience, hands the real assembly to Execution, observes Execution-owned run state/evidence, and proves StoryBuilder does not schedule or step the production workflow itself.
+- An Execution integration test composes a StoryBuilder Experience, hands the real assembly to Execution, observes Execution-owned run state/evidence, and proves StoryBuilder does not schedule or step the production workflow itself.
 - Cancellation, failed validation, missing capabilities, incompatible versions, and rejected requests fail closed.
 - Runtime observations remain distinct from accepted story canon.
 - GUI-enabled and headless hosts execute the same request contract; GUI is not required for execution.
