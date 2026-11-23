@@ -49,6 +49,15 @@ public sealed class StoryBuilderSession
         Vocabulary.ImportConcepts(concepts ?? Array.Empty<VocabularyConcept>());
     }
 
+    /// <summary>Attaches an immutable, exact sourcebook edition to a campaign.</summary>
+    public SourcebookAttachment AttachSourcebook(SourcebookAttachment attachment)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+        Workspace.AddSourcebookAttachment(attachment);
+        NotifyChanged();
+        return attachment;
+    }
+
     public VocabularyConcept AddSynonym(string canonicalTerm, string synonym, VocabularyCategory category = VocabularyCategory.Adjective)
     {
         var concept = Vocabulary.AddSynonym(canonicalTerm, synonym, category);
