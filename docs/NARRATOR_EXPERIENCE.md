@@ -178,9 +178,9 @@ No concrete provider is currently registered by the WebDemo, and no proposal dif
 
 ## Verification — 2026-11-23
 
-GitHub Actions `dotnet` workflow run [#1221](https://github.com/TrentBest/StoryBuilder/actions/runs/45272110723) passed on code/test commit `91bdef8536c106da5c49eb403a015afb2b7c8145`:
+GitHub Actions `dotnet` workflow run [#1234](https://github.com/TrentBest/StoryBuilder/actions/runs/45272789664) passed on code/test commit `b3987a3d9729efa35d7c6f855e251357202aee47`:
 
-- Core authoring/lifecycle/composition/persistence: **179 passed**
+- Core authoring/lifecycle/composition/persistence: **180 passed**
 - Story Forge: **21 passed**
 - WebDemo browser persistence/restart: **2 passed**
 - All configured project builds succeeded.
