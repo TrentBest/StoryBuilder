@@ -33,7 +33,7 @@ A scene beat can reference a canonical world event by stable ID. Use Stage's Tim
 
 ## Narration rule
 
-The current SceneComposer formats only recorded information into a first-pass draft. It does not infer motive, physics, injury, winner, or sensory details that the user did not supply. Generated wording remains editable and should retain links to the beats it summarizes.
+The current SceneComposer formats only recorded information into a first-pass draft. It does not infer motive, physics, injury, winner, or sensory details that the user did not supply. Its beat-level formatter seeds one editable text block per source beat, so the author can revise each block while preserving a direct text-range-to-beat mapping. On acceptance, each non-empty block becomes its own provenance segment and carries only the event IDs linked to that beat. See the [SceneComposer service contract](SCENE_COMPOSER.md) and [Narrator workflow](NARRATOR_EXPERIENCE.md).
 
 ## Future visual integration
 
