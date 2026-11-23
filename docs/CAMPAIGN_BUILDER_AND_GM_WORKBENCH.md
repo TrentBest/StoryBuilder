@@ -174,7 +174,7 @@ The first proof can use a deterministic test resolver behind an interface. That 
 
 Implemented today: campaign records and participant-action proposals in StoryBuilder.Core; a simple Campaign Room for creating campaigns, recording choices, and requesting lifecycle transitions; broader story events, timelines, causality, observer knowledge, scenes, places, and persistence.
 
-The first campaign-planning records are now implemented: campaign-owned adventures, quests, ordered objectives, optional scene/event references, and exact sourcebook edition pins. The complete product is still in progress: live GM dashboard, session lifecycle and immutable session snapshots, typed rules-evaluation requests/results, encounter orchestration, campaign permissions, participant-facing projections, and end-to-end save/restore of a running campaign.
+The first campaign-planning records are now implemented: campaign-owned adventures, quests, ordered objectives, optional scene/event references, and exact sourcebook edition pins. The complete product is still in progress: live GM dashboard, immutable session snapshots, typed rules-evaluation requests/results, encounter orchestration, campaign permissions, participant-facing projections, and end-to-end save/restore of a running campaign.
 
 This document defines a direction and proposed boundaries. It does not claim that SURPS integration, campaign execution, or the dashboard is already implemented.
 
