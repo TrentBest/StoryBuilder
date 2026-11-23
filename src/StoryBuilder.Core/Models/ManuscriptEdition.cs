@@ -44,6 +44,24 @@ public sealed record ManuscriptSection
     public string Body { get; init; } = string.Empty;
     public List<Guid> SceneIds { get; init; } = [];
     public List<Guid> EventIds { get; init; } = [];
+
+    /// <summary>Append-only acceptance history; edits to Body do not erase earlier accepted snapshots.</summary>
+    public List<NarrationAcceptanceRecord> NarrationAcceptances { get; init; } = [];
+}
+
+/// <summary>An immutable snapshot of one author-approved narration proposal and its text provenance.</summary>
+public sealed record NarrationAcceptanceRecord
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid RequestId { get; init; }
+    public Guid SceneId { get; init; }
+    public string AcceptedText { get; init; } = string.Empty;
+    public string Author { get; init; } = string.Empty;
+    public string? ProviderId { get; init; }
+    public string? ModelId { get; init; }
+    public DateTimeOffset AcceptedAtUtc { get; init; } = DateTimeOffset.UtcNow;
+    public IReadOnlyList<NarrationDraftSegment> Segments { get; init; } = Array.Empty<NarrationDraftSegment>();
+    public IReadOnlyList<NarrationEventClaim> Claims { get; init; } = Array.Empty<NarrationEventClaim>();
 }
 
 /// <summary>Structural role of a section in the current manuscript.</summary>
