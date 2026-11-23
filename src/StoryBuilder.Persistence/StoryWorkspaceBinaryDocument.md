@@ -24,7 +24,8 @@ The current document includes:
 - immutable published book editions;
 - visual assets, append-only reviews, page compositions, discovery settings, and exact selected visual revision IDs;
 - organizations and organization participants on events;
-- stable publication outlets and immutable in-world publication editions, including provenance and correction lineage;\n- campaign sourcebook edition pins, adventures, quests, and ordered quest objectives;
+- stable publication outlets and immutable in-world publication editions, including provenance and correction lineage;
+- campaign sourcebook edition pins, adventures, quests, and ordered quest objectives;
 - explicit vocabulary synonym mappings.
 
 ## Restore behavior
