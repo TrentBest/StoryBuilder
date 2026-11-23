@@ -196,7 +196,7 @@
                         {
                             <div class="list-item">
                                 <div class="row">
-                                    <strong>@adventure.Sequence. @adventure.Title</strong>
+                                    <strong>@(adventure.Sequence). @adventure.Title</strong>
                                     <span class="chip">@adventure.Status</span>
                                 </div>
                                 @if (!string.IsNullOrWhiteSpace(adventure.Summary))
@@ -217,7 +217,7 @@
                                         @foreach (var objective in Session.Workspace.QuestObjectives.Where(o => o.QuestId == quest.Id).OrderBy(o => o.Sequence))
                                         {
                                             <div class="row">
-                                                <span>@objective.Sequence. @objective.Title</span>
+                                                <span>@(objective.Sequence). @objective.Title</span>
                                                 <span class="chip">@objective.Status</span>
                                             </div>
                                             @if (!string.IsNullOrWhiteSpace(objective.Description))
@@ -355,8 +355,11 @@
     {
         if (!Guid.TryParse(selectedCampaignId, out var campaignId) || string.IsNullOrWhiteSpace(questTitle))
             return;
-        Guid? adventureId = Guid.TryParse(selectedAdventureId, out var parsedAdventureId) ? parsedAdventureId : null;
-        var quest = Session.CreateQuest(campaignId, adventureId, questTitle.Trim(), questSummary.Trim(),
+        Guid? adventureId = Guid.TryParse(selectedAdventureId, out var parsedAdventureId) &&
+            Session.Workspace.Adventures.Any(item => item.Id == parsedAdventureId && item.CampaignId == campaignId)
+                ? parsedAdventureId
+                : null;
+        var quest = Session.CreateQuest(campaignId, adventureId, questTitle.Trim(),
             Session.Workspace.Quests.Count(item => item.CampaignId == campaignId) + 1);
         selectedQuestId = quest.Id.ToString("D");
         questTitle = string.Empty;
@@ -366,7 +369,8 @@
 
     private void CreateObjective()
     {
-        if (!Guid.TryParse(selectedQuestId, out var questId) || string.IsNullOrWhiteSpace(objectiveTitle))
+        if (!Guid.TryParse(selectedQuestId, out var questId) || string.IsNullOrWhiteSpace(objectiveTitle) ||
+            !Session.Workspace.Quests.Any(item => item.Id == questId && item.CampaignId.ToString("D") == selectedCampaignId))
             return;
         var objective = Session.CreateQuestObjective(questId, objectiveTitle.Trim(), objectiveDescription.Trim(),
             Session.Workspace.QuestObjectives.Count(item => item.QuestId == questId) + 1);
