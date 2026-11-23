@@ -97,7 +97,6 @@ public sealed class WorkspaceTests
     }
 
     [Fact]
-    [Fact]
     public void AdventureQuestAndObjectiveMustRespectCampaignOwnership()
     {
         var session = new StoryBuilderSession("Campaign hierarchy");
