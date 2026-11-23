@@ -146,7 +146,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.Organizations, WriteOrganization);
         BinaryCodec.WriteList(stream, workspace.PublicationOutlets, WritePublicationOutlet);
         BinaryCodec.WriteList(stream, workspace.InWorldPublicationEditions, WriteInWorldPublicationEdition);
-        BinaryCodec.WriteList(stream, workspace.SourcebookAttachments, WriteSourcebookAttachment);\n        BinaryCodec.WriteList(stream, workspace.Adventures, WriteAdventure);\n        BinaryCodec.WriteList(stream, workspace.Quests, WriteQuest);\n        BinaryCodec.WriteList(stream, workspace.QuestObjectives, WriteQuestObjective);
+        BinaryCodec.WriteList(stream, workspace.SourcebookAttachments, WriteSourcebookAttachment);
+        BinaryCodec.WriteList(stream, workspace.Adventures, WriteAdventure);
+        BinaryCodec.WriteList(stream, workspace.Quests, WriteQuest);
+        BinaryCodec.WriteList(stream, workspace.QuestObjectives, WriteQuestObjective);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
@@ -176,7 +179,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var organizations = BinaryCodec.ReadList(stream, ReadOrganization);
         var publicationOutlets = BinaryCodec.ReadList(stream, ReadPublicationOutlet);
         var inWorldPublicationEditions = BinaryCodec.ReadList(stream, ReadInWorldPublicationEdition);
-        var sourcebookAttachments = BinaryCodec.ReadList(stream, ReadSourcebookAttachment);\n        var adventures = BinaryCodec.ReadList(stream, ReadAdventure);\n        var quests = BinaryCodec.ReadList(stream, ReadQuest);\n        var questObjectives = BinaryCodec.ReadList(stream, ReadQuestObjective);
+        var sourcebookAttachments = BinaryCodec.ReadList(stream, ReadSourcebookAttachment);
+        var adventures = BinaryCodec.ReadList(stream, ReadAdventure);
+        var quests = BinaryCodec.ReadList(stream, ReadQuest);
+        var questObjectives = BinaryCodec.ReadList(stream, ReadQuestObjective);
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -201,7 +207,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in organizations) workspace.AddOrganization(item);
         foreach (var item in publicationOutlets) workspace.AddPublicationOutlet(item);
         foreach (var item in inWorldPublicationEditions) workspace.AddInWorldPublicationEdition(item);
-        foreach (var item in sourcebookAttachments) workspace.AddSourcebookAttachment(item);\n        foreach (var item in adventures) workspace.AddAdventure(item);\n        foreach (var item in quests) workspace.AddQuest(item);\n        foreach (var item in questObjectives) workspace.AddQuestObjective(item);
+        foreach (var item in sourcebookAttachments) workspace.AddSourcebookAttachment(item);
+        foreach (var item in adventures) workspace.AddAdventure(item);
+        foreach (var item in quests) workspace.AddQuest(item);
+        foreach (var item in questObjectives) workspace.AddQuestObjective(item);
         return workspace;
     }
 
