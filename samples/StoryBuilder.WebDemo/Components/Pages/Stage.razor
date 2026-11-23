@@ -212,6 +212,72 @@
         {
             <p class="muted">@copyMessage</p>
         }
+        <hr />
+        <div class="eyebrow">Narrator workbench · author review</div>
+        <h2>Prepare a manuscript passage</h2>
+        <p class="muted">Choose a point of view, prepare the draft, edit it, then explicitly submit it for knowledge review and save. Linked world events are checked against what the selected observer is allowed to know.</p>
+        <div class="field-grid">
+            <div class="field">
+                <label for="narrator-observer">Point-of-view character</label>
+                <select id="narrator-observer" @bind="selectedObserverId">
+                    <option value="">No character selected</option>
+                    @foreach (var character in Session.Workspace.Characters)
+                    {
+                        <option value="@character.Id">@character.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="field">
+                <label for="narrator-manuscript">Manuscript</label>
+                <select id="narrator-manuscript" @bind="selectedManuscriptId">
+                    <option value="">Choose a manuscript</option>
+                    @foreach (var manuscript in Session.Workspace.Manuscripts)
+                    {
+                        <option value="@manuscript.Id">@manuscript.Title</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <button class="secondary" @onclick="CreateNarrationManuscript">Create manuscript + chapter</button>
+            <button class="secondary" @onclick="PrepareNarrationDraft" disabled="@(!CanPrepareNarration)">Prepare draft for review</button>
+        </div>
+        @if (SelectedManuscript is not null)
+        {
+            <div class="field">
+                <label for="narrator-section">Destination section</label>
+                <select id="narrator-section" @bind="selectedSectionId">
+                    @foreach (var section in SelectedManuscript.Sections.OrderBy(item => item.Sequence))
+                    {
+                        <option value="@section.Id">@section.Title</option>
+                    }
+                </select>
+            </div>
+        }
+        @if (narrationRequested)
+        {
+            <div class="field">
+                <label for="narrator-draft">Editable narration draft</label>
+                <textarea id="narrator-draft" @bind="narrationDraft" rows="10"></textarea>
+                <span class="muted">This is an author-edited draft, not generated creative prose. No manuscript content changes until you submit it below.</span>
+            </div>
+            <button @onclick="SubmitNarrationDraft">Review claims and save passage</button>
+        }
+        @if (!string.IsNullOrWhiteSpace(narratorMessage))
+        {
+            <p class="muted" role="status">@narratorMessage</p>
+        }
+        @if (lastNarrationSubmission is not null)
+        {
+            <div class="list-item">
+                <strong>@(lastNarrationSubmission.Accepted ? "Draft accepted" : "Draft held for review")</strong>
+                <p>@lastNarrationSubmission.Message</p>
+                @foreach (var constraint in lastNarrationSubmission.Constraints.Where(item => !item.IsAllowed))
+                {
+                    <p class="muted">@constraint.Explanation</p>
+                }
+            </div>
+        }
     </section>
 }
 
@@ -233,6 +299,23 @@
     private string selectedBeatId = string.Empty;
     private string selectedEventId = string.Empty;
     private string eventLinkMessage = string.Empty;
+    private string selectedObserverId = string.Empty;
+    private string selectedManuscriptId = string.Empty;
+    private string selectedSectionId = string.Empty;
+    private string narrationDraft = string.Empty;
+    private string narratorMessage = string.Empty;
+    private bool narrationRequested;
+    private NarratorDraftSubmission? lastNarrationSubmission;
+
+    private ManuscriptEdition? SelectedManuscript =>
+        Guid.TryParse(selectedManuscriptId, out var manuscriptId)
+            ? Session.Workspace.Manuscripts.FirstOrDefault(item => item.Id == manuscriptId)
+            : null;
+
+    private bool CanPrepareNarration =>
+        SelectedManuscript is not null
+        && Guid.TryParse(selectedSectionId, out var sectionId)
+        && SelectedManuscript.Sections.Any(item => item.Id == sectionId);
 
     private SceneCaptureMode SelectedCaptureMode =>
         Enum.TryParse<SceneCaptureMode>(captureMode, out var value) ? value : SceneCaptureMode.Freeform;
@@ -240,6 +323,50 @@
     protected override void OnInitialized()
     {
         selectedEventId = Session.Workspace.Events.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+    }
+
+    private void CreateNarrationManuscript()
+    {
+        var manuscript = Session.CreateManuscript("Untitled story");
+        manuscript = Session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "Chapter 1");
+        selectedManuscriptId = manuscript.Id.ToString();
+        selectedSectionId = manuscript.Sections.OrderBy(item => item.Sequence).First().Id.ToString();
+        narratorMessage = "Created a manuscript and its first chapter.";
+        narrationRequested = false;
+    }
+
+    private void PrepareNarrationDraft()
+    {
+        if (currentScene is null || !CanPrepareNarration || SelectedManuscript is null
+            || !Guid.TryParse(selectedSectionId, out var sectionId))
+            return;
+
+        Guid? observerId = Guid.TryParse(selectedObserverId, out var parsedObserverId)
+            ? parsedObserverId
+            : null;
+        Narrator.RequestDraft(SelectedManuscript.Id, sectionId, observerId);
+        narrationDraft = Session.SceneComposer.ComposeNarration(currentScene);
+        narrationRequested = true;
+        lastNarrationSubmission = null;
+        narratorMessage = observerId is null
+            ? "Draft prepared. Without a point-of-view character, linked event claims will be held for review."
+            : $"Draft prepared for {Session.Workspace.Characters.First(item => item.Id == observerId).Name}'s point of view. Review the text before saving.";
+    }
+
+    private void SubmitNarrationDraft()
+    {
+        if (currentScene is null || !narrationRequested)
+            return;
+
+        var eventIds = currentScene.Beats.SelectMany(beat => beat.EventIds).Distinct().ToArray();
+        var asOfEventId = eventIds.LastOrDefault();
+        lastNarrationSubmission = Narrator.SubmitDraft(
+            narrationDraft,
+            eventIds,
+            eventIds.Length == 0 ? null : asOfEventId);
+        narratorMessage = lastNarrationSubmission.Message;
+        if (lastNarrationSubmission.Accepted)
+            narrationRequested = false;
     }
 
     private void CreateScene()
