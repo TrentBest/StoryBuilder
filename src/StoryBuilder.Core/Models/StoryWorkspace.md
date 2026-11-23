@@ -17,3 +17,7 @@ This is an in-memory aggregate, not a database or serialization format. The host
 ## Organizations
 
 The workspace stores organized actors as first-class `OrganizationRecord` entries, separate from characters. Events retain `ParticipantIds` for characters and use `OrganizationParticipantIds` for houses, factions, governments, institutions, and other collectives. Historical claims can reference organizations through the generic `RelatedEntityIds` relationship. Organization lifecycle status remains explicit; imported/proposed material is not automatically accepted canon.
+
+## Campaign relationship integrity
+
+Campaigns may reference only characters, scenes, and events already present in the workspace. Participant actions must belong to an existing campaign and may reference only existing characters and resulting events. These relationships are checked when records are added, rather than waiting for a later persistence validation pass. Campaign relationship lists are copied and de-duplicated when the campaign is added so the workspace owns a stable set of references.
