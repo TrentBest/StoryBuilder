@@ -13,6 +13,12 @@ classDiagram
         +LinkPlanningPointToScene(pointId, sceneId, linked) TimelinePlanningPoint
         +LinkPlanningPointToEvent(pointId, eventId, linked) TimelinePlanningPoint
         +PublishManuscript(manuscriptId, correctionNotes) PublishedBookEdition
+        +CreateAdventure(campaignId, title, summary, sequence) AdventureRecord
+        +CreateQuest(campaignId, adventureId, title, summary, sequence) QuestRecord
+        +CreateQuestObjective(questId, title, description, sequence) QuestObjectiveRecord
+        +UpdateAdventure(adventure) AdventureRecord
+        +UpdateQuest(quest) QuestRecord
+        +UpdateQuestObjective(objective) QuestObjectiveRecord
         +LinkSceneToManuscriptSection(manuscriptId, sectionId, sceneId, linked)
         +LinkEventToManuscriptSection(manuscriptId, sectionId, eventId, linked)
         +LinkEventToSceneBeat(sceneId, beatId, eventId, linked) SceneRecord
@@ -20,12 +26,18 @@ classDiagram
         +Changed
     }
     class StoryWorkspace
+    class AdventureRecord
+    class QuestRecord
+    class QuestObjectiveRecord
     class SceneRecord
     class SceneBeat
     class TimelinePlanningPoint
     class PublishedBookEdition
     class StoryEvent
     StoryBuilderSession --> StoryWorkspace : owns canonical records
+    StoryBuilderSession ..> AdventureRecord : creates and updates campaign structure
+    StoryBuilderSession ..> QuestRecord : creates and updates playable intent
+    StoryBuilderSession ..> QuestObjectiveRecord : creates and updates objective handles
     StoryBuilderSession ..> TimelinePlanningPoint : edits alternatives and impact links
     StoryBuilderSession ..> PublishedBookEdition : freezes Markdown snapshots
     StoryBuilderSession ..> SceneRecord : updates scene beat links
