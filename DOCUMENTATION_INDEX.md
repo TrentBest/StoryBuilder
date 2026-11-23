@@ -7,7 +7,7 @@
 | Prepare the first public Alpha responsibly | [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) |
 | Understand the purpose and boundary | [README](README.md) |
 | Design a campaign, prepare adventures and quests, and operate a live GM dashboard | [Campaign Builder and GM Workbench](docs/CAMPAIGN_BUILDER_AND_GM_WORKBENCH.md) |
-| Meet the Narrator and understand the first-session flow | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
+| Meet the Narrator and understand the first-session flow | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |\n| Build and validate provider-neutral Narrator drafting requests from selected workspace records | [Request builder](src/StoryBuilder.Core/Services/NarrationDraftRequestBuilder.md), [contracts](src/StoryBuilder.Core/Models/NarrationDraftContracts.md), [flow UML](docs/UML/NarrationDraftRequestFlowUML.md), [tests](tests/StoryBuilder.Core.Tests/NarrationDraftRequestBuilderTests.md) |
 | Review causal links and timeline branch consistency in the authoring workbench | [Continuity Review page](samples/StoryBuilder.WebDemo/Components/Pages/Continuity.md), [StoryContinuityAnalyzer](src/StoryBuilder.Core/Services/StoryContinuityAnalyzer.md), [UML and use cases](docs/UML/StoryContinuityAnalyzerUML.md) |
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
 | Understand the manifest/configuration contracts and binary package artifacts | [Package contract UML](docs/UML/CompositionPackageContractsUML.md), [Binary artifacts UML](docs/UML/CompositionPackageBinaryArtifactsUML.md), [Validator UML](docs/UML/CompositionPackageValidatorUML.md) |
@@ -31,7 +31,7 @@
 | Run the authoring workbench | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md) |
 | Inspect living GUI.SVG views | [WebDemo guide](samples/StoryBuilder.WebDemo/README.md), [WebDemo UML](docs/UML/StoryBuilderWebDemoUML.md) |
 | Understand architecture and stack fit | [Architecture](docs/ARCHITECTURE.md) |
-| Understand the boundary between FSM_COS composition, FSM_Foundry execution, and optional GUI presentation | [Foundry Execution Boundary](docs/FOUNDRY_EXECUTION_BOUNDARY.md) |
+| Understand the boundary between FSM_COS composition, FSM_Execution execution, and optional GUI presentation | [Execution Boundary](docs/EXECUTION_BOUNDARY.md) |
 | Understand process-group update semantics, non-owning driver membership, and FSM_API handle disposal | [Process Group Lifetime](docs/PROCESS_GROUP_LIFETIME.md) |
 | Start a story with one idea | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Create and revise characters | [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md), [Character Creation](docs/CHARACTER_CREATION.md) |
