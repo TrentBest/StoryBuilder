@@ -157,6 +157,24 @@
 </section>
 
 <section class="panel stack" style="margin-top:1rem">
+    <div class="eyebrow">Session desk</div>
+    <h2>Schedule and run a table session</h2>
+    @if (Session.Workspace.Campaigns.Count == 0)
+    {
+        <div class="empty">Create a campaign before scheduling a session.</div>
+    }
+    else
+    {
+        <div class="field">
+            <label for="session-title">Session title</label>
+            <input id="session-title" @bind="sessionTitle" placeholder="The North Gate" />
+        </div>
+        <button @onclick="CreateCampaignSession" disabled="@string.IsNullOrWhiteSpace(sessionTitle)">Schedule session for selected campaign</button>
+        <p class="muted">Sessions move through explicit preparation and play states. Starting and ending a session records timestamps; it does not automatically accept participant actions as canon.</p>
+    }
+</section>
+
+<section class="panel stack" style="margin-top:1rem">
     <div class="row">
         <div class="grow">
             <div class="eyebrow">Campaign catalogue</div>
@@ -254,6 +272,48 @@
                             </div>
                         }
                     }
+                    <h3 style="margin-top:.8rem">Table sessions</h3>
+                    @if (!Session.Workspace.CampaignSessions.Any(item => item.CampaignId == campaign.Id))
+                    {
+                        <p class="muted">No sessions scheduled.</p>
+                    }
+                    else
+                    {
+                        @foreach (var campaignSession in Session.Workspace.CampaignSessions.Where(item => item.CampaignId == campaign.Id).OrderBy(item => item.Sequence))
+                        {
+                            <div class="list-item">
+                                <div class="row">
+                                    <strong>Session @(campaignSession.Sequence): @campaignSession.Title</strong>
+                                    <span class="chip">@campaignSession.Status</span>
+                                </div>
+                                @if (campaignSession.StartedAtUtc is not null)
+                                {
+                                    <p class="muted">Started @campaignSession.StartedAtUtc.Value.ToLocalTime().ToString("g")</p>
+                                }
+                                @if (campaignSession.EndedAtUtc is not null)
+                                {
+                                    <p class="muted">Ended @campaignSession.EndedAtUtc.Value.ToLocalTime().ToString("g")</p>
+                                }
+                                <div class="row">
+                                    @if (campaignSession.Status == CampaignSessionStatus.Planned)
+                                    {
+                                        <button class="secondary" @onclick="() => TransitionCampaignSession(campaignSession, CampaignSessionStatus.Prepared)">Mark prepared</button>
+                                        <button class="danger" @onclick="() => TransitionCampaignSession(campaignSession, CampaignSessionStatus.Cancelled)">Cancel</button>
+                                    }
+                                    else if (campaignSession.Status == CampaignSessionStatus.Prepared)
+                                    {
+                                        <button @onclick="() => TransitionCampaignSession(campaignSession, CampaignSessionStatus.InProgress)">Start session</button>
+                                        <button class="danger" @onclick="() => TransitionCampaignSession(campaignSession, CampaignSessionStatus.Cancelled)">Cancel</button>
+                                    }
+                                    else if (campaignSession.Status == CampaignSessionStatus.InProgress)
+                                    {
+                                        <button @onclick="() => TransitionCampaignSession(campaignSession, CampaignSessionStatus.Completed)">Complete session</button>
+                                        <button class="danger" @onclick="() => TransitionCampaignSession(campaignSession, CampaignSessionStatus.Cancelled)">End as cancelled</button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
                     <h3 style="margin-top:.8rem">Participant choices</h3>
                     @if (!Session.Workspace.ParticipantActions.Any(a => a.CampaignId == campaign.Id))
                     {
@@ -322,6 +382,7 @@
     private string objectiveDescription = string.Empty;
     private string selectedQuestId = string.Empty;
     private string planningMessage = string.Empty;
+    private string sessionTitle = string.Empty;
 
     private IEnumerable<AdventureRecord> SelectedCampaignAdventures =>
         Guid.TryParse(selectedCampaignId, out var campaignId)
@@ -337,6 +398,21 @@
     {
         if (Session.Workspace.Campaigns.Count > 0)
             selectedCampaignId = Session.Workspace.Campaigns[0].Id.ToString("D");
+    }
+
+    private void CreateCampaignSession()
+    {
+        if (!Guid.TryParse(selectedCampaignId, out var campaignId) || string.IsNullOrWhiteSpace(sessionTitle))
+            return;
+        var item = Session.CreateCampaignSession(campaignId, sessionTitle.Trim());
+        sessionTitle = string.Empty;
+        planningMessage = $"Session {item.Sequence} scheduled: {item.Title}.";
+    }
+
+    private void TransitionCampaignSession(CampaignSessionRecord item, CampaignSessionStatus requestedStatus)
+    {
+        var updated = Session.TransitionCampaignSession(item.Id, requestedStatus);
+        planningMessage = $"Session '{updated.Title}' is now {updated.Status}.";
     }
 
     private void CreateAdventure()
