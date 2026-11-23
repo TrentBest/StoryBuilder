@@ -12,6 +12,7 @@ builder.Services.AddSingleton<StoryBuilderExperienceHost>();
 builder.Services.AddScoped<StoryBuilderHostedExperience>(services =>
     services.GetRequiredService<StoryBuilderExperienceHost>().Create("story", "StoryBuilder Web Demo"));
 builder.Services.AddScoped<StoryLifecycleRegistry>();
+builder.Services.AddScoped<NarrationDraftRequestBuilder>();
 builder.Services.AddScoped<NarratorAgent>(services => new NarratorAgent(services.GetRequiredService<StoryBuilderSession>()));
 builder.Services.AddScoped<StoryBuilderPersistenceCoordinator>();
 builder.Services.AddScoped<StoryBuilderSession>(services =>
