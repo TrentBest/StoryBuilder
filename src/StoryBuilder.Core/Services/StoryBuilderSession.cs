@@ -716,7 +716,7 @@ public sealed class StoryBuilderSession
         {
             Status = requestedStatus,
             StartedAtUtc = requestedStatus == CampaignSessionStatus.InProgress ? now : current.StartedAtUtc,
-            EndedAtUtc = requestedStatus is CampaignSessionStatus.Completed or CampaignSessionStatus.Cancelled && current.StartedAtUtc is not null
+            EndedAtUtc = (requestedStatus is CampaignSessionStatus.Completed or CampaignSessionStatus.Cancelled) && current.StartedAtUtc is not null
                 ? now
                 : current.EndedAtUtc,
             UpdatedAtUtc = now
