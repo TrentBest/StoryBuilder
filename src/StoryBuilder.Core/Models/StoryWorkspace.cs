@@ -520,9 +520,22 @@ public sealed class StoryWorkspace
         ArgumentNullException.ThrowIfNull(item);
         if (!_campaigns.Any(x => x.Id == item.CampaignId))
             throw new KeyNotFoundException($"Campaign '{item.CampaignId}' must exist before a session can be updated.");
+        var current = _campaignSessions.FirstOrDefault(x => x.Id == item.Id)
+            ?? throw new KeyNotFoundException($"No campaign session with ID '{item.Id}' exists.");
+        if (current.Status != item.Status && !CanTransitionCampaignSession(current.Status, item.Status))
+            throw new InvalidOperationException($"Campaign session cannot transition from {current.Status} to {item.Status}.");
         ValidateCampaignSession(item);
         ReplaceById(_campaignSessions, item.Id, item, nameof(item));
     }
+
+    private static bool CanTransitionCampaignSession(CampaignSessionStatus current, CampaignSessionStatus requested) =>
+        current switch
+        {
+            CampaignSessionStatus.Planned => requested is CampaignSessionStatus.Prepared or CampaignSessionStatus.Cancelled,
+            CampaignSessionStatus.Prepared => requested is CampaignSessionStatus.InProgress or CampaignSessionStatus.Cancelled,
+            CampaignSessionStatus.InProgress => requested is CampaignSessionStatus.Completed or CampaignSessionStatus.Cancelled,
+            _ => false
+        };
 
     private static void ValidateCampaignSession(CampaignSessionRecord item)
     {
