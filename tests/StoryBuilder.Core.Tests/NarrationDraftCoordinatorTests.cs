@@ -98,6 +98,62 @@ public sealed class NarrationDraftCoordinatorTests
         Assert.False(provider.Called);
     }
 
+    [Fact]
+    public async Task AcceptNarrationDraftPersistsTextEventLinksAndImmutableProvenance()
+    {
+        var fixture = CreateFixture();
+        var provider = new TestProvider(request => new NarrationDraftProposal
+        {
+            RequestId = request.RequestId,
+            Text = "Mara opened the gate.",
+            Segments = [new NarrationDraftSegment(0, 21, [fixture.Beat.Id], [fixture.Event.Id])],
+            Claims = [new NarrationEventClaim(fixture.Event.Id, NarrationClaimMode.DirectFact)]
+        });
+        var coordinator = new NarrationDraftCoordinator(fixture.Session, provider);
+        var review = await coordinator.ProposeAsync(
+            fixture.Scene.Id, [fixture.Beat.Id], fixture.Manuscript.Id, fixture.Section.Id);
+
+        var changes = 0;
+        fixture.Session.Changed += () => changes++;
+        var accepted = fixture.Session.AcceptNarrationDraft(review.Request, review.Proposal, "Author");
+        var section = accepted.Sections.Single();
+
+        Assert.Equal("Mara opened the gate.", section.Body);
+        Assert.Contains(fixture.Event.Id, section.EventIds);
+        var provenance = Assert.Single(section.NarrationAcceptances);
+        Assert.Equal(review.Request.RequestId, provenance.RequestId);
+        Assert.Equal("Author", provenance.Author);
+        Assert.Equal("test-provider", provenance.ProviderId);
+        Assert.Equal(review.Proposal.Text, provenance.AcceptedText);
+        Assert.Equal(fixture.Beat.Id, Assert.Single(Assert.Single(provenance.Segments).SourceBeatIds));
+        Assert.Equal(fixture.Event.Id, Assert.Single(provenance.Claims).EventId);
+        Assert.Equal(1, changes);
+    }
+
+    [Fact]
+    public async Task AcceptNarrationDraftRejectsWhenSourceBeatChangedAfterProposal()
+    {
+        var fixture = CreateFixture();
+        var provider = new TestProvider(request => new NarrationDraftProposal
+        {
+            RequestId = request.RequestId,
+            Text = "Mara opened the gate.",
+            Segments = [new NarrationDraftSegment(0, 21, [fixture.Beat.Id], [fixture.Event.Id])]
+        });
+        var coordinator = new NarrationDraftCoordinator(fixture.Session, provider);
+        var review = await coordinator.ProposeAsync(
+            fixture.Scene.Id, [fixture.Beat.Id], fixture.Manuscript.Id, fixture.Section.Id);
+        var currentScene = fixture.Session.Workspace.Scenes.Single();
+        var changedBeat = fixture.Beat with { Action = "bars the gate" };
+        fixture.Session.UpdateScene(currentScene with { Beats = [changedBeat] });
+
+        Assert.Throws<InvalidOperationException>(() =>
+            fixture.Session.AcceptNarrationDraft(review.Request, review.Proposal, "Author"));
+        var section = fixture.Session.Workspace.Manuscripts.Single().Sections.Single();
+        Assert.Empty(section.Body);
+        Assert.Empty(section.NarrationAcceptances);
+    }
+
     private static Fixture CreateFixture()
     {
         var session = new StoryBuilderSession();
