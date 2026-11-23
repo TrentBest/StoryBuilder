@@ -359,7 +359,7 @@
             Session.Workspace.Adventures.Any(item => item.Id == parsedAdventureId && item.CampaignId == campaignId)
                 ? parsedAdventureId
                 : null;
-        var quest = Session.CreateQuest(campaignId, adventureId, questTitle.Trim(),
+        var quest = Session.CreateQuest(campaignId, adventureId, questTitle.Trim(), questSummary.Trim(),
             Session.Workspace.Quests.Count(item => item.CampaignId == campaignId) + 1);
         selectedQuestId = quest.Id.ToString("D");
         questTitle = string.Empty;
