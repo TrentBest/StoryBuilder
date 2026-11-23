@@ -252,10 +252,10 @@ public sealed class StoryBuilderSession
         var section = manuscript.Sections.FirstOrDefault(item => item.Id == sectionId)
             ?? throw new KeyNotFoundException($"No section with ID '{sectionId}' exists in this manuscript.");
 
-        var missingEventId = eventIds.FirstOrDefault(eventId =>
-            !Workspace.Events.Any(storyEvent => storyEvent.Id == eventId));
-        if (missingEventId != Guid.Empty)
-            throw new KeyNotFoundException($"Event '{missingEventId}' does not exist in this workspace.");
+        var missingEventIds = eventIds.Where(eventId =>
+            !Workspace.Events.Any(storyEvent => storyEvent.Id == eventId)).ToArray();
+        if (missingEventIds.Length > 0)
+            throw new KeyNotFoundException($"Event '{missingEventIds[0]}' does not exist in this workspace.");
 
         var linkedEventIds = section.EventIds.ToList();
         foreach (var eventId in eventIds)
