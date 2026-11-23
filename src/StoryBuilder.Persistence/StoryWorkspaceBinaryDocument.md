@@ -8,9 +8,9 @@ StoryWorkspaceBinaryDocument defines the single current StoryBuilder workspace b
 
 ## Current development contract
 
-The payload begins with the four-byte `SBW1` marker followed by schema version `4`. Version 4 is the current development shape and includes immutable campaign sourcebook attachments, adventure and quest planning, quest objectives, and campaign session lifecycle records.
+The payload begins with the four-byte `SBW1` marker followed by schema version `5`. Version 5 adds author-accepted narration snapshots to manuscript sections, including the accepted text, request/scene identity, author and provider/model attribution, source-beat text ranges, and event claims. The reader also accepts version `4`; version-4 manuscripts restore with an empty narration-acceptance history.
 
-The reader accepts only the current schema version. It does not carry compatibility branches for unpublished development snapshots. When the workspace model changes, update the writer, reader, fixtures, tests, and every in-repository consumer together. Development workspaces may be regenerated when the schema changes.
+The writer emits version 5. The reader accepts versions 4 and 5, with version-4 manuscript sections defaulting to no narration acceptance records. When the workspace model changes, update the writer, reader, fixtures, tests, and every in-repository consumer together.
 
 This is an internal persistence contract, not a released interchange format. A future public release can establish its own compatibility policy based on actual published data and consumers.
 
@@ -18,7 +18,7 @@ This is an internal persistence contract, not a released interchange format. A f
 
 The current document includes:
 
-- experience definition, timelines, planning points, manuscripts, premises, and characters;
+- experience definition, timelines, planning points, manuscripts, append-only accepted narration provenance, premises, and characters;
 - canonical places, scenes, claims, events, observer knowledge, campaigns, participant actions, sources, and continuity issues;
 - legacy import source text retained as part of the current workspace model;
 - immutable published book editions;
