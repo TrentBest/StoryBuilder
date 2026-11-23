@@ -26,7 +26,7 @@ public static class StoryWorkspaceValidator
         var publicationOutlets = workspace.PublicationOutlets.Select(x => x.Id).ToHashSet();
         var inWorldPublicationEditions = workspace.InWorldPublicationEditions.Select(x => x.Id).ToHashSet();
         var sources = workspace.Sources.Select(x => x.Id).ToHashSet();
-        var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();
+        var campaigns = workspace.Campaigns.Select(x => x.Id).ToHashSet();\n        var adventures = workspace.Adventures.Select(x => x.Id).ToHashSet();\n        var quests = workspace.Quests.Select(x => x.Id).ToHashSet();
         var premises = workspace.Premises.Select(x => x.Id).ToHashSet();
         var claims = workspace.HistoricalClaims.Select(x => x.Id).ToHashSet();
         var knowledgeRecords = workspace.ObserverKnowledge.Select(x => x.Id).ToHashSet();
@@ -36,7 +36,7 @@ public static class StoryWorkspaceValidator
         var visualAssetRevisions = workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id).ToHashSet();
         var knownRecords = timelines.Concat(planningPoints).Concat(events).Concat(characters)
             .Concat(scenes).Concat(manuscripts).Concat(publishedEditions).Concat(publicationOutlets).Concat(inWorldPublicationEditions).Concat(sources).Concat(campaigns).Concat(premises)
-            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(organizations).Concat(visualAssets)
+            .Concat(claims).Concat(knowledgeRecords).Concat(participantActions).Concat(continuityIssues).Concat(places).Concat(organizations).Concat(visualAssets)\n            .Concat(adventures).Concat(quests).Concat(workspace.QuestObjectives.Select(x => x.Id))
             .Concat(workspace.VisualAssets.SelectMany(item => item.Revisions).Select(item => item.Id))
             .Concat(workspace.VisualAssetReviews.Select(item => item.Id))
             .Concat(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => item.Id))
@@ -75,7 +75,7 @@ public static class StoryWorkspaceValidator
         DuplicateIds(workspace.InWorldPublicationEditions, item => item.Id, nameof(InWorldPublicationEdition));
         DuplicateIds(workspace.Premises, item => item.Id, nameof(StoryPremise));
         DuplicateIds(workspace.Sources, item => item.Id, nameof(SourceRecord));
-        DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));
+        DuplicateIds(workspace.Campaigns, item => item.Id, nameof(CampaignRecord));\n        DuplicateIds(workspace.Adventures, item => item.Id, nameof(AdventureRecord));\n        DuplicateIds(workspace.Quests, item => item.Id, nameof(QuestRecord));\n        DuplicateIds(workspace.QuestObjectives, item => item.Id, nameof(QuestObjectiveRecord));
         DuplicateIds(workspace.HistoricalClaims, item => item.Id, nameof(HistoricalClaim));
         DuplicateIds(workspace.ObserverKnowledge, item => item.Id, nameof(ObserverKnowledgeRecord));
         DuplicateIds(workspace.ParticipantActions, item => item.Id, nameof(ParticipantAction));
@@ -106,7 +106,7 @@ public static class StoryWorkspaceValidator
         typedIds.AddRange(workspace.InWorldPublicationEditions.Select(item => (item.Id, nameof(InWorldPublicationEdition))));
         typedIds.AddRange(workspace.Manuscripts.SelectMany(item => item.Sections).Select(item => (item.Id, nameof(ManuscriptSection))));
         typedIds.AddRange(workspace.Sources.Select(item => (item.Id, nameof(SourceRecord))));
-        typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));
+        typedIds.AddRange(workspace.Campaigns.Select(item => (item.Id, nameof(CampaignRecord))));\n        typedIds.AddRange(workspace.Adventures.Select(item => (item.Id, nameof(AdventureRecord))));\n        typedIds.AddRange(workspace.Quests.Select(item => (item.Id, nameof(QuestRecord))));\n        typedIds.AddRange(workspace.QuestObjectives.Select(item => (item.Id, nameof(QuestObjectiveRecord))));
         typedIds.AddRange(workspace.Premises.Select(item => (item.Id, nameof(StoryPremise))));
         typedIds.AddRange(workspace.HistoricalClaims.Select(item => (item.Id, nameof(HistoricalClaim))));
         typedIds.AddRange(workspace.ObserverKnowledge.Select(item => (item.Id, nameof(ObserverKnowledgeRecord))));
@@ -358,6 +358,35 @@ public static class StoryWorkspaceValidator
                 Missing(nameof(CampaignRecord), campaign.Id, "scene", id, scenes);
             foreach (var id in campaign.EventIds)
                 Missing(nameof(CampaignRecord), campaign.Id, "event", id, events);
+        }
+
+        foreach (var item in workspace.Adventures)
+        {
+            Missing(nameof(AdventureRecord), item.Id, "campaign", item.CampaignId, campaigns);
+            if (item.Sequence < 1) issues.Add(new WorkspaceIntegrityIssue(nameof(AdventureRecord), item.Id, "sequence", item.Id, "Adventure sequence must be positive."));
+        }
+        foreach (var item in workspace.Quests)
+        {
+            Missing(nameof(QuestRecord), item.Id, "campaign", item.CampaignId, campaigns);
+            if (item.AdventureId is Guid aid)
+            {
+                Missing(nameof(QuestRecord), item.Id, "adventure", aid, adventures);
+                var owner = workspace.Adventures.FirstOrDefault(x => x.Id == aid);
+                if (owner is not null && owner.CampaignId != item.CampaignId)
+                    issues.Add(new WorkspaceIntegrityIssue(nameof(QuestRecord), item.Id, "adventure campaign ownership", aid, "Quest and adventure belong to different campaigns."));
+            }
+            if (item.Sequence < 1) issues.Add(new WorkspaceIntegrityIssue(nameof(QuestRecord), item.Id, "sequence", item.Id, "Quest sequence must be positive."));
+        }
+        foreach (var item in workspace.QuestObjectives)
+        {
+            Missing(nameof(QuestObjectiveRecord), item.Id, "campaign", item.CampaignId, campaigns);
+            Missing(nameof(QuestObjectiveRecord), item.Id, "quest", item.QuestId, quests);
+            var owner = workspace.Quests.FirstOrDefault(x => x.Id == item.QuestId);
+            if (owner is not null && owner.CampaignId != item.CampaignId)
+                issues.Add(new WorkspaceIntegrityIssue(nameof(QuestObjectiveRecord), item.Id, "quest campaign ownership", item.QuestId, "Objective and quest belong to different campaigns."));
+            if (item.RelatedSceneId is Guid sid) Missing(nameof(QuestObjectiveRecord), item.Id, "scene", sid, scenes);
+            if (item.TargetEventId is Guid eid) Missing(nameof(QuestObjectiveRecord), item.Id, "event", eid, events);
+            if (item.Sequence < 1) issues.Add(new WorkspaceIntegrityIssue(nameof(QuestObjectiveRecord), item.Id, "sequence", item.Id, "Objective sequence must be positive."));
         }
 
         foreach (var action in workspace.ParticipantActions)
