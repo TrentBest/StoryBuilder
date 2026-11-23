@@ -52,6 +52,51 @@ public sealed class WorkspaceTests
     }
 
     [Fact]
+    public void CampaignRejectsReferencesToMissingCharactersScenesAndEvents()
+    {
+        var workspace = new StoryWorkspace();
+        var missingId = Guid.NewGuid();
+
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddCampaign(new CampaignRecord
+        {
+            ParticipantCharacterIds = [missingId]
+        }));
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddCampaign(new CampaignRecord
+        {
+            SceneIds = [missingId]
+        }));
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddCampaign(new CampaignRecord
+        {
+            EventIds = [missingId]
+        }));
+    }
+
+    [Fact]
+    public void ParticipantActionMustBelongToAnExistingCampaignAndReferenceExistingRecords()
+    {
+        var workspace = new StoryWorkspace();
+        var missingId = Guid.NewGuid();
+
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddParticipantAction(new ParticipantAction
+        {
+            CampaignId = missingId
+        }));
+
+        var campaign = new CampaignRecord();
+        workspace.AddCampaign(campaign);
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddParticipantAction(new ParticipantAction
+        {
+            CampaignId = campaign.Id,
+            CharacterId = missingId
+        }));
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddParticipantAction(new ParticipantAction
+        {
+            CampaignId = campaign.Id,
+            ResultingEventId = missingId
+        }));
+    }
+
+    [Fact]
     public void WorkspaceRejectsDuplicateIdentityWithinARecordCollection()
     {
         var workspace = new StoryWorkspace();
