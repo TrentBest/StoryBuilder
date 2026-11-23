@@ -106,6 +106,15 @@ public sealed class StoryWorkspacePersistenceTests
         });
 
         var campaign = session.AddCampaign(new CampaignRecord { Name = "Lost Cartographers" });
+        var campaignSession = session.CreateCampaignSession(campaign.Id, "First expedition");
+        session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.Prepared);
+        session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.InProgress);
+        session.TransitionCampaignSession(campaignSession.Id, CampaignSessionStatus.Completed);
+        campaignSession = session.UpdateCampaignSession(campaignSession with
+        {
+            Summary = "The party reached the north gate.",
+            GameMasterNotes = "The keeper recognized the old seal."
+        });
         var sourcebook = session.AttachSourcebook(new SourcebookAttachment
         {
             CampaignId = campaign.Id,
@@ -216,6 +225,13 @@ public sealed class StoryWorkspacePersistenceTests
         Assert.Contains(timelineEvent.Id, Assert.Single(restoredSession.Workspace.Scenes[0].Beats).EventIds);
         Assert.Equal(source.Id, Assert.Single(restoredSession.Workspace.Sources).Id);
         Assert.Equal(campaign.Id, Assert.Single(restoredSession.Workspace.Campaigns).Id);
+        var restoredCampaignSession = Assert.Single(restoredSession.Workspace.CampaignSessions);
+        Assert.Equal(campaignSession.Id, restoredCampaignSession.Id);
+        Assert.Equal(CampaignSessionStatus.Completed, restoredCampaignSession.Status);
+        Assert.NotNull(restoredCampaignSession.StartedAtUtc);
+        Assert.NotNull(restoredCampaignSession.EndedAtUtc);
+        Assert.Equal("The party reached the north gate.", restoredCampaignSession.Summary);
+        Assert.Equal("The keeper recognized the old seal.", restoredCampaignSession.GameMasterNotes);
         Assert.Equal(CanonStatus.Proposed, Assert.Single(restoredSession.Workspace.ParticipantActions).Status);
         var restoredAdventure = Assert.Single(restoredSession.Workspace.Adventures);
         Assert.Equal(adventure.Id, restoredAdventure.Id);
