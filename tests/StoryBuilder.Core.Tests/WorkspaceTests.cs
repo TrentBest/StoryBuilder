@@ -97,6 +97,34 @@ public sealed class WorkspaceTests
     }
 
     [Fact]
+    [Fact]
+    public void AdventureQuestAndObjectiveMustRespectCampaignOwnership()
+    {
+        var session = new StoryBuilderSession("Campaign hierarchy");
+        var campaign = session.AddCampaign(new CampaignRecord { Name = "The Long Road" });
+        var other = session.AddCampaign(new CampaignRecord { Name = "The Other Road" });
+        var adventure = session.CreateAdventure(campaign.Id, "The Broken Gate");
+        var quest = session.CreateQuest(campaign.Id, adventure.Id, "Find the key");
+        var objective = session.CreateQuestObjective(quest.Id, "Locate the keeper");
+        Assert.Equal(campaign.Id, adventure.CampaignId);
+        Assert.Equal(adventure.Id, quest.AdventureId);
+        Assert.Equal(quest.Id, objective.QuestId);
+        Assert.Equal(campaign.Id, objective.CampaignId);
+        Assert.Throws<KeyNotFoundException>(() => session.CreateQuest(other.Id, adventure.Id, "Cross-campaign quest"));
+    }
+
+    [Fact]
+    public void QuestObjectivesRequireExistingQuestAndPositiveSequence()
+    {
+        var workspace = new StoryWorkspace();
+        var campaign = new CampaignRecord();
+        workspace.AddCampaign(campaign);
+        Assert.Throws<KeyNotFoundException>(() => workspace.AddQuestObjective(new QuestObjectiveRecord { CampaignId = campaign.Id, QuestId = Guid.NewGuid() }));
+        var quest = new QuestRecord { CampaignId = campaign.Id };
+        workspace.AddQuest(quest);
+        Assert.Throws<ArgumentOutOfRangeException>(() => workspace.AddQuestObjective(new QuestObjectiveRecord { CampaignId = campaign.Id, QuestId = quest.Id, Sequence = 0 }));
+    }
+
     public void WorkspaceRejectsDuplicateIdentityWithinARecordCollection()
     {
         var workspace = new StoryWorkspace();
