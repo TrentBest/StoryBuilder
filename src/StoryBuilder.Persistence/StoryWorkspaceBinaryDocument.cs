@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 4;
+    private const int FormatVersion = 5;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBW1");
 
     public StoryWorkspaceBinaryDocument()
@@ -64,10 +64,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
             throw new InvalidDataException("The payload is not a StoryBuilder workspace document.");
 
         var version = BinaryCodec.ReadInt32(stream);
-        if (version != FormatVersion)
+        if (version is not (4 or FormatVersion))
             throw new InvalidDataException($"Unsupported StoryBuilder workspace format version: {version}.");
 
-        Workspace = ReadWorkspace(stream);
+        Workspace = ReadWorkspace(stream, version);
         Synonyms = BinaryCodec.ReadList(stream, ReadVocabularyConcept);
         EnsureWorkspaceIntegrity(Workspace);
 
@@ -153,14 +153,14 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.CampaignSessions, WriteCampaignSession);
     }
 
-    private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
+    private static StoryWorkspace ReadWorkspace(IBinaryStream stream, int formatVersion)
     {
         var id = BinaryCodec.ReadGuid(stream);
         var name = BinaryCodec.ReadRequiredString(stream, nameof(StoryWorkspace.Name));
         var experience = ReadExperience(stream);
         var timelines = BinaryCodec.ReadList(stream, ReadTimeline);
         var planningPoints = BinaryCodec.ReadList(stream, ReadPlanningPoint);
-        var manuscripts = BinaryCodec.ReadList(stream, ReadManuscript);
+        var manuscripts = BinaryCodec.ReadList(stream, item => ReadManuscript(item, formatVersion));
         var premises = BinaryCodec.ReadList(stream, ReadPremise);
         var characters = BinaryCodec.ReadList(stream, ReadCharacter);
         var places = BinaryCodec.ReadList(stream, ReadPlace);
@@ -335,14 +335,14 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteDateTimeOffset(stream, value.UpdatedAtUtc);
     }
 
-    private static ManuscriptEdition ReadManuscript(IBinaryStream stream) => new()
+    private static ManuscriptEdition ReadManuscript(IBinaryStream stream, int formatVersion) => new()
     {
         Id = BinaryCodec.ReadGuid(stream),
         Title = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptEdition.Title)),
         Subtitle = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptEdition.Subtitle)),
         Author = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptEdition.Author)),
         Status = BinaryCodec.ReadEnum<CanonStatus>(stream),
-        Sections = BinaryCodec.ReadList(stream, ReadManuscriptSection),
+        Sections = BinaryCodec.ReadList(stream, item => ReadManuscriptSection(item, formatVersion)),
         CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
         UpdatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
     };
@@ -356,18 +356,77 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteString(stream, value.Body);
         BinaryCodec.WriteGuidList(stream, value.SceneIds);
         BinaryCodec.WriteGuidList(stream, value.EventIds);
+        BinaryCodec.WriteList(stream, value.NarrationAcceptances, WriteNarrationAcceptance);
     }
 
-    private static ManuscriptSection ReadManuscriptSection(IBinaryStream stream) => new()
+    private static ManuscriptSection ReadManuscriptSection(IBinaryStream stream, int formatVersion)
+    {
+        var section = new ManuscriptSection
+        {
+            Id = BinaryCodec.ReadGuid(stream),
+            Sequence = BinaryCodec.ReadInt32(stream),
+            Kind = BinaryCodec.ReadEnum<ManuscriptSectionKind>(stream),
+            Title = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Title)),
+            Body = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Body)),
+            SceneIds = BinaryCodec.ReadGuidList(stream),
+            EventIds = BinaryCodec.ReadGuidList(stream)
+        };
+        return formatVersion >= 5
+            ? section with { NarrationAcceptances = BinaryCodec.ReadList(stream, ReadNarrationAcceptance) }
+            : section;
+    }
+
+    private static void WriteNarrationAcceptance(IBinaryStream stream, NarrationAcceptanceRecord value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.RequestId);
+        BinaryCodec.WriteGuid(stream, value.SceneId);
+        BinaryCodec.WriteString(stream, value.AcceptedText);
+        BinaryCodec.WriteString(stream, value.Author);
+        BinaryCodec.WriteString(stream, value.ProviderId);
+        BinaryCodec.WriteString(stream, value.ModelId);
+        BinaryCodec.WriteDateTimeOffset(stream, value.AcceptedAtUtc);
+        BinaryCodec.WriteList(stream, value.Segments, WriteNarrationDraftSegment);
+        BinaryCodec.WriteList(stream, value.Claims, WriteNarrationEventClaim);
+    }
+
+    private static NarrationAcceptanceRecord ReadNarrationAcceptance(IBinaryStream stream) => new()
     {
         Id = BinaryCodec.ReadGuid(stream),
-        Sequence = BinaryCodec.ReadInt32(stream),
-        Kind = BinaryCodec.ReadEnum<ManuscriptSectionKind>(stream),
-        Title = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Title)),
-        Body = BinaryCodec.ReadRequiredString(stream, nameof(ManuscriptSection.Body)),
-        SceneIds = BinaryCodec.ReadGuidList(stream),
-        EventIds = BinaryCodec.ReadGuidList(stream)
+        RequestId = BinaryCodec.ReadGuid(stream),
+        SceneId = BinaryCodec.ReadGuid(stream),
+        AcceptedText = BinaryCodec.ReadRequiredString(stream, nameof(NarrationAcceptanceRecord.AcceptedText)),
+        Author = BinaryCodec.ReadRequiredString(stream, nameof(NarrationAcceptanceRecord.Author)),
+        ProviderId = BinaryCodec.ReadString(stream),
+        ModelId = BinaryCodec.ReadString(stream),
+        AcceptedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
+        Segments = Array.AsReadOnly(BinaryCodec.ReadList(stream, ReadNarrationDraftSegment).ToArray()),
+        Claims = Array.AsReadOnly(BinaryCodec.ReadList(stream, ReadNarrationEventClaim).ToArray())
     };
+
+    private static void WriteNarrationDraftSegment(IBinaryStream stream, NarrationDraftSegment value)
+    {
+        BinaryCodec.WriteInt32(stream, value.Start);
+        BinaryCodec.WriteInt32(stream, value.Length);
+        BinaryCodec.WriteGuidList(stream, value.SourceBeatIds);
+        BinaryCodec.WriteGuidList(stream, value.EventIds);
+    }
+
+    private static NarrationDraftSegment ReadNarrationDraftSegment(IBinaryStream stream) => new(
+        BinaryCodec.ReadInt32(stream),
+        BinaryCodec.ReadInt32(stream),
+        Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()),
+        Array.AsReadOnly(BinaryCodec.ReadGuidList(stream).ToArray()));
+
+    private static void WriteNarrationEventClaim(IBinaryStream stream, NarrationEventClaim value)
+    {
+        BinaryCodec.WriteGuid(stream, value.EventId);
+        BinaryCodec.WriteEnum(stream, value.Mode);
+    }
+
+    private static NarrationEventClaim ReadNarrationEventClaim(IBinaryStream stream) => new(
+        BinaryCodec.ReadGuid(stream),
+        BinaryCodec.ReadEnum<NarrationClaimMode>(stream));
 
     private static void WritePublishedEdition(IBinaryStream stream, PublishedBookEdition value)
     {
