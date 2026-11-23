@@ -125,6 +125,47 @@ public sealed class WorkspaceTests
     }
 
     [Fact]
+    public void CampaignSessionTransitionsEnforcePreparationAndExecutionOrder()
+    {
+        var session = new StoryBuilderSession("Session lifecycle");
+        var campaign = session.AddCampaign(new CampaignRecord { Name = "The North Gate" });
+        var tableSession = session.CreateCampaignSession(campaign.Id, "The first expedition");
+
+        Assert.Throws<InvalidOperationException>(() => session.TransitionCampaignSession(tableSession.Id, CampaignSessionStatus.InProgress));
+        tableSession = session.TransitionCampaignSession(tableSession.Id, CampaignSessionStatus.Prepared);
+        Assert.Null(tableSession.StartedAtUtc);
+        tableSession = session.TransitionCampaignSession(tableSession.Id, CampaignSessionStatus.InProgress);
+        Assert.NotNull(tableSession.StartedAtUtc);
+        tableSession = session.TransitionCampaignSession(tableSession.Id, CampaignSessionStatus.Completed);
+        Assert.NotNull(tableSession.EndedAtUtc);
+        Assert.True(tableSession.EndedAtUtc >= tableSession.StartedAtUtc);
+        Assert.Throws<InvalidOperationException>(() => session.TransitionCampaignSession(tableSession.Id, CampaignSessionStatus.Cancelled));
+    }
+
+    [Fact]
+    public void CampaignSessionCanBeCancelledBeforeItStarts()
+    {
+        var workspace = new StoryWorkspace();
+        var campaign = new CampaignRecord();
+        workspace.AddCampaign(campaign);
+        var item = new CampaignSessionRecord { CampaignId = campaign.Id };
+        workspace.AddCampaignSession(item);
+        Assert.Throws<InvalidOperationException>(() => workspace.ReplaceCampaignSession(item with
+        {
+            Status = CampaignSessionStatus.Completed,
+            StartedAtUtc = DateTimeOffset.UtcNow,
+            EndedAtUtc = DateTimeOffset.UtcNow
+        }));
+        var session = new StoryBuilderSession("Cancelled session");
+        var secondCampaign = session.AddCampaign(new CampaignRecord());
+        var planned = session.CreateCampaignSession(secondCampaign.Id);
+        var cancelled = session.TransitionCampaignSession(planned.Id, CampaignSessionStatus.Cancelled);
+        Assert.Equal(CampaignSessionStatus.Cancelled, cancelled.Status);
+        Assert.Null(cancelled.StartedAtUtc);
+        Assert.Null(cancelled.EndedAtUtc);
+    }
+
+    [Fact]
     public void WorkspaceRejectsDuplicateIdentityWithinARecordCollection()
     {
         var workspace = new StoryWorkspace();
