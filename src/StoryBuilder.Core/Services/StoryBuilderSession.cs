@@ -275,6 +275,79 @@ public sealed class StoryBuilderSession
         return UpdateManuscript(manuscript.ReplaceSection(updatedSection));
     }
 
+    /// <summary>Accepts a validated provider proposal and appends its immutable provenance snapshot.</summary>
+    /// <remarks>
+    /// Acceptance is an explicit author action. The exact scene beat snapshot must still match the workspace;
+    /// stale proposals are rejected rather than silently attributed to changed source material.
+    /// </remarks>
+    public ManuscriptEdition AcceptNarrationDraft(
+        NarrationDraftRequest request,
+        NarrationDraftProposal proposal,
+        string author)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(proposal);
+        ArgumentException.ThrowIfNullOrWhiteSpace(author);
+        NarrationDraftProposalValidator.Validate(request, proposal);
+
+        var manuscript = Workspace.Manuscripts.FirstOrDefault(item => item.Id == request.ManuscriptId)
+            ?? throw new KeyNotFoundException($"No manuscript with ID '{request.ManuscriptId}' exists in this workspace.");
+        var section = manuscript.Sections.FirstOrDefault(item => item.Id == request.SectionId)
+            ?? throw new KeyNotFoundException($"No section with ID '{request.SectionId}' exists in this manuscript.");
+        if (!Workspace.Scenes.Any(item => item.Id == request.SceneId))
+            throw new KeyNotFoundException($"Scene '{request.SceneId}' does not exist in this workspace.");
+
+        var scene = Workspace.Scenes.Single(item => item.Id == request.SceneId);
+        var currentBeats = scene.Beats.ToDictionary(item => item.Id);
+        foreach (var source in request.SourceBeats)
+        {
+            if (!currentBeats.TryGetValue(source.BeatId, out var current) ||
+                !current.EventIds.Order().SequenceEqual(source.EventIds.Order()))
+                throw new InvalidOperationException("The proposal is stale because one or more source beats or event links changed after drafting.");
+        }
+
+        var referencedEventIds = proposal.Segments.SelectMany(item => item.EventIds)
+            .Concat(proposal.Claims.Select(item => item.EventId))
+            .Distinct()
+            .ToArray();
+        var missingEventId = referencedEventIds.FirstOrDefault(id =>
+            !Workspace.Events.Any(storyEvent => storyEvent.Id == id));
+        if (missingEventId != Guid.Empty)
+            throw new KeyNotFoundException($"Event '{missingEventId}' does not exist in this workspace.");
+
+        var acceptance = new NarrationAcceptanceRecord
+        {
+            RequestId = request.RequestId,
+            SceneId = request.SceneId,
+            AcceptedText = proposal.Text,
+            Author = author.Trim(),
+            ProviderId = proposal.ProviderId,
+            ModelId = proposal.ModelId,
+            AcceptedAtUtc = DateTimeOffset.UtcNow,
+            Segments = Array.AsReadOnly(proposal.Segments.Select(segment => segment with
+            {
+                SourceBeatIds = Array.AsReadOnly(segment.SourceBeatIds.ToArray()),
+                EventIds = Array.AsReadOnly(segment.EventIds.ToArray())
+            }).ToArray()),
+            Claims = Array.AsReadOnly(proposal.Claims.ToArray())
+        };
+
+        var linkedEventIds = section.EventIds.ToList();
+        foreach (var eventId in referencedEventIds)
+            if (!linkedEventIds.Contains(eventId))
+                linkedEventIds.Add(eventId);
+
+        var updatedSection = section with
+        {
+            Body = proposal.Text,
+            EventIds = linkedEventIds,
+            NarrationAcceptances = [.. section.NarrationAcceptances, acceptance]
+        };
+
+        // Text, event links, and the immutable provenance snapshot share one workspace replacement.
+        return UpdateManuscript(manuscript.ReplaceSection(updatedSection));
+    }
+
     /// <summary>Creates a visual asset linked to the story records it illustrates.</summary>
     public VisualAssetRecord CreateVisualAsset(
         string title,
