@@ -19,6 +19,9 @@ classDiagram
         +UpdateAdventure(adventure) AdventureRecord
         +UpdateQuest(quest) QuestRecord
         +UpdateQuestObjective(objective) QuestObjectiveRecord
+        +CreateCampaignSession(campaignId, title) CampaignSessionRecord
+        +TransitionCampaignSession(sessionId, requestedStatus) CampaignSessionRecord
+        +UpdateCampaignSession(session) CampaignSessionRecord
         +LinkSceneToManuscriptSection(manuscriptId, sectionId, sceneId, linked)
         +LinkEventToManuscriptSection(manuscriptId, sectionId, eventId, linked)
         +LinkEventToSceneBeat(sceneId, beatId, eventId, linked) SceneRecord
@@ -29,6 +32,7 @@ classDiagram
     class AdventureRecord
     class QuestRecord
     class QuestObjectiveRecord
+    class CampaignSessionRecord
     class SceneRecord
     class SceneBeat
     class TimelinePlanningPoint
@@ -38,6 +42,7 @@ classDiagram
     StoryBuilderSession ..> AdventureRecord : creates and updates campaign structure
     StoryBuilderSession ..> QuestRecord : creates and updates playable intent
     StoryBuilderSession ..> QuestObjectiveRecord : creates and updates objective handles
+    StoryBuilderSession ..> CampaignSessionRecord : schedules and transitions actual play
     StoryBuilderSession ..> TimelinePlanningPoint : edits alternatives and impact links
     StoryBuilderSession ..> PublishedBookEdition : freezes Markdown snapshots
     StoryBuilderSession ..> SceneRecord : updates scene beat links
