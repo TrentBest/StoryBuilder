@@ -681,6 +681,64 @@ public sealed class StoryBuilderSession
         return campaign;
     }
 
+    public CampaignSessionRecord CreateCampaignSession(Guid campaignId, string? title = null)
+    {
+        var campaign = Workspace.Campaigns.FirstOrDefault(x => x.Id == campaignId)
+            ?? throw new KeyNotFoundException($"Campaign '{campaignId}' does not exist.");
+        var item = new CampaignSessionRecord
+        {
+            CampaignId = campaignId,
+            Sequence = Workspace.CampaignSessions.Count(x => x.CampaignId == campaignId) + 1,
+            Title = NormalizeOptional(title) ?? $"Session {Workspace.CampaignSessions.Count(x => x.CampaignId == campaignId) + 1}"
+        };
+        Workspace.AddCampaignSession(item);
+        IndexCampaignSession(item, campaign.Name);
+        NotifyChanged();
+        return item;
+    }
+
+    public CampaignSessionRecord TransitionCampaignSession(Guid sessionId, CampaignSessionStatus requestedStatus)
+    {
+        var current = Workspace.CampaignSessions.FirstOrDefault(x => x.Id == sessionId)
+            ?? throw new KeyNotFoundException($"Campaign session '{sessionId}' does not exist.");
+        var allowed = current.Status switch
+        {
+            CampaignSessionStatus.Planned => requestedStatus is CampaignSessionStatus.Prepared or CampaignSessionStatus.Cancelled,
+            CampaignSessionStatus.Prepared => requestedStatus is CampaignSessionStatus.InProgress or CampaignSessionStatus.Cancelled,
+            CampaignSessionStatus.InProgress => requestedStatus is CampaignSessionStatus.Completed or CampaignSessionStatus.Cancelled,
+            _ => false
+        };
+        if (!allowed)
+            throw new InvalidOperationException($"Campaign session cannot transition from {current.Status} to {requestedStatus}.");
+
+        var now = DateTimeOffset.UtcNow;
+        var updated = current with
+        {
+            Status = requestedStatus,
+            StartedAtUtc = requestedStatus == CampaignSessionStatus.InProgress ? now : current.StartedAtUtc,
+            EndedAtUtc = requestedStatus is CampaignSessionStatus.Completed or CampaignSessionStatus.Cancelled && current.StartedAtUtc is not null
+                ? now
+                : current.EndedAtUtc,
+            UpdatedAtUtc = now
+        };
+        Workspace.ReplaceCampaignSession(updated);
+        Vocabulary.RemoveTarget(updated.Id);
+        IndexCampaignSession(updated, Workspace.Campaigns.First(x => x.Id == updated.CampaignId).Name);
+        NotifyChanged();
+        return updated;
+    }
+
+    public CampaignSessionRecord UpdateCampaignSession(CampaignSessionRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        Workspace.ReplaceCampaignSession(item with { UpdatedAtUtc = DateTimeOffset.UtcNow });
+        var updated = Workspace.CampaignSessions.First(x => x.Id == item.Id);
+        Vocabulary.RemoveTarget(updated.Id);
+        IndexCampaignSession(updated, Workspace.Campaigns.First(x => x.Id == updated.CampaignId).Name);
+        NotifyChanged();
+        return updated;
+    }
+
     public AdventureRecord CreateAdventure(Guid campaignId, string? title = null, string? summary = null, int sequence = 1)
     {
         var campaign = Workspace.Campaigns.FirstOrDefault(x => x.Id == campaignId) ?? throw new KeyNotFoundException($"Campaign '{campaignId}' does not exist.");
@@ -791,7 +849,7 @@ public sealed class StoryBuilderSession
         }
         foreach (var item in Workspace.Adventures) IndexAdventure(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Adventure");
         foreach (var item in Workspace.Quests) IndexQuest(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Quest");
-        foreach (var item in Workspace.QuestObjectives) IndexQuestObjective(item, Workspace.Quests.FirstOrDefault(x => x.Id == item.QuestId)?.Title ?? "Quest");
+        foreach (var item in Workspace.QuestObjectives) IndexQuestObjective(item, Workspace.Quests.FirstOrDefault(x => x.Id == item.QuestId)?.Title ?? "Quest");\n        foreach (var item in Workspace.CampaignSessions) IndexCampaignSession(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Campaign");
         foreach (var action in Workspace.ParticipantActions)
         {
             var campaignName = Workspace.Campaigns.FirstOrDefault(c => c.Id == action.CampaignId)?.Name ?? "Campaign action";
@@ -812,6 +870,13 @@ public sealed class StoryBuilderSession
             .FirstOrDefault()?.Trim() ?? vision.Trim();
         var words = firstSentence.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
         return words.Length <= 8 ? string.Join(' ', words) : string.Join(' ', words.Take(8)) + "…";
+    }
+
+    private void IndexCampaignSession(CampaignSessionRecord item, string campaignName)
+    {
+        Vocabulary.RecordText(item.Title, VocabularyCategory.Other, item.Id, item.Title, nameof(CampaignSessionRecord.Title), context: item.Summary, attribution: campaignName, status: item.Status == CampaignSessionStatus.Completed ? CanonStatus.Accepted : CanonStatus.Draft);
+        Vocabulary.RecordText(item.Summary, VocabularyCategory.Other, item.Id, item.Title, nameof(CampaignSessionRecord.Summary), context: item.GameMasterNotes, attribution: "Game Master", status: item.Status == CampaignSessionStatus.Completed ? CanonStatus.Accepted : CanonStatus.Draft);
+        Vocabulary.RecordText(item.GameMasterNotes, VocabularyCategory.Other, item.Id, item.Title, nameof(CampaignSessionRecord.GameMasterNotes), context: item.Summary, attribution: "Game Master", status: item.Status == CampaignSessionStatus.Completed ? CanonStatus.Accepted : CanonStatus.Draft);
     }
 
     private void IndexAdventure(AdventureRecord item, string campaignName)
