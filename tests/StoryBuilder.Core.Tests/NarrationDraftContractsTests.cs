@@ -55,7 +55,7 @@ public sealed class NarrationDraftContractsTests
         {
             RequestId = requestId,
             Text = "Mara opened the gate.",
-            Segments = [new NarrationDraftSegment(0, 22, [beatId], [eventId])],
+            Segments = [new NarrationDraftSegment(0, 21, [beatId], [eventId])],
             Claims = [new NarrationEventClaim(eventId, NarrationClaimMode.DirectFact)]
         };
 
@@ -97,7 +97,7 @@ public sealed class NarrationDraftContractsTests
         {
             RequestId = requestId,
             Text = "Mara opened the gate.",
-            Segments = [new NarrationDraftSegment(0, 22, [beatId], [eventId])],
+            Segments = [new NarrationDraftSegment(0, 21, [beatId], [eventId])],
             Claims = [new NarrationEventClaim(eventId, NarrationClaimMode.DirectFact)]
         };
 
@@ -135,7 +135,7 @@ public sealed class NarrationDraftContractsTests
         {
             RequestId = requestId,
             Text = "Mara opened the gate.",
-            Segments = [new NarrationDraftSegment(0, 22, [beatId], [otherEventId])]
+            Segments = [new NarrationDraftSegment(0, 21, [beatId], [otherEventId])]
         };
 
         Assert.Throws<ArgumentException>(() => NarrationDraftProposalValidator.Validate(request, proposal));
