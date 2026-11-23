@@ -1043,8 +1043,10 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteInt32(stream, item.Sequence);
         BinaryCodec.WriteString(stream, item.Title);
         BinaryCodec.WriteEnum(stream, item.Status);
-        BinaryCodec.WriteNullableDateTimeOffset(stream, item.StartedAtUtc);
-        BinaryCodec.WriteNullableDateTimeOffset(stream, item.EndedAtUtc);
+        BinaryCodec.WriteBoolean(stream, item.StartedAtUtc.HasValue);
+        if (item.StartedAtUtc is DateTimeOffset startedAt) BinaryCodec.WriteDateTimeOffset(stream, startedAt);
+        BinaryCodec.WriteBoolean(stream, item.EndedAtUtc.HasValue);
+        if (item.EndedAtUtc is DateTimeOffset endedAt) BinaryCodec.WriteDateTimeOffset(stream, endedAt);
         BinaryCodec.WriteString(stream, item.Summary);
         BinaryCodec.WriteString(stream, item.GameMasterNotes);
         BinaryCodec.WriteDateTimeOffset(stream, item.CreatedAtUtc);
@@ -1058,8 +1060,8 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         Sequence = BinaryCodec.ReadInt32(stream),
         Title = BinaryCodec.ReadRequiredString(stream, nameof(CampaignSessionRecord.Title)),
         Status = BinaryCodec.ReadEnum<CampaignSessionStatus>(stream),
-        StartedAtUtc = BinaryCodec.ReadNullableDateTimeOffset(stream),
-        EndedAtUtc = BinaryCodec.ReadNullableDateTimeOffset(stream),
+        StartedAtUtc = BinaryCodec.ReadBoolean(stream) ? BinaryCodec.ReadDateTimeOffset(stream) : null,
+        EndedAtUtc = BinaryCodec.ReadBoolean(stream) ? BinaryCodec.ReadDateTimeOffset(stream) : null,
         Summary = BinaryCodec.ReadRequiredString(stream, nameof(CampaignSessionRecord.Summary)),
         GameMasterNotes = BinaryCodec.ReadRequiredString(stream, nameof(CampaignSessionRecord.GameMasterNotes)),
         CreatedAtUtc = BinaryCodec.ReadDateTimeOffset(stream),
