@@ -6,6 +6,7 @@
 | Get a concise phone-friendly status review | [Phone Review Guide](docs/PHONE_REVIEW.md) |
 | Prepare the first public Alpha responsibly | [Alpha Release Checklist](docs/ALPHA_RELEASE_CHECKLIST.md) |
 | Understand the purpose and boundary | [README](README.md) |
+| Design a campaign, prepare adventures and quests, and operate a live GM dashboard | [Campaign Builder and GM Workbench](docs/CAMPAIGN_BUILDER_AND_GM_WORKBENCH.md) |
 | Meet the Narrator and understand the first-session flow | [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) |
 | Review causal links and timeline branch consistency in the authoring workbench | [Continuity Review page](samples/StoryBuilder.WebDemo/Components/Pages/Continuity.md), [StoryContinuityAnalyzer](src/StoryBuilder.Core/Services/StoryContinuityAnalyzer.md), [UML and use cases](docs/UML/StoryContinuityAnalyzerUML.md) |
 | Understand the package AnyApp consumes | [Composition Package Contract](docs/COMPOSITION_PACKAGE_CONTRACT.md) |
