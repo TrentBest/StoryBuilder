@@ -8,9 +8,20 @@ A book is an experience. StoryBuilder therefore helps create the underlying stor
 
 ## Runtime agent boundary
 
-The current WebDemo routes premise capture through NarratorAgent, which coordinates four independent FSM_API machines: intent, planning, observer constraint, and draft/review. The Home page exposes their states rather than hiding the workflow in one monolithic machine. The timeline page uses the planning FSM when adding a provisional point. Draft submission accepts explicitly declared event claims, checks them against accepted observer knowledge, and holds unsupported claims for review.
+The current WebDemo routes premise capture through NarratorAgent, which coordinates five independent FSM_API machines: intent, planning, observer constraint, portrayal preparation, and draft/review. The Home page exposes the intent, planning, observer, and draft/review states; portrayal preparation has its own state and is currently surfaced through the agent API and tests rather than the Home status strip. The timeline page uses the planning FSM when adding a provisional point. Draft submission accepts explicitly declared event claims, checks them against accepted observer knowledge, and holds unsupported claims for review.
 
 This is orchestration infrastructure, not a claim that an LLM drafting provider or Renderer adapter is already connected. The domain records remain authoritative, and advancing a machine does not automatically accept canon.
+
+
+## What narration means in the current build
+
+There are three distinct capabilities, and they should not be conflated:
+
+- **Scene assembly:** `SceneComposer` deterministically turns recorded `SceneBeat` fields into an editable first-pass text draft. It preserves the sequence and supplied details; it does not add motive, sensory detail, physical outcomes, or connective invention.
+- **Narrative permission:** `NarratorAgent` can validate explicitly declared event claims against accepted observer knowledge, including the required framing for witnessed facts, reports, inference, and belief. This is a safety/continuity gate, not a prose-generation step.
+- **Creative drafting and performance:** an LLM-backed drafting provider, revision dialogue, voice performance, and an author-facing narration workspace are not yet connected. The current Narrator captures and reviews ideas; it does not yet independently turn a story model into polished, stylistically controlled prose or read it aloud.
+
+The next narration increment should preserve this separation: a provider-neutral request built from selected scene beats, manuscript context, author-selected voice/style/point of view, and an observer-safe knowledge projection; a provider returns a proposed draft with source-beat/event provenance; StoryBuilder validates declared claims and presents a diff for author review. Provider output must never write canon or overwrite manuscript text without explicit author action. StoryBuilder.Core should remain provider-independent, and the host should discover optional drafting and speech capabilities through the established composition boundary.
 
 ## The Narrator's opening
 
