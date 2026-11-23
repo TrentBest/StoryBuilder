@@ -250,4 +250,42 @@ public sealed class NarrationDraftContractsTests
 
         Assert.Throws<ArgumentException>(() => NarrationDraftProposalValidator.Validate(request, proposal));
     }
+    [Fact]
+    public void ProposalAcceptsSeparateTextRangesForTheirOwnSourceBeatsAndEvents()
+    {
+        var requestId = Guid.NewGuid();
+        var firstBeatId = Guid.NewGuid();
+        var secondBeatId = Guid.NewGuid();
+        var firstEventId = Guid.NewGuid();
+        var secondEventId = Guid.NewGuid();
+        var firstText = "Mara opens the gate.";
+        var secondText = "The guard steps aside.";
+        var separator = Environment.NewLine + Environment.NewLine;
+        var combinedText = firstText + separator + secondText;
+        var secondStart = firstText.Length + separator.Length;
+        var request = new NarrationDraftRequest
+        {
+            RequestId = requestId,
+            SourceBeats =
+            [
+                new NarrationSourceBeat(firstBeatId, 1, SceneBeatKind.Action, null, "Mara",
+                    "opens the gate", null, null, null, null, null, "Participant", [firstEventId]),
+                new NarrationSourceBeat(secondBeatId, 2, SceneBeatKind.Action, null, "Guard",
+                    "steps aside", null, null, null, null, null, "Participant", [secondEventId])
+            ]
+        };
+        var proposal = new NarrationDraftProposal
+        {
+            RequestId = requestId,
+            Text = combinedText,
+            Segments =
+            [
+                new NarrationDraftSegment(0, firstText.Length, [firstBeatId], [firstEventId]),
+                new NarrationDraftSegment(secondStart, secondText.Length, [secondBeatId], [secondEventId])
+            ]
+        };
+
+        NarrationDraftProposalValidator.Validate(request, proposal);
+    }
+
 }
