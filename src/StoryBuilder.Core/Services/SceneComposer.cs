@@ -32,28 +32,9 @@ public sealed class SceneComposer
 
         foreach (var beat in scene.Beats.OrderBy(b => b.Sequence))
         {
-            var actor = string.IsNullOrWhiteSpace(beat.ActorLabel) ? "Someone" : beat.ActorLabel.Trim();
-            var line = beat.Kind switch
-            {
-                SceneBeatKind.Dialogue when !string.IsNullOrWhiteSpace(beat.Dialogue) =>
-                    $"{actor} says, \"{beat.Dialogue.Trim()}\"",
-                SceneBeatKind.Pose when !string.IsNullOrWhiteSpace(beat.PoseOrPosition) =>
-                    $"{actor} holds this pose: {beat.PoseOrPosition.Trim()}",
-                SceneBeatKind.Reaction when !string.IsNullOrWhiteSpace(beat.Reaction) =>
-                    $"{actor} reacts: {beat.Reaction.Trim()}",
-                SceneBeatKind.Transition when !string.IsNullOrWhiteSpace(beat.Action) =>
-                    beat.Action.Trim(),
-                SceneBeatKind.Narration when !string.IsNullOrWhiteSpace(beat.CaptureNote) =>
-                    beat.CaptureNote.Trim(),
-                _ when !string.IsNullOrWhiteSpace(beat.Action) =>
-                    $"{actor} {EnsureSentenceFragment(beat.Action.Trim())}",
-                _ when !string.IsNullOrWhiteSpace(beat.CaptureNote) =>
-                    $"{actor}: {beat.CaptureNote.Trim()}",
-                _ => string.Empty
-            };
-
+            var line = ComposeNarrationBeat(beat);
             if (!string.IsNullOrWhiteSpace(line))
-                lines.Add(EnsureSentence(line));
+                lines.Add(line);
         }
 
         var output = new StringBuilder();
@@ -61,6 +42,36 @@ public sealed class SceneComposer
             output.AppendLine($"Location: {scene.Location.Trim()}");
         output.Append(string.Join(Environment.NewLine, lines));
         return output.ToString().Trim();
+    }
+
+    /// <summary>
+    /// Produces the deterministic first-pass narration line for one recorded beat.
+    /// The result uses only fields present on that beat and never adds unstated events or motivations.
+    /// </summary>
+    public string ComposeNarrationBeat(SceneBeat beat)
+    {
+        ArgumentNullException.ThrowIfNull(beat);
+        var actor = string.IsNullOrWhiteSpace(beat.ActorLabel) ? "Someone" : beat.ActorLabel.Trim();
+        var line = beat.Kind switch
+        {
+            SceneBeatKind.Dialogue when !string.IsNullOrWhiteSpace(beat.Dialogue) =>
+                $"{actor} says, \"{beat.Dialogue.Trim()}\"",
+            SceneBeatKind.Pose when !string.IsNullOrWhiteSpace(beat.PoseOrPosition) =>
+                $"{actor} holds this pose: {beat.PoseOrPosition.Trim()}",
+            SceneBeatKind.Reaction when !string.IsNullOrWhiteSpace(beat.Reaction) =>
+                $"{actor} reacts: {beat.Reaction.Trim()}",
+            SceneBeatKind.Transition when !string.IsNullOrWhiteSpace(beat.Action) =>
+                beat.Action.Trim(),
+            SceneBeatKind.Narration when !string.IsNullOrWhiteSpace(beat.CaptureNote) =>
+                beat.CaptureNote.Trim(),
+            _ when !string.IsNullOrWhiteSpace(beat.Action) =>
+                $"{actor} {EnsureSentenceFragment(beat.Action.Trim())}",
+            _ when !string.IsNullOrWhiteSpace(beat.CaptureNote) =>
+                $"{actor}: {beat.CaptureNote.Trim()}",
+            _ => string.Empty
+        };
+
+        return string.IsNullOrWhiteSpace(line) ? string.Empty : EnsureSentence(line);
     }
 
     private static string EnsureSentenceFragment(string text) =>
