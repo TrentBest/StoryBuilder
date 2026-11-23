@@ -30,7 +30,7 @@ The .NET 10 domain core includes:
 
 - **Casting:** create, select, revise, and add/remove character traits from editable drafts; record stable-ID relationships between characters.
 - **Places:** create canonical place records, optionally nest places under parent places, and assign scenes to place IDs without losing free-form location notes.
-- **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder them and copy an editable narration draft.
+- **The Stage:** capture ordered action, reaction, dialogue, and pose beats; reorder them, edit one narration block per beat, and accept a manuscript passage with exact beat/event provenance.
 - **Vocabulary:** index character and scene words, record explicit synonyms, and refresh counts when an author edits a record.
 - **World Archive and Continuity Review:** record historical claims with optional source provenance and explicit canon status; open Continuity Review from the workbench navigation to inspect causal cycles, inconsistent cause/consequence links, and cyclic timeline branches. Findings are advisory and do not edit records.
 - **Campaign Room:** create campaigns and record participant choices as proposals until deliberately accepted. This is the foundation, not yet a live GM console; see the [Campaign Builder and GM Workbench direction](docs/CAMPAIGN_BUILDER_AND_GM_WORKBENCH.md) for the preparation-to-play model, dashboard areas, SURPS boundary, and first vertical slice.
@@ -80,6 +80,7 @@ dotnet test tests/StoryBuilder.Core.Tests/StoryBuilder.Core.Tests.csproj --confi
 - [WebDemo Guide](samples/StoryBuilder.WebDemo/README.md) — how to run and explore the interactive prototype, including Continuity Review.
 - [Continuity Review](samples/StoryBuilder.WebDemo/Components/Pages/Continuity.md) — what the live workspace checks report and what they do not establish.
 - [Narrator Experience](docs/NARRATOR_EXPERIENCE.md) — low-friction, visual-first story creation; target output discovery; and the digital publication boundary.
+- [SceneComposer](docs/SCENE_COMPOSER.md) — deterministic beat-level narration formatting and the boundary between composition and author acceptance.
 - [Character Casting Studio](docs/CHARACTER_CASTING_STUDIO.md) — cast roles, the three-sided mirror concept, word occurrences, and careful pronoun-reference tracking.
 - [Timelines, Gestures, and Multiverse History](docs/TIMELINES_GESTURES_MULTIVERSE.md) — world events distinct from prose, timeline branches and divergence, gesture-driven animation, and Visualize/Renderer capability boundaries.
 - [Character Creation](docs/CHARACTER_CREATION.md) — defaults, prompts, templates, and editable character profiles.
