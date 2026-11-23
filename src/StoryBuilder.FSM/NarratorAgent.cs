@@ -311,11 +311,10 @@ public sealed class NarratorAgent : IDisposable
             }
         }
 
-        var manuscript = _session.Workspace.Manuscripts.Single(item => item.Id == manuscriptId);
-        var section = manuscript.Sections.Single(item => item.Id == sectionId);
-        _session.UpdateManuscriptSection(manuscriptId, sectionId, section.Title, draftText);
-        foreach (var eventId in eventIds)
-            _session.LinkEventToManuscriptSection(manuscriptId, sectionId, eventId);
+        _session.SaveManuscriptDraft(manuscriptId, sectionId,
+            _session.Workspace.Manuscripts.Single(item => item.Id == manuscriptId)
+                .Sections.Single(item => item.Id == sectionId).Title,
+            draftText, eventIds);
         _draft.DraftText = draftText;
         Move(_draft, _draftHandle, _draftGroup, "Ready");
         Emit("DraftReview", "DraftSaved", $"Saved draft text and linked {eventIds.Count} declared world-event claim(s).");
