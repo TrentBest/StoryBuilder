@@ -11,7 +11,7 @@ namespace StoryBuilder.Persistence;
 /// </summary>
 public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
 {
-    private const int FormatVersion = 1;
+    private const int FormatVersion = 2;
     private static readonly byte[] Magic = Encoding.ASCII.GetBytes("SBW1");
 
     public StoryWorkspaceBinaryDocument()
@@ -146,6 +146,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         BinaryCodec.WriteList(stream, workspace.Organizations, WriteOrganization);
         BinaryCodec.WriteList(stream, workspace.PublicationOutlets, WritePublicationOutlet);
         BinaryCodec.WriteList(stream, workspace.InWorldPublicationEditions, WriteInWorldPublicationEdition);
+        BinaryCodec.WriteList(stream, workspace.SourcebookAttachments, WriteSourcebookAttachment);
     }
 
     private static StoryWorkspace ReadWorkspace(IBinaryStream stream)
@@ -175,6 +176,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         var organizations = BinaryCodec.ReadList(stream, ReadOrganization);
         var publicationOutlets = BinaryCodec.ReadList(stream, ReadPublicationOutlet);
         var inWorldPublicationEditions = BinaryCodec.ReadList(stream, ReadInWorldPublicationEdition);
+        var sourcebookAttachments = BinaryCodec.ReadList(stream, ReadSourcebookAttachment);
 
         var workspace = new StoryWorkspace { Id = id, Name = name, Experience = experience, LegacyProjectSourceJson = legacyProjectSourceJson };
         foreach (var item in timelines) workspace.AddTimeline(item);
@@ -199,6 +201,7 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         foreach (var item in organizations) workspace.AddOrganization(item);
         foreach (var item in publicationOutlets) workspace.AddPublicationOutlet(item);
         foreach (var item in inWorldPublicationEditions) workspace.AddInWorldPublicationEdition(item);
+        foreach (var item in sourcebookAttachments) workspace.AddSourcebookAttachment(item);
         return workspace;
     }
 
@@ -1019,6 +1022,32 @@ public sealed class StoryWorkspaceBinaryDocument : IBinarySerializable
         EventIds = BinaryCodec.ReadGuidList(stream),
         SupersedesEditionId = BinaryCodec.ReadNullableGuid(stream),
         CorrectionNotes = BinaryCodec.ReadString(stream)
+    };
+
+    private static void WriteSourcebookAttachment(IBinaryStream stream, SourcebookAttachment value)
+    {
+        BinaryCodec.WriteGuid(stream, value.Id);
+        BinaryCodec.WriteGuid(stream, value.CampaignId);
+        BinaryCodec.WriteString(stream, value.SourcebookId);
+        BinaryCodec.WriteString(stream, value.Title);
+        BinaryCodec.WriteString(stream, value.Edition);
+        BinaryCodec.WriteString(stream, value.ContentSha256);
+        BinaryCodec.WriteString(stream, value.SourceUri);
+        BinaryCodec.WriteStringList(stream, value.EntryIds);
+        BinaryCodec.WriteDateTimeOffset(stream, value.AttachedAtUtc);
+    }
+
+    private static SourcebookAttachment ReadSourcebookAttachment(IBinaryStream stream) => new()
+    {
+        Id = BinaryCodec.ReadGuid(stream),
+        CampaignId = BinaryCodec.ReadGuid(stream),
+        SourcebookId = BinaryCodec.ReadRequiredString(stream, nameof(SourcebookAttachment.SourcebookId)),
+        Title = BinaryCodec.ReadRequiredString(stream, nameof(SourcebookAttachment.Title)),
+        Edition = BinaryCodec.ReadRequiredString(stream, nameof(SourcebookAttachment.Edition)),
+        ContentSha256 = BinaryCodec.ReadRequiredString(stream, nameof(SourcebookAttachment.ContentSha256)),
+        SourceUri = BinaryCodec.ReadRequiredString(stream, nameof(SourcebookAttachment.SourceUri)),
+        EntryIds = BinaryCodec.ReadStringList(stream),
+        AttachedAtUtc = BinaryCodec.ReadDateTimeOffset(stream)
     };
 
     private static void WriteVocabularyConcept(IBinaryStream stream, VocabularyConcept value)
