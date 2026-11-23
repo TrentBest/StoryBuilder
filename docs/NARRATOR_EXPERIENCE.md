@@ -174,3 +174,15 @@ The composition/host adapter now defines `INarrationDraftProvider` and `Narratio
 - The coordinator never writes to the workspace. A provider cannot accept canon by returning text.
 
 No concrete provider is currently registered by the WebDemo, and no proposal diff/acceptance UI is connected yet. The next slice is to register a real optional provider and present its validated proposal for comparison and author editing, while preserving the existing explicit save gate.
+
+
+## Verification — 2026-11-23
+
+GitHub Actions `dotnet` workflow run [#1221](https://github.com/TrentBest/StoryBuilder/actions/runs/45272110723) passed on code/test commit `91bdef8536c106da5c49eb403a015afb2b7c8145`:
+
+- Core authoring/lifecycle/composition/persistence: **179 passed**
+- Story Forge: **21 passed**
+- WebDemo browser persistence/restart: **2 passed**
+- All configured project builds succeeded.
+
+The earlier run exposed one pre-existing unverified Narrator acceptance test whose fixture placed two events at separate acquisition anchors without a causal edge between them. The fixture now declares the cause-to-consequence relationship explicitly through `LinkEventCausality`; the production evaluator's causal-horizon behavior was not weakened.
