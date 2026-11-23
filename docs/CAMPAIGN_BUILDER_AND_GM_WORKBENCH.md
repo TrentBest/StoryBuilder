@@ -148,6 +148,12 @@ The GM dashboard may automate preparation, offer suggestions, surface likely con
 - The system should make it clear whether an outcome came from SURPS, a simulation subsystem, a GM ruling, or an external agent.
 - AI is an optional host capability. StoryBuilder Core must remain usable without an LLM or AI package dependency.
 
+### Implemented sourcebook pinning foundation
+
+The Core now has an immutable `SourcebookAttachment` record that binds a campaign to a sourcebook's stable ID, title, exact edition, content SHA-256, source URI, and selected stable entry IDs. Attachments are validated against an existing campaign, duplicate campaign/sourcebook/edition attachments are rejected, and the exact record is included in workspace binary persistence (current development format v2).
+
+This is the first data-contract slice, not yet a complete remote catalogue browser or automatic GitHub revision resolver. The authoring host must obtain and verify the edition/hash before attaching it. Campaign play can therefore refer to a pinned identity without silently following later sourcebook edits.
+
 ## First vertical slice
 
 Do not attempt a complete virtual tabletop or every game mechanic at once. Prove the campaign loop with a small end-to-end vertical slice:
