@@ -171,3 +171,21 @@ Implemented today: campaign records and participant-action proposals in StoryBui
 Not yet implemented as a complete product: adventure and quest domain models, sourcebook attachment/version pinning, a live GM dashboard, session lifecycle and immutable session snapshots, typed rules-evaluation requests/results, encounter orchestration, campaign permissions, participant-facing projections, and end-to-end save/restore of a running campaign.
 
 This document defines a direction and proposed boundaries. It does not claim that SURPS integration, campaign execution, or the dashboard is already implemented.
+
+## First sourcebook integration pilot: FSM_Dungeon Fantasy Library
+
+The initial cross-repository pilot is the original [FSM_Dungeon Fantasy Library](https://github.com/TrentBest/FSM_Dungeon/tree/development/docs/books). It currently includes Fantasy Foundations, The Living Bestiary, Elves: Peoples of the Long Memory, and The Broken Star campaign seed.
+
+Use this pilot to prove the sourcebook boundary before attempting a broad marketplace or universal catalogue:
+- browse a domain-owned book without copying its full contents into the campaign;
+- reference a stable book and entry identity;
+- pin the exact revision used by a campaign;
+- attach elf and bestiary knowledge to an adventure;
+- use The Broken Star as a premise proposal, not a forced plot;
+- keep campaign-specific discoveries and adaptations in StoryBuilder;
+- preserve player decisions and accepted consequences as the campaign's actual history.
+
+The Dungeon sourcebook repository owns its setting content and future revisions. StoryBuilder owns the campaign's selected references, preparation, session records, and evolving story. SURPS remains the authority for roleplaying ontology and resolution. The integration work is tracked in [StoryBuilder issue #15](https://github.com/TrentBest/StoryBuilder/issues/15).
+
+This is an authoring/content pilot. It does not imply that sourcebook pinning, adventure/quest models, or the complete GM dashboard are already implemented.
+
