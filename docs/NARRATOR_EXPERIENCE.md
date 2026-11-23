@@ -192,3 +192,14 @@ This is persistence at the StoryBuilder domain-model/workspace serialization bou
 ## Verification — 2026-11-23
 
 The previous verified baseline is GitHub Actions run [#1234](https://github.com/TrentBest/StoryBuilder/actions/runs/45272789664), which passed 180 Core tests, 21 Story Forge tests, 2 WebDemo browser tests, and all configured project builds. The acceptance/provenance changes above are newer and still require a fresh CI result.
+
+
+## WebDemo author acceptance surface — 2026-11-23
+
+The Stage page now uses the workspace-backed `NarrationDraftRequestBuilder` when preparing a manuscript passage. It snapshots the selected scene's current beats in sequence order and applies observer projection checks before the editable draft is presented. The page no longer routes this passage through the older `NarratorAgent.SubmitDraft` save path.
+
+The author can edit the prepared text and explicitly choose **Accept this author-written passage**. The UI constructs a proposal with the exact request ID, identifies the source beats and linked events for the passage, and calls `StoryBuilderSession.AcceptNarrationDraft`. That operation revalidates provenance and staleness before updating the manuscript and appending the acceptance record. A stale or invalid proposal remains unaccepted and the UI reports the reason.
+
+This first UI slice uses a single coarse provenance segment for the entire passage, linked to all selected beats and their event IDs. It deliberately records no semantic event claims because the WebDemo does not infer claims from prose. Fine-grained sentence-to-beat mapping and a concrete optional creative provider remain future work. The acceptance record identifies this as author-authored text (`author` / `manual-authoring`), not AI output.
+
+The UI is therefore an explicit manual authoring/acceptance path; it does not imply that a model provider is configured or that generated prose is available.
