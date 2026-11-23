@@ -87,12 +87,15 @@ public static class NarrationDraftProposalValidator
             throw new ArgumentException("The proposal must identify the exact request that produced it.", nameof(proposal));
         if (string.IsNullOrWhiteSpace(proposal.Text))
             throw new ArgumentException("A narration proposal must contain text.", nameof(proposal));
+        if (!Enum.IsDefined(request.Perspective))
+            throw new ArgumentException("The request contains an unknown narrative perspective.", nameof(request));
         ArgumentNullException.ThrowIfNull(request.SourceBeats);
         ArgumentNullException.ThrowIfNull(proposal.Segments);
         ArgumentNullException.ThrowIfNull(proposal.Claims);
 
-        if (request.SourceBeats.Any(beat => beat is null || beat.EventIds is null))
-            throw new ArgumentException("Every source beat must include its event identity collection.", nameof(request));
+        if (request.SourceBeats.Any(beat =>
+                beat is null || beat.EventIds is null || beat.EventIds.Any(id => id == Guid.Empty)))
+            throw new ArgumentException("Every source beat must include valid event identities.", nameof(request));
         var beatIds = request.SourceBeats.Select(beat => beat.BeatId).ToHashSet();
         if (beatIds.Contains(Guid.Empty) || beatIds.Count != request.SourceBeats.Count)
             throw new ArgumentException("The request contains an empty or duplicate source beat identity.", nameof(request));
@@ -107,13 +110,32 @@ public static class NarrationDraftProposalValidator
                 segment.Start > proposal.Text.Length - segment.Length)
                 throw new ArgumentException("A provenance segment falls outside the proposed text.", nameof(proposal));
             if (segment.SourceBeatIds.Count == 0 ||
-                segment.SourceBeatIds.Any(id => !beatIds.Contains(id)))
+                segment.SourceBeatIds.Any(id => id == Guid.Empty || !beatIds.Contains(id)))
                 throw new ArgumentException("A provenance segment refers to a beat that was not supplied.", nameof(proposal));
+            if (segment.EventIds.Any(id => id == Guid.Empty))
+                throw new ArgumentException("A provenance segment contains an empty event identity.", nameof(proposal));
             var segmentEventIds = segment.SourceBeatIds
                 .SelectMany(id => beatsById[id].EventIds)
                 .ToHashSet();
             if (segment.EventIds.Any(id => !segmentEventIds.Contains(id)))
                 throw new ArgumentException("A provenance segment links an event not associated with its cited beats.", nameof(proposal));
+        }
+
+        if (proposal.Claims.Any(claim =>
+                claim is null || claim.EventId == Guid.Empty || !Enum.IsDefined(claim.Mode)))
+            throw new ArgumentException("Every proposed event claim must contain valid event and claim-mode identities.", nameof(proposal));
+
+        if (request.ObserverKnowledge is not null)
+        {
+            if (request.ObserverKnowledge.Events is null ||
+                request.ObserverKnowledge.Events.Any(item => item is null || item.PermittedClaims is null))
+                throw new ArgumentException("The observer projection must contain valid event and permitted-claim collections.", nameof(request));
+            var projectedEventIds = request.ObserverKnowledge.Events.Select(item => item.EventId).ToArray();
+            if (projectedEventIds.Contains(Guid.Empty) || projectedEventIds.Distinct().Count() != projectedEventIds.Length)
+                throw new ArgumentException("The observer projection contains empty or duplicate event identities.", nameof(request));
+            if (request.ObserverKnowledge.Events.Any(item =>
+                    item.PermittedClaims.Any(permitted => permitted is null || !Enum.IsDefined(permitted.Mode))))
+                throw new ArgumentException("The observer projection contains an invalid permitted claim.", nameof(request));
         }
 
         foreach (var claim in proposal.Claims)
@@ -129,7 +151,8 @@ public static class NarrationDraftProposalValidator
 
         if (request.ObserverId is Guid observerId)
         {
-            if (request.ObserverKnowledge is null || request.ObserverKnowledge.ObserverId != observerId)
+            if (observerId == Guid.Empty || request.ObserverKnowledge is null ||
+                request.ObserverKnowledge.ObserverId != observerId)
                 throw new ArgumentException("Observer-constrained requests must carry that observer's knowledge projection.", nameof(request));
             if (request.ObserverKnowledge.AsOfEventId != request.AsOfEventId)
                 throw new ArgumentException("The observer projection and request must use the same event horizon.", nameof(request));
@@ -139,6 +162,8 @@ public static class NarrationDraftProposalValidator
             throw new ArgumentException("An observer knowledge projection cannot be supplied without its observer identity.", nameof(request));
         }
 
+        if (request.AsOfEventId == Guid.Empty)
+            throw new ArgumentException("The request contains an empty event horizon.", nameof(request));
         if (request.Perspective == NarrationPerspective.ThirdPersonOmniscient && !request.AllowOmniscientPerspective)
             throw new ArgumentException("Omniscient perspective requires explicit author permission.", nameof(request));
     }
