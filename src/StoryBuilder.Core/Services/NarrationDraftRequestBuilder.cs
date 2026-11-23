@@ -55,8 +55,10 @@ public sealed class NarrationDraftRequestBuilder
         var workspace = session.Workspace;
         var scene = workspace.Scenes.FirstOrDefault(item => item.Id == sceneId)
             ?? throw new KeyNotFoundException($"Scene '{sceneId}' does not exist in this workspace.");
+        var sceneBeats = scene.Beats
+            ?? throw new InvalidOperationException($"Scene '{sceneId}' has no beat collection.");
         var selectedIds = requestedBeatIds.ToHashSet();
-        var matchingBeats = scene.Beats.Where(beat => selectedIds.Contains(beat.Id)).ToArray();
+        var matchingBeats = sceneBeats.Where(beat => selectedIds.Contains(beat.Id)).ToArray();
         if (matchingBeats.Length != selectedIds.Count)
             throw new KeyNotFoundException("One or more selected scene beats do not exist in the requested scene.");
 
