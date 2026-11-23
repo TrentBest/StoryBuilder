@@ -24,6 +24,7 @@ class StoryWorkspace {
   +IReadOnlyList~AdventureRecord~ Adventures
   +IReadOnlyList~QuestRecord~ Quests
   +IReadOnlyList~QuestObjectiveRecord~ QuestObjectives
+  +IReadOnlyList~CampaignSessionRecord~ CampaignSessions
   +IReadOnlyList~ParticipantAction~ ParticipantActions
   +IReadOnlyList~SourceRecord~ Sources
   +IReadOnlyList~ContinuityIssue~ ContinuityIssues
@@ -47,6 +48,8 @@ class StoryWorkspace {
   +ReplaceQuest(quest)
   +AddQuestObjective(objective)
   +ReplaceQuestObjective(objective)
+  +AddCampaignSession(session)
+  +ReplaceCampaignSession(session)
   +AddParticipantAction(action)
   +AddSource(source)
   +AddContinuityIssue(issue)
@@ -72,6 +75,8 @@ StoryWorkspace o-- SourcebookAttachment
 StoryWorkspace o-- AdventureRecord
 StoryWorkspace o-- QuestRecord
 StoryWorkspace o-- QuestObjectiveRecord
+StoryWorkspace o-- CampaignSessionRecord
+CampaignSessionRecord --> CampaignRecord : belongs to
 AdventureRecord --> CampaignRecord : owned by
 QuestRecord --> CampaignRecord : owned by
 QuestRecord --> AdventureRecord : optional parent
