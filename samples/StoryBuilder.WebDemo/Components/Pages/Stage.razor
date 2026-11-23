@@ -1,6 +1,5 @@
 @page "/stage"
 @inject StoryBuilderSession Session
-@inject NarratorAgent Narrator
 @inject NarrationDraftRequestBuilder NarrationRequests
 @inject IJSRuntime JS
 
@@ -270,17 +269,6 @@
         {
             <p class="muted" role="status">@narratorMessage</p>
         }
-        @if (lastNarrationSubmission is not null)
-        {
-            <div class="list-item">
-                <strong>@(lastNarrationSubmission.Accepted ? "Draft accepted" : "Draft held for review")</strong>
-                <p>@lastNarrationSubmission.Message</p>
-                @foreach (var constraint in lastNarrationSubmission.Constraints.Where(item => !item.IsAllowed))
-                {
-                    <p class="muted">@constraint.Explanation</p>
-                }
-            </div>
-        }
     </section>
 }
 
@@ -308,7 +296,6 @@
     private string narrationDraft = string.Empty;
     private string narratorMessage = string.Empty;
     private bool narrationRequested;
-    private NarratorDraftSubmission? lastNarrationSubmission;
     private NarrationDraftRequest? pendingNarrationRequest;
 
     private ManuscriptEdition? SelectedManuscript =>
@@ -335,7 +322,6 @@
             .OrderBy(item => item.Sequence)
             .FirstOrDefault()?.Id.ToString() ?? string.Empty;
         narrationRequested = false;
-        lastNarrationSubmission = null;
     }
 
     private void CreateNarrationManuscript()
@@ -371,7 +357,6 @@
 
             narrationDraft = Session.SceneComposer.ComposeNarration(currentScene);
             narrationRequested = true;
-            lastNarrationSubmission = null;
             narratorMessage = observerId is null
                 ? "Draft prepared from the selected scene beats. Review and edit it; acceptance will preserve its source snapshot."
                 : $"Draft prepared for {Session.Workspace.Characters.First(item => item.Id == observerId).Name}'s point of view. Observer knowledge constraints were applied.";
