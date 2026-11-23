@@ -27,12 +27,9 @@ public sealed class NarrationDraftRequestBuilderTests
         };
         session.UpdateScene(scene with { Beats = [laterBeat, earlierBeat] });
         var manuscript = session.CreateManuscript("The Chronicle");
-        session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Wall");
-        var section = session.Workspace.Manuscripts.Single().Sections.Single() with
-        {
-            Body = "Existing passage."
-        };
-        session.UpdateManuscript(manuscript with { Sections = [section] });
+        manuscript = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Wall");
+        var section = manuscript.Sections.Single() with { Body = "Existing passage." };
+        session.UpdateManuscript(manuscript.ReplaceSection(section));
 
         var request = new NarrationDraftRequestBuilder().Build(
             session,
@@ -52,7 +49,7 @@ public sealed class NarrationDraftRequestBuilderTests
         Assert.Equal("Existing passage.", request.ExistingSectionText);
         Assert.Equal("restrained", request.Voice);
         Assert.Equal("historical", request.Style);
-        Assert.Equal([earlierBeat.Id, laterBeat.Id], request.SourceBeats.Select(beat => beat.BeatId));
+        Assert.Equal(new[] { earlierBeat.Id, laterBeat.Id }, request.SourceBeats.Select(beat => beat.BeatId));
     }
 
     [Fact]
@@ -114,7 +111,7 @@ public sealed class NarrationDraftRequestBuilderTests
         Assert.Equal(observer.Id, request.ObserverId);
         Assert.NotNull(request.ObserverKnowledge);
         Assert.Contains(request.ObserverKnowledge.Events, item => item.EventId == storyEvent.Id);
-        Assert.Equal([storyEvent.Id], request.SourceBeats.Single().EventIds);
+        Assert.Equal(new[] { storyEvent.Id }, request.SourceBeats.Single().EventIds);
     }
 
     [Fact]
