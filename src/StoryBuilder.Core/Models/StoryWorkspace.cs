@@ -145,6 +145,7 @@ public sealed class StoryWorkspace
     private readonly List<HistoricalClaim> _historicalClaims = [];
     private readonly List<StoryEvent> _events = [];
     private readonly List<CampaignRecord> _campaigns = [];
+    private readonly List<SourcebookAttachment> _sourcebookAttachments = [];
     private readonly List<ParticipantAction> _participantActions = [];
     private readonly List<SourceRecord> _sources = [];
     private readonly List<ContinuityIssue> _continuityIssues = [];
@@ -172,6 +173,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<HistoricalClaim> HistoricalClaims => _historicalClaims.AsReadOnly();
     public IReadOnlyList<StoryEvent> Events => _events.AsReadOnly();
     public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();
+    public IReadOnlyList<SourcebookAttachment> SourcebookAttachments => _sourcebookAttachments.AsReadOnly();
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
     public IReadOnlyList<ContinuityIssue> ContinuityIssues => _continuityIssues.AsReadOnly();
@@ -411,6 +413,33 @@ public sealed class StoryWorkspace
             ParticipantCharacterIds = campaign.ParticipantCharacterIds.Distinct().ToList(),
             SceneIds = campaign.SceneIds.Distinct().ToList(),
             EventIds = campaign.EventIds.Distinct().ToList()
+        });
+    }
+
+    /// <summary>Attaches an exact sourcebook edition to a campaign without copying or mutating its content.</summary>
+    public void AddSourcebookAttachment(SourcebookAttachment attachment)
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+        EnsureUnique(_sourcebookAttachments.Select(item => item.Id), attachment.Id, nameof(attachment));
+        if (!_campaigns.Any(item => item.Id == attachment.CampaignId))
+            throw new KeyNotFoundException($"Campaign '{attachment.CampaignId}' must exist before a sourcebook can be attached.");
+        if (string.IsNullOrWhiteSpace(attachment.SourcebookId) ||
+            string.IsNullOrWhiteSpace(attachment.Title) ||
+            string.IsNullOrWhiteSpace(attachment.Edition) ||
+            string.IsNullOrWhiteSpace(attachment.ContentSha256) ||
+            string.IsNullOrWhiteSpace(attachment.SourceUri))
+            throw new ArgumentException("A sourcebook attachment requires stable identity, title, edition, content hash, and source URI.", nameof(attachment));
+        if (_sourcebookAttachments.Any(item =>
+            item.CampaignId == attachment.CampaignId &&
+            item.SourcebookId == attachment.SourcebookId &&
+            item.Edition == attachment.Edition))
+            throw new InvalidOperationException("That exact sourcebook edition is already attached to this campaign.");
+        if (attachment.EntryIds.Any(string.IsNullOrWhiteSpace) ||
+            attachment.EntryIds.Distinct(StringComparer.Ordinal).Count() != attachment.EntryIds.Count)
+            throw new ArgumentException("Sourcebook entry IDs must be non-empty and unique.", nameof(attachment));
+        _sourcebookAttachments.Add(attachment with
+        {
+            EntryIds = Array.AsReadOnly(attachment.EntryIds.ToArray())
         });
     }
 
