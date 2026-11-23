@@ -106,6 +106,16 @@ public sealed class StoryWorkspacePersistenceTests
         });
 
         var campaign = session.AddCampaign(new CampaignRecord { Name = "Lost Cartographers" });
+        var sourcebook = session.AttachSourcebook(new SourcebookAttachment
+        {
+            CampaignId = campaign.Id,
+            SourcebookId = "fsm-dungeon.fantasy.elves",
+            Title = "Elves: Peoples of the Long Memory",
+            Edition = "0.1.0",
+            ContentSha256 = new string('A', 64),
+            SourceUri = "https://github.com/TrentBest/FSM_Dungeon/blob/development/docs/books/elves.md",
+            EntryIds = ["people.aelvarin", "story.archive-beneath-the-roots"]
+        });
         session.AddParticipantAction(new ParticipantAction
         {
             CampaignId = campaign.Id,
@@ -155,6 +165,12 @@ public sealed class StoryWorkspacePersistenceTests
 
         Assert.Equal(session.Workspace.Id, restoredSession.Workspace.Id);
         Assert.Equal("Persistence campaign", restoredSession.Workspace.Name);
+        var restoredSourcebook = Assert.Single(restoredSession.Workspace.SourcebookAttachments);
+        Assert.Equal(sourcebook.Id, restoredSourcebook.Id);
+        Assert.Equal(campaign.Id, restoredSourcebook.CampaignId);
+        Assert.Equal(sourcebook.SourcebookId, restoredSourcebook.SourcebookId);
+        Assert.Equal(sourcebook.ContentSha256, restoredSourcebook.ContentSha256);
+        Assert.Equal(sourcebook.EntryIds, restoredSourcebook.EntryIds);
         Assert.Equal(place.Id, Assert.Single(restoredSession.Workspace.Places).Id);
         Assert.Equal(place.Id, Assert.Single(restoredSession.Workspace.Scenes).PlaceId);
         var restoredManuscript = Assert.Single(restoredSession.Workspace.Manuscripts);
