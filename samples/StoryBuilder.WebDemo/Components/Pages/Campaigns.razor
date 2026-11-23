@@ -69,6 +69,96 @@
 <section class="panel stack" style="margin-top:1rem">
     <div class="row">
         <div class="grow">
+            <div class="eyebrow">Preparation desk</div>
+            <h2>Shape the next playable thread</h2>
+        </div>
+        <span class="chip">Campaign planning</span>
+    </div>
+    @if (Session.Workspace.Campaigns.Count == 0)
+    {
+        <div class="empty">Create a campaign before preparing adventures and quests.</div>
+    }
+    else
+    {
+        <div class="field">
+            <label for="planning-campaign">Campaign</label>
+            <select id="planning-campaign" @bind="selectedCampaignId">
+                @foreach (var campaign in Session.Workspace.Campaigns)
+                {
+                    <option value="@campaign.Id">@campaign.Name</option>
+                }
+            </select>
+        </div>
+        <div class="workbench-grid">
+            <div class="panel stack">
+                <div class="eyebrow">Adventure</div>
+                <h3>Group a playable chapter</h3>
+                <div class="field">
+                    <label for="adventure-title">Title</label>
+                    <input id="adventure-title" @bind="adventureTitle" placeholder="The Broken Gate" />
+                </div>
+                <div class="field">
+                    <label for="adventure-summary">Purpose / summary</label>
+                    <textarea id="adventure-summary" @bind="adventureSummary" placeholder="What makes this adventure worth pursuing?"></textarea>
+                </div>
+                <button @onclick="CreateAdventure" disabled="@string.IsNullOrWhiteSpace(adventureTitle)">Add adventure</button>
+            </div>
+            <div class="panel stack">
+                <div class="eyebrow">Quest</div>
+                <h3>Define playable intent</h3>
+                <div class="field">
+                    <label for="quest-adventure">Adventure (optional)</label>
+                    <select id="quest-adventure" @bind="selectedAdventureId">
+                        <option value="">Directly under campaign</option>
+                        @foreach (var adventure in SelectedCampaignAdventures)
+                        {
+                            <option value="@adventure.Id">@adventure.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="quest-title">Title</label>
+                    <input id="quest-title" @bind="questTitle" placeholder="Find the keeper" />
+                </div>
+                <div class="field">
+                    <label for="quest-summary">Summary</label>
+                    <textarea id="quest-summary" @bind="questSummary" placeholder="What are the participants trying to accomplish?"></textarea>
+                </div>
+                <button @onclick="CreateQuest" disabled="@string.IsNullOrWhiteSpace(questTitle)">Add quest</button>
+            </div>
+            <div class="panel stack">
+                <div class="eyebrow">Objective</div>
+                <h3>Give the quest useful handles</h3>
+                <div class="field">
+                    <label for="objective-quest">Quest</label>
+                    <select id="objective-quest" @bind="selectedQuestId">
+                        @foreach (var quest in SelectedCampaignQuests)
+                        {
+                            <option value="@quest.Id">@quest.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="objective-title">Title</label>
+                    <input id="objective-title" @bind="objectiveTitle" placeholder="Trace the signal" />
+                </div>
+                <div class="field">
+                    <label for="objective-description">Description</label>
+                    <textarea id="objective-description" @bind="objectiveDescription" placeholder="What evidence or progress would move this forward?"></textarea>
+                </div>
+                <button @onclick="CreateObjective" disabled="@string.IsNullOrWhiteSpace(objectiveTitle) || !Guid.TryParse(selectedQuestId, out _)">Add objective</button>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(planningMessage))
+        {
+            <p class="muted">@planningMessage</p>
+        }
+    }
+</section>
+
+<section class="panel stack" style="margin-top:1rem">
+    <div class="row">
+        <div class="grow">
             <div class="eyebrow">Campaign catalogue</div>
             <h2>Active stories</h2>
         </div>
@@ -93,6 +183,76 @@
                     @if (!string.IsNullOrWhiteSpace(campaign.Description))
                     {
                         <p>@campaign.Description</p>
+                    }
+                    <h3 style="margin-top:.8rem">Adventure and quest plan</h3>
+                    @if (!Session.Workspace.Adventures.Any(a => a.CampaignId == campaign.Id) &&
+                         !Session.Workspace.Quests.Any(q => q.CampaignId == campaign.Id))
+                    {
+                        <p class="muted">No adventures or quests yet. Use the preparation desk to shape the next playable thread.</p>
+                    }
+                    else
+                    {
+                        @foreach (var adventure in Session.Workspace.Adventures.Where(a => a.CampaignId == campaign.Id).OrderBy(a => a.Sequence))
+                        {
+                            <div class="list-item">
+                                <div class="row">
+                                    <strong>@adventure.Sequence. @adventure.Title</strong>
+                                    <span class="chip">@adventure.Status</span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(adventure.Summary))
+                                {
+                                    <p>@adventure.Summary</p>
+                                }
+                                @foreach (var quest in Session.Workspace.Quests.Where(q => q.AdventureId == adventure.Id).OrderBy(q => q.Sequence))
+                                {
+                                    <div class="list-item">
+                                        <div class="row">
+                                            <strong>Quest: @quest.Title</strong>
+                                            <span class="chip">@quest.Status</span>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(quest.Summary))
+                                        {
+                                            <p>@quest.Summary</p>
+                                        }
+                                        @foreach (var objective in Session.Workspace.QuestObjectives.Where(o => o.QuestId == quest.Id).OrderBy(o => o.Sequence))
+                                        {
+                                            <div class="row">
+                                                <span>@objective.Sequence. @objective.Title</span>
+                                                <span class="chip">@objective.Status</span>
+                                            </div>
+                                            @if (!string.IsNullOrWhiteSpace(objective.Description))
+                                            {
+                                                <p class="muted">@objective.Description</p>
+                                            }
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @foreach (var quest in Session.Workspace.Quests.Where(q => q.CampaignId == campaign.Id && q.AdventureId is null).OrderBy(q => q.Sequence))
+                        {
+                            <div class="list-item">
+                                <div class="row">
+                                    <strong>Campaign quest: @quest.Title</strong>
+                                    <span class="chip">@quest.Status</span>
+                                </div>
+                                @if (!string.IsNullOrWhiteSpace(quest.Summary))
+                                {
+                                    <p>@quest.Summary</p>
+                                }
+                                @foreach (var objective in Session.Workspace.QuestObjectives.Where(o => o.QuestId == quest.Id).OrderBy(o => o.Sequence))
+                                {
+                                    <div class="row">
+                                        <span>@objective.Sequence. @objective.Title</span>
+                                        <span class="chip">@objective.Status</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(objective.Description))
+                                    {
+                                        <p class="muted">@objective.Description</p>
+                                    }
+                                }
+                            </div>
+                        }
                     }
                     <h3 style="margin-top:.8rem">Participant choices</h3>
                     @if (!Session.Workspace.ParticipantActions.Any(a => a.CampaignId == campaign.Id))
@@ -153,6 +313,67 @@
     private string selectedCharacterId = string.Empty;
     private string actionDescription = string.Empty;
     private string message = string.Empty;
+    private string adventureTitle = string.Empty;
+    private string adventureSummary = string.Empty;
+    private string selectedAdventureId = string.Empty;
+    private string questTitle = string.Empty;
+    private string questSummary = string.Empty;
+    private string objectiveTitle = string.Empty;
+    private string objectiveDescription = string.Empty;
+    private string selectedQuestId = string.Empty;
+    private string planningMessage = string.Empty;
+
+    private IEnumerable<AdventureRecord> SelectedCampaignAdventures =>
+        Guid.TryParse(selectedCampaignId, out var campaignId)
+            ? Session.Workspace.Adventures.Where(item => item.CampaignId == campaignId).OrderBy(item => item.Sequence)
+            : Enumerable.Empty<AdventureRecord>();
+
+    private IEnumerable<QuestRecord> SelectedCampaignQuests =>
+        Guid.TryParse(selectedCampaignId, out var campaignId)
+            ? Session.Workspace.Quests.Where(item => item.CampaignId == campaignId).OrderBy(item => item.Sequence)
+            : Enumerable.Empty<QuestRecord>();
+
+    protected override void OnInitialized()
+    {
+        if (Session.Workspace.Campaigns.Count > 0)
+            selectedCampaignId = Session.Workspace.Campaigns[0].Id.ToString("D");
+    }
+
+    private void CreateAdventure()
+    {
+        if (!Guid.TryParse(selectedCampaignId, out var campaignId) || string.IsNullOrWhiteSpace(adventureTitle))
+            return;
+        var adventure = Session.CreateAdventure(campaignId, adventureTitle.Trim(), adventureSummary.Trim(),
+            Session.Workspace.Adventures.Count(item => item.CampaignId == campaignId) + 1);
+        selectedAdventureId = adventure.Id.ToString("D");
+        adventureTitle = string.Empty;
+        adventureSummary = string.Empty;
+        planningMessage = $"Adventure '{adventure.Title}' added to the campaign.";
+    }
+
+    private void CreateQuest()
+    {
+        if (!Guid.TryParse(selectedCampaignId, out var campaignId) || string.IsNullOrWhiteSpace(questTitle))
+            return;
+        Guid? adventureId = Guid.TryParse(selectedAdventureId, out var parsedAdventureId) ? parsedAdventureId : null;
+        var quest = Session.CreateQuest(campaignId, adventureId, questTitle.Trim(), questSummary.Trim(),
+            Session.Workspace.Quests.Count(item => item.CampaignId == campaignId) + 1);
+        selectedQuestId = quest.Id.ToString("D");
+        questTitle = string.Empty;
+        questSummary = string.Empty;
+        planningMessage = $"Quest '{quest.Title}' added to the campaign.";
+    }
+
+    private void CreateObjective()
+    {
+        if (!Guid.TryParse(selectedQuestId, out var questId) || string.IsNullOrWhiteSpace(objectiveTitle))
+            return;
+        var objective = Session.CreateQuestObjective(questId, objectiveTitle.Trim(), objectiveDescription.Trim(),
+            Session.Workspace.QuestObjectives.Count(item => item.QuestId == questId) + 1);
+        objectiveTitle = string.Empty;
+        objectiveDescription = string.Empty;
+        planningMessage = $"Objective '{objective.Title}' added to its quest.";
+    }
 
     private void CreateCampaign()
     {
