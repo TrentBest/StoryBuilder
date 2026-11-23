@@ -849,7 +849,8 @@ public sealed class StoryBuilderSession
         }
         foreach (var item in Workspace.Adventures) IndexAdventure(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Adventure");
         foreach (var item in Workspace.Quests) IndexQuest(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Quest");
-        foreach (var item in Workspace.QuestObjectives) IndexQuestObjective(item, Workspace.Quests.FirstOrDefault(x => x.Id == item.QuestId)?.Title ?? "Quest");\n        foreach (var item in Workspace.CampaignSessions) IndexCampaignSession(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Campaign");
+        foreach (var item in Workspace.QuestObjectives) IndexQuestObjective(item, Workspace.Quests.FirstOrDefault(x => x.Id == item.QuestId)?.Title ?? "Quest");
+        foreach (var item in Workspace.CampaignSessions) IndexCampaignSession(item, Workspace.Campaigns.FirstOrDefault(x => x.Id == item.CampaignId)?.Name ?? "Campaign");
         foreach (var action in Workspace.ParticipantActions)
         {
             var campaignName = Workspace.Campaigns.FirstOrDefault(c => c.Id == action.CampaignId)?.Name ?? "Campaign action";
