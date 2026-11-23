@@ -687,6 +687,9 @@ public sealed class StoryWorkspace
         SceneRecord scene => scene.Id,
         PageComposition composition => composition.Id,
         ParticipantAction action => action.Id,
+        AdventureRecord adventure => adventure.Id,
+        QuestRecord quest => quest.Id,
+        QuestObjectiveRecord objective => objective.Id,
         _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
     };
 
