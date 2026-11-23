@@ -124,6 +124,7 @@ public sealed class WorkspaceTests
         Assert.Throws<ArgumentOutOfRangeException>(() => workspace.AddQuestObjective(new QuestObjectiveRecord { CampaignId = campaign.Id, QuestId = quest.Id, Sequence = 0 }));
     }
 
+    [Fact]
     public void WorkspaceRejectsDuplicateIdentityWithinARecordCollection()
     {
         var workspace = new StoryWorkspace();
