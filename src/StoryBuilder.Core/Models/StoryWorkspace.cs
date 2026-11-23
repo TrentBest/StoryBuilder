@@ -188,7 +188,7 @@ public sealed class StoryWorkspace
     private readonly List<CampaignRecord> _campaigns = [];
     private readonly List<AdventureRecord> _adventures = [];
     private readonly List<QuestRecord> _quests = [];
-    private readonly List<QuestObjectiveRecord> _questObjectives = [];
+    private readonly List<QuestObjectiveRecord> _questObjectives = [];\n    private readonly List<CampaignSessionRecord> _campaignSessions = [];
     private readonly List<SourcebookAttachment> _sourcebookAttachments = [];
     private readonly List<ParticipantAction> _participantActions = [];
     private readonly List<SourceRecord> _sources = [];
@@ -219,7 +219,7 @@ public sealed class StoryWorkspace
     public IReadOnlyList<CampaignRecord> Campaigns => _campaigns.AsReadOnly();
     public IReadOnlyList<AdventureRecord> Adventures => _adventures.AsReadOnly();
     public IReadOnlyList<QuestRecord> Quests => _quests.AsReadOnly();
-    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();
+    public IReadOnlyList<QuestObjectiveRecord> QuestObjectives => _questObjectives.AsReadOnly();\n    public IReadOnlyList<CampaignSessionRecord> CampaignSessions => _campaignSessions.AsReadOnly();
     public IReadOnlyList<SourcebookAttachment> SourcebookAttachments => _sourcebookAttachments.AsReadOnly();
     public IReadOnlyList<ParticipantAction> ParticipantActions => _participantActions.AsReadOnly();
     public IReadOnlyList<SourceRecord> Sources => _sources.AsReadOnly();
@@ -503,6 +503,44 @@ public sealed class StoryWorkspace
         ReplaceById(_quests, item.Id, item, nameof(item));
     }
 
+    public void AddCampaignSession(CampaignSessionRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        EnsureUnique(_campaignSessions.Select(x => x.Id), item.Id, nameof(item));
+        if (!_campaigns.Any(x => x.Id == item.CampaignId))
+            throw new KeyNotFoundException($"Campaign '{item.CampaignId}' must exist before a session can be added.");
+        ValidateCampaignSession(item);
+        _campaignSessions.Add(item);
+    }
+
+    public void ReplaceCampaignSession(CampaignSessionRecord item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        if (!_campaigns.Any(x => x.Id == item.CampaignId))
+            throw new KeyNotFoundException($"Campaign '{item.CampaignId}' must exist before a session can be updated.");
+        ValidateCampaignSession(item);
+        ReplaceById(_campaignSessions, item.Id, item, nameof(item));
+    }
+
+    private static void ValidateCampaignSession(CampaignSessionRecord item)
+    {
+        if (item.Sequence < 1)
+            throw new ArgumentOutOfRangeException(nameof(item), "Session sequence must be positive.");
+        if ((item.Status is CampaignSessionStatus.Planned or CampaignSessionStatus.Prepared) &&
+            (item.StartedAtUtc is not null || item.EndedAtUtc is not null))
+            throw new InvalidOperationException("A planned or prepared session cannot have execution timestamps.");
+        if (item.Status is CampaignSessionStatus.InProgress or CampaignSessionStatus.Completed &&
+            item.StartedAtUtc is null)
+            throw new InvalidOperationException("An in-progress or completed session must have a start timestamp.");
+        if (item.Status == CampaignSessionStatus.InProgress && item.EndedAtUtc is not null)
+            throw new InvalidOperationException("An in-progress session cannot have an end timestamp.");
+        if (item.Status == CampaignSessionStatus.Completed && item.EndedAtUtc is null)
+            throw new InvalidOperationException("A completed session must have an end timestamp.");
+        if (item.EndedAtUtc is not null &&
+            (item.StartedAtUtc is null || item.EndedAtUtc < item.StartedAtUtc))
+            throw new InvalidOperationException("A session end timestamp must not precede its start timestamp.");
+    }
+
     public void AddQuestObjective(QuestObjectiveRecord item)
     {
         ArgumentNullException.ThrowIfNull(item);
@@ -689,7 +727,7 @@ public sealed class StoryWorkspace
         ParticipantAction action => action.Id,
         AdventureRecord adventure => adventure.Id,
         QuestRecord quest => quest.Id,
-        QuestObjectiveRecord objective => objective.Id,
+        QuestObjectiveRecord objective => objective.Id,\n        CampaignSessionRecord campaignSession => campaignSession.Id,
         _ => throw new InvalidOperationException($"ReplaceById does not support record type {typeof(T).Name}.")
     };
 
