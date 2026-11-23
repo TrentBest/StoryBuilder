@@ -115,6 +115,24 @@ public sealed class NarratorAgentTests
     }
 
     [Fact]
+    public void ManuscriptDraftSaveRejectsUnknownEventBeforeChangingTextOrProvenance()
+    {
+        var session = new StoryBuilderSession();
+        var manuscript = session.CreateManuscript("The Lost Cartographer");
+        var section = session.AddManuscriptSection(manuscript.Id, ManuscriptSectionKind.Chapter, "The North Gate");
+        var changes = 0;
+        session.Changed += () => changes++;
+
+        Assert.Throws<KeyNotFoundException>(() => session.SaveManuscriptDraft(
+            manuscript.Id, section.Sections[0].Id, "The North Gate", "Unaccepted text.", [Guid.Empty]));
+
+        var saved = Assert.Single(session.Workspace.Manuscripts).Sections.Single();
+        Assert.Empty(saved.Body);
+        Assert.Empty(saved.EventIds);
+        Assert.Equal(0, changes);
+    }
+
+    [Fact]
     public void SeparateNarratorAgentsDoNotShareIntentState()
     {
         var firstSession = new StoryBuilderSession();
